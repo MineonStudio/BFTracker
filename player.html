@@ -76,7 +76,7 @@
 
   <script type="module">
     import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS } from './js/api.js';
-    import { saveSnapshot, saveRecentSearch } from './js/storage.js';
+    import { saveSnapshot, saveRecentSearch, saveApiCache } from './js/storage.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, getUrlParams, buildPlayerUrl } from './js/utils.js';
 
     const gameSelect = document.getElementById('gameSelect');
@@ -405,7 +405,6 @@
               <div class="flex gap-4 mt-3 text-sm">
                 <div><p class="text-white font-semibold">${formatNum(humanKills)}</p><p class="text-xs text-gray-500">击杀</p></div>
                 <div><p class="text-white font-semibold">${formatNum(stats.deaths)}</p><p class="text-xs text-gray-500">死亡</p></div>
-                ${stats.infantryKillDeath != null ? `<div><p class="text-white font-semibold">${formatDecimal(stats.infantryKillDeath)}</p><p class="text-xs text-gray-500">步兵KD</p></div>` : ''}
               </div>
             </div>
             <div class="bg-dark rounded-xl p-4 flex flex-col justify-between">
@@ -453,37 +452,47 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="classCards-${platform}"></div>
         </div>
 
-        <!-- 武器 Top10 & 载具 Top10 -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="weaponVehicleSection-${platform}" style="display:none">
-          <div class="bg-card rounded-xl p-5">
+        <!-- 武器 / 载具 / 配备 三列排行 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8" id="killsSection-${platform}" style="display:none">
+          <div class="bg-card rounded-xl p-5" id="weaponPanel-${platform}" style="display:none">
             <div class="flex items-center justify-between mb-4">
-              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">武器击杀 Top 10</h2>
+              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">武器击杀排行</h2>
               <a href="${detailBase}&type=weapons" class="text-xs text-accent hover:underline">详情 →</a>
             </div>
             <div id="weaponChart-${platform}" class="chart-box-lg"></div>
           </div>
-          <div class="bg-card rounded-xl p-5">
+          <div class="bg-card rounded-xl p-5" id="vehiclePanel-${platform}" style="display:none">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">载具击杀排行</h2>
               <a href="${detailBase}&type=vehicles" class="text-xs text-accent hover:underline">详情 →</a>
             </div>
             <div id="vehicleChart-${platform}" class="chart-box-lg"></div>
           </div>
-        </div>
-
-        <!-- 配备击杀 Top10 -->
-        <div class="bg-card rounded-xl p-5 mb-8" id="gadgetSection-${platform}" style="display:none">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">配备击杀 Top 10</h2>
-            <a href="${detailBase}&type=gadgets" class="text-xs text-accent hover:underline">详情 →</a>
+          <div class="bg-card rounded-xl p-5" id="gadgetPanel-${platform}" style="display:none">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">配备击杀排行</h2>
+              <a href="${detailBase}&type=gadgets" class="text-xs text-accent hover:underline">详情 →</a>
+            </div>
+            <div id="gadgetChart-${platform}" class="chart-box-lg"></div>
           </div>
-          <div id="gadgetChart-${platform}" class="chart-box-lg"></div>
         </div>
 
-        <!-- 地图数据 -->
-        <div class="bg-card rounded-xl p-5 mb-8" id="mapSection-${platform}" style="display:none">
-          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">地图胜率</h2>
-          <div id="mapChart-${platform}" style="height:320px"></div>
+        <!-- 地图胜率 & 游戏模式胜率 左右排列 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="winRateSection-${platform}" style="display:none">
+          <div class="bg-card rounded-xl p-5" id="mapSection-${platform}" style="display:none">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">地图胜率</h2>
+              <a href="${detailBase}&type=maps" class="text-xs text-accent hover:underline">详情 →</a>
+            </div>
+            <div id="mapChart-${platform}" style="height:320px"></div>
+          </div>
+          <div class="bg-card rounded-xl p-5" id="modeSection-${platform}" style="display:none">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">游戏模式胜率</h2>
+              <a href="${detailBase}&type=gamemodes" class="text-xs text-accent hover:underline">详情 →</a>
+            </div>
+            <div id="modeChart-${platform}" style="height:320px"></div>
+          </div>
         </div>
 
         <!-- 击杀类型分布 & 兵种分布 -->
@@ -516,14 +525,6 @@
           <div id="seasonChart-${platform}" class="chart-box-lg"></div>
         </div>
 
-        <!-- 游戏模式 -->
-        <div class="bg-card rounded-xl p-5 mb-8" id="modeSection-${platform}" style="display:none">
-          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">游戏模式分析</h2>
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm" id="modeTable-${platform}"></table>
-          </div>
-        </div>
-
         <!-- 支援与目标 -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="supportSection-${platform}" style="display:none">
           <div class="bg-card rounded-xl p-5">
@@ -539,19 +540,21 @@
 
       // ── 武器 ──
       if (allData?.weapons?.length) {
-        document.getElementById(`weaponVehicleSection-${platform}`).style.display = '';
         const top10 = [...allData.weapons].filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 10).reverse();
-        renderBarChart(document.getElementById(`weaponChart-${platform}`), top10.map(w => w.weaponName), top10.map(w => w.kills));
+        if (top10.length) {
+          document.getElementById(`killsSection-${platform}`).style.display = '';
+          document.getElementById(`weaponPanel-${platform}`).style.display = '';
+          renderBarChart(document.getElementById(`weaponChart-${platform}`), top10.map(w => w.weaponName), top10.map(w => w.kills));
+        }
       }
 
       // ── 载具 ──
       if (allData?.vehicles?.length) {
         const topV = [...allData.vehicles].filter(v => v.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 10).reverse();
         if (topV.length) {
-          document.getElementById(`weaponVehicleSection-${platform}`).style.display = '';
+          document.getElementById(`killsSection-${platform}`).style.display = '';
+          document.getElementById(`vehiclePanel-${platform}`).style.display = '';
           renderBarChart(document.getElementById(`vehicleChart-${platform}`), topV.map(v => v.vehicleName), topV.map(v => v.kills), '#3b82f6');
-        } else {
-          document.getElementById(`vehicleChart-${platform}`).innerHTML = '<p class="text-gray-600 text-sm text-center pt-10">暂无载具击杀数据</p>';
         }
       }
 
@@ -560,7 +563,8 @@
         ...(allData?.gadgets || []), ...(allData?.melee || []), ...(allData?.battlePickups || []),
       ].filter(g => g.kills > 0).sort((a, b) => b.kills - a.kills);
       if (gadgetItems.length) {
-        document.getElementById(`gadgetSection-${platform}`).style.display = '';
+        document.getElementById(`killsSection-${platform}`).style.display = '';
+        document.getElementById(`gadgetPanel-${platform}`).style.display = '';
         renderBarChart(document.getElementById(`gadgetChart-${platform}`), gadgetItems.slice(0, 10).reverse().map(g => g.gadgetName || g.meleeName || g.weaponName), gadgetItems.slice(0, 10).reverse().map(g => g.kills), '#22c55e');
       }
 
@@ -718,39 +722,51 @@
         });
       }
 
-      // ── 游戏模式 ──
+      // ── 游戏模式（按胜率降序，横向柱状图）──
       const SKIP_MODES = new Set(['Official', 'All', 'Custom']);
       const gameModes = (allData?.gameModes || allData?.gamemodes || [])
         .filter(m => !SKIP_MODES.has(m.gamemodeName) && m.matches > 0)
-        .sort((a, b) => b.matches - a.matches);
+        .sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0));
       if (gameModes.length) {
+        document.getElementById(`winRateSection-${platform}`).style.display = '';
         document.getElementById(`modeSection-${platform}`).style.display = '';
-        const cols = [
-          { label: '模式',   get: m => getModeName(m.gamemodeName) },
-          { label: '场次',   get: m => formatNum(m.matches) },
-          { label: 'K/D',    get: m => formatDecimal(m.killDeath) },
-          { label: '胜率',   get: m => m.winPercent },
-          { label: 'KPM',    get: m => formatDecimal(m.kpm) },
-          { label: '击杀',   get: m => formatNum(m.kills) },
-          { label: '爆头率', get: m => m.headshots },
-          { label: '占点',   get: m => formatNum(m.objectivesCaptured) },
-          { label: '时长',   get: m => formatSeconds(m.secondsPlayed) },
-        ];
-        document.getElementById(`modeTable-${platform}`).innerHTML = `
-          <thead><tr class="border-b border-gray-700">
-            ${cols.map(c => `<th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs whitespace-nowrap">${c.label}</th>`).join('')}
-          </tr></thead>
-          <tbody>${gameModes.map(m => `
-            <tr class="border-b border-gray-700/40 hover:bg-gray-800/30">
-              ${cols.map((c, i) => `<td class="py-2 pr-4 whitespace-nowrap ${i === 0 ? 'text-white font-medium' : 'text-gray-300'}">${c.get(m)}</td>`).join('')}
-            </tr>`).join('')}
-          </tbody>`;
+        const el = document.getElementById(`modeChart-${platform}`);
+        el.style.height = Math.max(280, gameModes.length * 36 + 60) + 'px';
+        const modesAsc = [...gameModes].reverse();
+        requestAnimationFrame(() => {
+          const chart = echarts.init(el, 'dark');
+          chart.setOption({
+            backgroundColor: 'transparent',
+            grid: { left: 10, right: 80, top: 10, bottom: 30, containLabel: true },
+            xAxis: { type: 'value', max: 100, axisLabel: { color: '#9ca3af', fontSize: 11, formatter: '{value}%' }, splitLine: { lineStyle: { color: '#374151' } } },
+            yAxis: { type: 'category', data: modesAsc.map(m => getModeName(m.gamemodeName)), axisLabel: { color: '#d1d5db', fontSize: 11 }, axisTick: { show: false } },
+            series: [{
+              type: 'bar', barMaxWidth: 22,
+              data: modesAsc.map(m => parseFloat(m.winPercent) || 0),
+              itemStyle: {
+                color: params => params.value >= 50 ? '#22c55e' : params.value >= 40 ? '#facc15' : '#f87171',
+                borderRadius: [0, 4, 4, 0],
+              },
+              label: { show: true, position: 'right', color: '#9ca3af', fontSize: 11, formatter: p => `${p.value.toFixed(1)}%  ${modesAsc[p.dataIndex]?.matches}场` },
+            }],
+            tooltip: {
+              trigger: 'axis', backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' },
+              formatter: p => {
+                const m = modesAsc[p[0].dataIndex];
+                const displayName = getModeName(m.gamemodeName);
+                return `${displayName}<br/>胜率: ${m.winPercent}<br/>场次: ${m.matches} (${m.wins}胜/${m.losses}负)<br/>K/D: ${formatDecimal(m.killDeath)}<br/>时长: ${formatSeconds(m.secondsPlayed)}`;
+              },
+            },
+          });
+          window.addEventListener('resize', () => chart.resize());
+        });
       }
 
-      // ── 地图 ──（按胜率降序）
+      // ── 地图（按胜率降序）──
       const maps = (allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0)
         .sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0));
       if (maps.length) {
+        document.getElementById(`winRateSection-${platform}`).style.display = '';
         document.getElementById(`mapSection-${platform}`).style.display = '';
         const el = document.getElementById(`mapChart-${platform}`);
         el.style.height = Math.max(280, maps.length * 36 + 60) + 'px';
@@ -840,6 +856,8 @@
             fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${p}`, { signal: AbortSignal.timeout?.(15000) })
               .then(r => r.json()).catch(() => null),
           ]);
+          // 保存 API 数据到缓存
+          if (allData) saveApiCache(game, p, name, allData);
           return { platform: p, stats, allData };
         })
       );

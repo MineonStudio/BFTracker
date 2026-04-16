@@ -72,15 +72,45 @@
   <script type="module">
     import { GAME_LABELS, PLATFORM_LABELS } from './js/api.js';
     import { formatNum, formatPct, formatDecimal } from './js/utils.js';
+    import { getApiCache } from './js/storage.js';
+
+    // 地图中文名映射（从 player.html 复制）
+    const MAP_CN = {
+      'Empire State': '帝国大厦', 'Manhattan Bridge': '曼哈顿大桥', 'Mirak Valley': '米拉克山谷',
+      'REDSEC': '试炼场', 'Siege of Cairo': '开罗围城', 'Operation Firestorm': '火力风暴行动',
+      'Iberian Offensive': '伊比利亚攻势', 'Liberation Peak': '解放者山峰', 'New Sobek City': '新索贝克城',
+      'Eastwood': '东方木林', 'Blackwell Fields': '布莱克韦尔农场', 'Saints Quarter': '圣徒街区',
+      'Contaminated': '污染区', 'Hagental Base': '哈根塔尔基地',
+    };
+
+    // 游戏模式中文名映射
+    const GAMEMODE_CN = {
+      'Conquest': '征服', 'Breakthrough': '突破', 'Rush': '突袭', 'Escalation': '升级',
+      'Team Deathmatch': '团队死斗', 'Squad Deathmatch': '小队死斗', 'Deathmatch': '死斗',
+      'Domination': '抢攻', 'King of the Hill': '山丘之王', 'Gauntlet': '试炼场',
+      'Duos': '双人大逃杀', 'Quads': '四人小队大逃杀', 'Strikepoint': '打击点',
+      'Strike Point': '打击点', 'Sabotage': '破坏', 'Battle Royale': '大逃杀',
+      'Battlefield Conflict': '禁区冲突', 'Portal': '门户',
+    };
+
+    const GAMEMODE_CN_LOWER = Object.fromEntries(
+      Object.entries(GAMEMODE_CN).map(([k, v]) => [k.toLowerCase(), v])
+    );
+    function getModeName(name) {
+      if (!name) return '—';
+      return GAMEMODE_CN[name] || GAMEMODE_CN_LOWER[name.toLowerCase()] || name;
+    }
 
     const p = new URLSearchParams(window.location.search);
     const game     = p.get('game')     || 'bf6';
     const platform = p.get('platform') || 'xbox';
     const name     = p.get('name')     || '';
-    const type     = p.get('type')     || 'weapons'; // 'weapons' | 'vehicles' | 'gadgets'
+    const type     = p.get('type')     || 'weapons'; // 'weapons' | 'vehicles' | 'gadgets' | 'maps' | 'gamemodes'
 
     const isWeapon  = type === 'weapons';
     const isGadget  = type === 'gadgets';
+    const isMap     = type === 'maps';
+    const isMode    = type === 'gamemodes';
 
     // 返回链接
     document.getElementById('backLink').href =
@@ -93,9 +123,15 @@
       }
 
       try {
-        const BASE = 'https://api.gametools.network';
-        const res  = await fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${platform}`);
-        const data = await res.json();
+        // 优先从缓存读取
+        let data = getApiCache(game, platform, name);
+
+        // 缓存未命中，从 API 获取
+        if (!data) {
+          const BASE = 'https://api.gametools.network';
+          const res  = await fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${platform}`);
+          data = await res.json();
+        }
 
         let items;
         if (isWeapon) {
@@ -106,15 +142,23 @@
             ...(data.melee         || []),
             ...(data.battlePickups || []),
           ].filter(g => g.kills > 0).sort((a, b) => b.kills - a.kills);
+        } else if (isMap) {
+          items = (data.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0)
+            .sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0));
+        } else if (isMode) {
+          const SKIP = new Set(['Official', 'All', 'Custom']);
+          items = (data.gameModes || data.gamemodes || [])
+            .filter(m => !SKIP.has(m.gamemodeName) && m.matches > 0)
+            .sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0));
         } else {
           items = (data.vehicles || []).filter(v => v.kills > 0).sort((a, b) => b.kills - a.kills);
         }
 
-        const titleMap  = { weapons: '武器击杀详情', vehicles: '载具击杀详情', gadgets: '配备击杀详情' };
-        const countMap  = { weapons: '武器', vehicles: '载具', gadgets: '配备' };
+        const titleMap  = { weapons: '武器击杀详情', vehicles: '载具击杀详情', gadgets: '配备击杀详情', maps: '地图胜率详情', gamemodes: '游戏模式胜率详情' };
+        const countMap  = { weapons: '武器', vehicles: '载具', gadgets: '配备', maps: '地图', gamemodes: '模式' };
         document.getElementById('pageTitle').textContent  = `${name} · ${titleMap[type] || '详情'}`;
         document.getElementById('pageMeta').textContent   = `${GAME_LABELS[game] || game} · ${PLATFORM_LABELS[platform] || platform}`;
-        document.getElementById('totalCount').textContent = `共 ${items.length} 种${countMap[type] || ''}`;
+        document.getElementById('totalCount').textContent = `共 ${items.length} ${isMap || isMode ? '个' : '种'}${countMap[type] || ''}`;
 
         if (!items.length) {
           show('error', '暂无数据');
@@ -148,14 +192,24 @@
       const h = Math.max(400, display.length * 28 + 60);
       el.style.height = h + 'px';
 
+      // 地图/模式用胜率，其他用击杀
+      const getValue = isMap || isMode
+        ? (item => parseFloat(item.winPercent) || 0)
+        : (item => item.kills);
+
       requestAnimationFrame(() => {
         const chart = echarts.init(el, 'dark');
         chart.setOption({
           backgroundColor: 'transparent',
-          grid: { left: 10, right: 60, top: 10, bottom: 30, containLabel: true },
+          grid: { left: 10, right: 80, top: 10, bottom: 30, containLabel: true },
           xAxis: {
             type: 'value',
-            axisLabel: { color: '#9ca3af', fontSize: 11 },
+            max: isMap || isMode ? 100 : undefined,
+            axisLabel: {
+              color: '#9ca3af',
+              fontSize: 11,
+              formatter: isMap || isMode ? '{value}%' : undefined,
+            },
             splitLine: { lineStyle: { color: '#374151' } },
           },
           yAxis: {
@@ -166,20 +220,30 @@
           },
           series: [{
             type: 'bar',
-            data: display.map(w => w.kills),
+            data: display.map(getValue),
             barMaxWidth: 22,
             itemStyle: {
-              color: {
-                type: 'linear', x: 0, y: 0, x2: 1, y2: 0,
-                colorStops: isWeapon
-                  ? [{ offset: 0, color: '#ff4655' }, { offset: 1, color: '#fb923c' }]
-                  : isGadget
-                  ? [{ offset: 0, color: '#22c55e' }, { offset: 1, color: '#86efac' }]
-                  : [{ offset: 0, color: '#3b82f6' }, { offset: 1, color: '#60a5fa' }],
-              },
+              color: isMap || isMode
+                ? (params => params.value >= 50 ? '#22c55e' : params.value >= 40 ? '#facc15' : '#f87171')
+                : {
+                    type: 'linear', x: 0, y: 0, x2: 1, y2: 0,
+                    colorStops: isWeapon
+                      ? [{ offset: 0, color: '#ff4655' }, { offset: 1, color: '#fb923c' }]
+                      : isGadget
+                      ? [{ offset: 0, color: '#22c55e' }, { offset: 1, color: '#86efac' }]
+                      : [{ offset: 0, color: '#3b82f6' }, { offset: 1, color: '#60a5fa' }],
+                  },
               borderRadius: [0, 4, 4, 0],
             },
-            label: { show: true, position: 'right', color: '#9ca3af', fontSize: 11 },
+            label: {
+              show: true,
+              position: 'right',
+              color: '#9ca3af',
+              fontSize: 11,
+              formatter: isMap || isMode
+                ? (p => `${p.value.toFixed(1)}%  ${display[p.dataIndex]?.matches}场`)
+                : undefined,
+            },
           }],
           tooltip: {
             trigger: 'axis',
@@ -191,6 +255,8 @@
     }
 
     function getItemName(item) {
+      if (isMap) return MAP_CN[item.mapName] || item.mapName;
+      if (isMode) return getModeName(item.gamemodeName);
       return item.gadgetName || item.meleeName || item.weaponName || item.vehicleName || '—';
     }
 
@@ -235,9 +301,33 @@
         { label: '伤害',     get: g => formatNum(Math.round(g.damage || 0)) },
         { label: '摧毁载具', get: g => formatNum(g.vehiclesDestroyedWith) },
       ];
+      const mapAllCols = [
+        { label: '地图',     get: m => MAP_CN[m.mapName] || m.mapName },
+        { label: '胜率',     get: m => m.winPercent },
+        { label: '场次',     get: m => formatNum(m.matches) },
+        { label: '胜场',     get: m => formatNum(m.wins) },
+        { label: '负场',     get: m => formatNum(m.losses) },
+        { label: 'K/D',      get: m => formatDecimal(m.killDeath) },
+        { label: '击杀',     get: m => formatNum(m.kills) },
+        { label: 'KPM',      get: m => formatDecimal(m.kpm) },
+        { label: '时长',     get: m => formatMins(m.secondsPlayed) },
+      ];
+      const modeAllCols = [
+        { label: '模式',     get: m => getModeName(m.gamemodeName) },
+        { label: '胜率',     get: m => m.winPercent },
+        { label: '场次',     get: m => formatNum(m.matches) },
+        { label: '胜场',     get: m => formatNum(m.wins) },
+        { label: '负场',     get: m => formatNum(m.losses) },
+        { label: 'K/D',      get: m => formatDecimal(m.killDeath) },
+        { label: '击杀',     get: m => formatNum(m.kills) },
+        { label: 'KPM',      get: m => formatDecimal(m.kpm) },
+        { label: '爆头率',   get: m => m.headshots },
+        { label: '占点',     get: m => formatNum(m.objectivesCaptured) },
+        { label: '时长',     get: m => formatMins(m.secondsPlayed) },
+      ];
 
       // Filter out columns that have no data across all items
-      const allColDefs = isWeapon ? weaponAllCols : isGadget ? gadgetAllCols : vehicleAllCols;
+      const allColDefs = isWeapon ? weaponAllCols : isGadget ? gadgetAllCols : isMap ? mapAllCols : isMode ? modeAllCols : vehicleAllCols;
       const firstColLabel = allColDefs[0].label;
       const cols = allColDefs.filter((c, i) => i === 0 || hasAny(items, c.get));
 

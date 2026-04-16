@@ -2,8 +2,43 @@ const HISTORY_KEY = (game, platform, name) =>
   `bf_history_${game}_${platform}_${name.toLowerCase()}`;
 
 const RECENT_KEY = 'bf_recent_searches';
+const API_CACHE_KEY = (game, platform, name) =>
+  `bf_cache_${game}_${platform}_${name.toLowerCase()}`;
 const MAX_RECENT = 8;
 const MAX_SNAPSHOTS = 30;
+const CACHE_TTL = 5 * 60 * 1000; // 5分钟缓存
+
+// 保存 API 数据到缓存
+export function saveApiCache(game, platform, name, data) {
+  const key = API_CACHE_KEY(game, platform, name);
+  const cache = {
+    ts: Date.now(),
+    data,
+  };
+  try {
+    localStorage.setItem(key, JSON.stringify(cache));
+  } catch (e) {
+    console.warn('Cache save failed:', e);
+  }
+}
+
+// 获取 API 缓存数据
+export function getApiCache(game, platform, name) {
+  const key = API_CACHE_KEY(game, platform, name);
+  try {
+    const cached = localStorage.getItem(key);
+    if (!cached) return null;
+    const { ts, data } = JSON.parse(cached);
+    // 检查是否过期
+    if (Date.now() - ts > CACHE_TTL) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return data;
+  } catch {
+    return null;
+  }
+}
 
 // 保存一次战绩快照
 export function saveSnapshot(game, platform, name, stats) {
