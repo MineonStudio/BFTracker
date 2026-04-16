@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>详细数据 - BF Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { accent: '#ff4655', dark: '#1a1e26', card: '#242933' } } }
+    }
+  </script>
+</head>
+<body class="bg-dark text-gray-200 min-h-screen">
+
+  <!-- 导航 -->
+  <nav class="border-b border-gray-700 bg-card sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="index.html" class="text-xl font-bold gradient-text">BF Tracker</a>
+      <div class="flex gap-6 text-sm text-gray-400">
+        <a href="index.html" class="nav-link hover:text-white pb-1">首页</a>
+        <a href="compare.html" class="nav-link hover:text-white pb-1">多人对比</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-5xl mx-auto px-4 py-8">
+    <!-- 面包屑 -->
+    <div class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+      <a id="backLink" href="#" class="hover:text-accent transition-colors">← 返回玩家页面</a>
+    </div>
+
+    <!-- 加载中 -->
+    <div id="loadingState" class="flex flex-col items-center justify-center py-24 gap-4">
+      <div class="spinner"></div>
+      <p class="text-gray-500 text-sm">正在加载数据…</p>
+    </div>
+
+    <!-- 错误 -->
+    <div id="errorState" class="hidden text-center py-24">
+      <p class="text-red-400 text-lg font-semibold mb-2">加载失败</p>
+      <p id="errorMsg" class="text-gray-500 text-sm"></p>
+    </div>
+
+    <!-- 内容 -->
+    <div id="content" class="hidden">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 id="pageTitle" class="text-2xl font-bold"></h1>
+          <p id="pageMeta" class="text-gray-400 text-sm mt-1"></p>
+        </div>
+        <span id="totalCount" class="text-gray-500 text-sm"></span>
+      </div>
+
+      <!-- 图表 -->
+      <div class="bg-card rounded-2xl p-5 mb-6">
+        <div id="mainChart" style="height: 600px;"></div>
+      </div>
+
+      <!-- 表格 -->
+      <div class="bg-card rounded-2xl p-5 overflow-x-auto">
+        <table class="w-full text-sm" id="dataTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { GAME_LABELS, PLATFORM_LABELS } from './js/api.js';
+    import { formatNum, formatPct, formatDecimal } from './js/utils.js';
+
+    const p = new URLSearchParams(window.location.search);
+    const game     = p.get('game')     || 'bf6';
+    const platform = p.get('platform') || 'xbox';
+    const name     = p.get('name')     || '';
+    const type     = p.get('type')     || 'weapons'; // 'weapons' | 'vehicles' | 'gadgets'
+
+    const isWeapon  = type === 'weapons';
+    const isGadget  = type === 'gadgets';
+
+    // 返回链接
+    document.getElementById('backLink').href =
+      `player.html?game=${encodeURIComponent(game)}&platform=${encodeURIComponent(platform)}&name=${encodeURIComponent(name)}`;
+
+    async function load() {
+      if (!name) {
+        show('error', '缺少玩家参数');
+        return;
+      }
+
+      try {
+        const BASE = 'https://api.gametools.network';
+        const res  = await fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${platform}`);
+        const data = await res.json();
+
+        let items;
+        if (isWeapon) {
+          items = (data.weapons || []).filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills);
+        } else if (isGadget) {
+          items = [
+            ...(data.gadgets       || []),
+            ...(data.melee         || []),
+            ...(data.battlePickups || []),
+          ].filter(g => g.kills > 0).sort((a, b) => b.kills - a.kills);
+        } else {
+          items = (data.vehicles || []).filter(v => v.kills > 0).sort((a, b) => b.kills - a.kills);
+        }
+
+        const titleMap  = { weapons: '武器击杀详情', vehicles: '载具击杀详情', gadgets: '配备击杀详情' };
+        const countMap  = { weapons: '武器', vehicles: '载具', gadgets: '配备' };
+        document.getElementById('pageTitle').textContent  = `${name} · ${titleMap[type] || '详情'}`;
+        document.getElementById('pageMeta').textContent   = `${GAME_LABELS[game] || game} · ${PLATFORM_LABELS[platform] || platform}`;
+        document.getElementById('totalCount').textContent = `共 ${items.length} 种${countMap[type] || ''}`;
+
+        if (!items.length) {
+          show('error', '暂无数据');
+          return;
+        }
+
+        renderChart(items);
+        renderTable(items);
+
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('content').classList.remove('hidden');
+
+      } catch (err) {
+        show('error', err.message);
+      }
+    }
+
+    function show(state, msg = '') {
+      document.getElementById('loadingState').classList.add('hidden');
+      if (state === 'error') {
+        document.getElementById('errorState').classList.remove('hidden');
+        document.getElementById('errorMsg').textContent = msg;
+      }
+    }
+
+    function renderChart(items) {
+      // 最多展示 40 条，超出的折叠进图表滚动
+      const display = items.slice(0, 40).reverse();
+      const el = document.getElementById('mainChart');
+      // 动态高度：每条 28px，最小 400px
+      const h = Math.max(400, display.length * 28 + 60);
+      el.style.height = h + 'px';
+
+      requestAnimationFrame(() => {
+        const chart = echarts.init(el, 'dark');
+        chart.setOption({
+          backgroundColor: 'transparent',
+          grid: { left: 10, right: 60, top: 10, bottom: 30, containLabel: true },
+          xAxis: {
+            type: 'value',
+            axisLabel: { color: '#9ca3af', fontSize: 11 },
+            splitLine: { lineStyle: { color: '#374151' } },
+          },
+          yAxis: {
+            type: 'category',
+            data: display.map(w => getItemName(w)),
+            axisLabel: { color: '#d1d5db', fontSize: 11 },
+            axisTick: { show: false },
+          },
+          series: [{
+            type: 'bar',
+            data: display.map(w => w.kills),
+            barMaxWidth: 22,
+            itemStyle: {
+              color: {
+                type: 'linear', x: 0, y: 0, x2: 1, y2: 0,
+                colorStops: isWeapon
+                  ? [{ offset: 0, color: '#ff4655' }, { offset: 1, color: '#fb923c' }]
+                  : isGadget
+                  ? [{ offset: 0, color: '#22c55e' }, { offset: 1, color: '#86efac' }]
+                  : [{ offset: 0, color: '#3b82f6' }, { offset: 1, color: '#60a5fa' }],
+              },
+              borderRadius: [0, 4, 4, 0],
+            },
+            label: { show: true, position: 'right', color: '#9ca3af', fontSize: 11 },
+          }],
+          tooltip: {
+            trigger: 'axis',
+            backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' },
+          },
+        });
+        window.addEventListener('resize', () => chart.resize());
+      });
+    }
+
+    function getItemName(item) {
+      return item.gadgetName || item.meleeName || item.weaponName || item.vehicleName || '—';
+    }
+
+    function hasAny(arr, getter) {
+      return arr.some(x => { const v = getter(x); return v != null && v !== '—' && v !== '-' && v !== '0' && v !== formatNum(0); });
+    }
+
+    function renderTable(items) {
+      const weaponAllCols = [
+        { label: '武器',     get: w => w.weaponName },
+        { label: '击杀',     get: w => formatNum(w.kills) },
+        { label: 'KPM',      get: w => formatDecimal(w.killsPerMinute ?? w.kpm) },
+        { label: '命中率',   get: w => formatPct(w.accuracy) },
+        { label: '爆头率',   get: w => formatPct(w.headshots) },
+        { label: '爆头数',   get: w => formatNum(w.headShots ?? w.headshots_count) },
+        { label: '瞄镜击杀', get: w => formatNum(w.scopedKills) },
+        { label: '腰射击杀', get: w => formatNum(w.hipfireKills) },
+        { label: '身体击杀', get: w => formatNum(w.bodyKills) },
+        { label: '伤害',     get: w => w.damage ? formatNum(Math.round(w.damage)) : '—' },
+        { label: '助攻',     get: w => formatNum(w.assists) },
+        { label: '使用时长', get: w => w.secondsPlayed ? formatMins(w.secondsPlayed) : (w.timeEquipped ? formatMins(w.timeEquipped) : '—') },
+      ];
+      const vehicleAllCols = [
+        { label: '载具',     get: v => v.vehicleName },
+        { label: '击杀',     get: v => formatNum(v.kills) },
+        { label: 'KPM',      get: v => formatDecimal(v.killsPerMinute ?? v.kpm) },
+        { label: '摧毁',     get: v => formatNum(v.destroyed) },
+        { label: '路杀',     get: v => formatNum(v.roadKills ?? v.roadkills) },
+        { label: '乘客击杀', get: v => formatNum(v.passengerKills ?? v.passenger_kills) },
+        { label: '出生次数', get: v => formatNum(v.spawns) },
+        { label: '伤害',     get: v => v.damage ? formatNum(Math.round(v.damage)) : '—' },
+        { label: '行驶距离', get: v => v.distanceTraveled ? formatNum(Math.round(v.distanceTraveled)) + ' m' : '—' },
+        { label: '使用时长', get: v => v.secondsPlayed ? formatMins(v.secondsPlayed) : (v.timeIn ? formatMins(v.timeIn) : '—') },
+      ];
+      const gadgetAllCols = [
+        { label: '配备',     get: g => getItemName(g) },
+        { label: '类型',     get: g => g.type || '—' },
+        { label: '击杀',     get: g => formatNum(g.kills) },
+        { label: 'KPM',      get: g => formatDecimal(g.kpm) },
+        { label: '使用次数', get: g => formatNum(g.uses) },
+        { label: '助攻',     get: g => formatNum(g.assists) },
+        { label: '伤害',     get: g => formatNum(Math.round(g.damage || 0)) },
+        { label: '摧毁载具', get: g => formatNum(g.vehiclesDestroyedWith) },
+      ];
+
+      // Filter out columns that have no data across all items
+      const allColDefs = isWeapon ? weaponAllCols : isGadget ? gadgetAllCols : vehicleAllCols;
+      const firstColLabel = allColDefs[0].label;
+      const cols = allColDefs.filter((c, i) => i === 0 || hasAny(items, c.get));
+
+      document.getElementById('tableHead').innerHTML = `
+        <tr class="border-b border-gray-700">
+          ${cols.map(c => `<th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">${c.label}</th>`).join('')}
+        </tr>`;
+
+      document.getElementById('tableBody').innerHTML = items.map((item, idx) => `
+        <tr class="border-b border-gray-700/40 hover:bg-gray-800/30">
+          ${cols.map((c, ci) => `
+            <td class="py-2 pr-4 ${ci === 0 ? 'text-gray-200 font-medium' : ci === 1 ? 'text-white font-semibold' : 'text-gray-400'}">
+              ${ci === 0 ? `<span class="text-gray-600 text-xs mr-2">${idx + 1}</span>` : ''}${c.get(item)}
+            </td>`).join('')}
+        </tr>`).join('');
+    }
+
+    function formatMins(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      return h > 0 ? `${h}h ${m}m` : `${m}m`;
+    }
+
+    load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>多人对比 - BF Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { accent: '#ff4655', dark: '#1a1e26', card: '#242933' } } }
+    }
+  </script>
+</head>
+<body class="bg-dark text-gray-200 min-h-screen">
+
+  <!-- 导航 -->
+  <nav class="border-b border-gray-700 bg-card sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="index.html" class="text-xl font-bold gradient-text">BF Tracker</a>
+      <div class="flex gap-6 text-sm text-gray-400">
+        <a href="index.html" class="nav-link hover:text-white pb-1">首页</a>
+        <a href="compare.html" class="nav-link active pb-1">多人对比</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold">多玩家对比</h1>
+      <span class="text-gray-500 text-sm">最多同时对比 4 名玩家</span>
+    </div>
+
+    <!-- 游戏选择 -->
+    <div class="bg-card rounded-xl p-4 mb-6 flex items-center gap-4">
+      <span class="text-sm text-gray-400">游戏:</span>
+      <select id="gameSelect" class="bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"></select>
+    </div>
+
+    <!-- 玩家输入槽 -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="playerSlots"></div>
+
+    <!-- 查询按钮 -->
+    <div class="flex justify-center mb-8">
+      <button id="compareBtn"
+        class="bg-accent hover:bg-red-500 text-white font-semibold px-10 py-3 rounded-xl text-sm transition-colors">
+        开始对比
+      </button>
+    </div>
+
+    <!-- 加载中 -->
+    <div id="loadingState" class="hidden flex-col items-center py-16 gap-4">
+      <div class="spinner"></div>
+      <p class="text-gray-500 text-sm">正在查询所有玩家数据…</p>
+    </div>
+
+    <!-- 结果区 -->
+    <div id="results" class="hidden">
+      <!-- 雷达图 -->
+      <div class="bg-card rounded-xl p-5 mb-6">
+        <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">六维能力雷达图</h2>
+        <div id="radarChart" class="radar-box"></div>
+      </div>
+
+      <!-- 对比表格 -->
+      <div class="bg-card rounded-xl p-5 overflow-x-auto">
+        <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">数据对比</h2>
+        <table class="w-full text-sm" id="compareTable">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS } from './js/api.js';
+    import { saveSnapshot, saveRecentSearch } from './js/storage.js';
+    import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, buildPlayerUrl } from './js/utils.js';
+
+    const MAX = 4;
+    const COLORS = ['#ff4655', '#3b82f6', '#22c55e', '#f59e0b'];
+
+    // 填充游戏下拉
+    const gameSelect = document.getElementById('gameSelect');
+    Object.entries(GAME_LABELS).forEach(([val, label]) => {
+      gameSelect.innerHTML += `<option value="${val}">${label}</option>`;
+    });
+
+    // 从 URL 预填第一个玩家
+    const urlParams = new URLSearchParams(window.location.search);
+    const preGame     = urlParams.get('p1game')     || 'bf6';
+    const prePlatform = urlParams.get('p1platform') || 'xbox';
+    const preName     = urlParams.get('p1name')     || '';
+    gameSelect.value = preGame;
+
+    // 渲染玩家输入槽
+    function renderSlots() {
+      const game = gameSelect.value;
+      const platforms = GAME_PLATFORMS[game] || ['pc'];
+      const slotsEl = document.getElementById('playerSlots');
+      slotsEl.innerHTML = '';
+      for (let i = 0; i < MAX; i++) {
+        const isFirst = i === 0;
+        const div = document.createElement('div');
+        div.className = 'bg-card border border-gray-700 rounded-xl p-4';
+        div.innerHTML = `
+          <p class="text-xs font-semibold mb-3" style="color:${COLORS[i]}">玩家 ${i + 1}${i > 1 ? ' <span class="text-gray-600 font-normal">（可选）</span>' : ''}</p>
+          <input type="text" placeholder="用户名" value="${isFirst ? preName : ''}"
+            data-slot="${i}" data-field="name"
+            class="search-input w-full bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:border-accent" />
+          <select data-slot="${i}" data-field="platform"
+            class="w-full bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent">
+            ${platforms.map(p => `<option value="${p}" ${p === (isFirst ? prePlatform : 'xbox') ? 'selected' : ''}>${PLATFORM_LABELS[p]}</option>`).join('')}
+          </select>
+        `;
+        slotsEl.appendChild(div);
+      }
+    }
+    renderSlots();
+    gameSelect.addEventListener('change', renderSlots);
+
+    function getSlotValues() {
+      const game = gameSelect.value;
+      const result = [];
+      for (let i = 0; i < MAX; i++) {
+        const name = document.querySelector(`[data-slot="${i}"][data-field="name"]`)?.value.trim();
+        const platform = document.querySelector(`[data-slot="${i}"][data-field="platform"]`)?.value;
+        if (name) result.push({ game, platform, name });
+      }
+      return result;
+    }
+
+    // 雷达图
+    function renderRadar(players, statsArr) {
+      const chart = echarts.init(document.getElementById('radarChart'), 'dark');
+
+      // 指标最大值取所有玩家最大
+      const maxKd  = Math.max(...statsArr.map(s => s.killDeath || 0), 1) * 1.2;
+      const maxKpm = Math.max(...statsArr.map(s => s.killsPerMinute || 0), 1) * 1.2;
+      const maxAcc = 100;
+      const maxWin = 100;
+      const maxRev = Math.max(...statsArr.map(s => s.revives || 0), 1) * 1.2;
+      const maxHs  = 100;
+
+      chart.setOption({
+        backgroundColor: 'transparent',
+        legend: {
+          data: players.map(p => p.name),
+          textStyle: { color: '#9ca3af' },
+          bottom: 0,
+        },
+        radar: {
+          indicator: [
+            { name: 'K/D',    max: maxKd },
+            { name: 'KPM',    max: maxKpm },
+            { name: '命中率', max: maxAcc },
+            { name: '胜率',   max: maxWin },
+            { name: '复活贡献', max: maxRev },
+            { name: '爆头率', max: maxHs },
+          ],
+          axisName: { color: '#d1d5db', fontSize: 12 },
+          splitLine: { lineStyle: { color: '#374151' } },
+          splitArea: { areaStyle: { color: ['rgba(55,65,81,.1)', 'rgba(55,65,81,.2)'] } },
+          axisLine: { lineStyle: { color: '#374151' } },
+        },
+        series: [{
+          type: 'radar',
+          data: statsArr.map((s, i) => ({
+            name: players[i].name,
+            value: [
+              parseFloat(s.killDeath) || 0,
+              parseFloat(s.killsPerMinute) || 0,
+              parseFloat(s.accuracy) || 0,
+              parseFloat(s.winPercent) || (s.wins / (s.wins + s.loses) * 100) || 0,
+              s.revives || 0,
+              parseFloat(s.headshots) || 0,
+            ],
+            lineStyle: { color: COLORS[i], width: 2 },
+            areaStyle: { color: COLORS[i], opacity: .15 },
+            itemStyle: { color: COLORS[i] },
+          })),
+        }],
+        tooltip: { backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' } },
+      });
+      window.addEventListener('resize', () => chart.resize());
+    }
+
+    // 对比表格
+    function renderTable(players, statsArr) {
+      const metrics = [
+        { label: 'K/D',        get: s => ({ val: formatDecimal(s.killDeath),      raw: s.killDeath }),       higher: true },
+        { label: '步兵K/D',    get: s => ({ val: formatDecimal(s.infantryKillDeath), raw: s.infantryKillDeath }), higher: true },
+        { label: '胜率',       get: s => ({ val: formatPct(s.winPercent),          raw: parseFloat(s.winPercent) }), higher: true },
+        { label: '击杀数',     get: s => ({ val: formatNum(s.kills),               raw: s.kills }),            higher: true },
+        { label: '死亡数',     get: s => ({ val: formatNum(s.deaths),              raw: s.deaths }),           higher: false },
+        { label: 'KPM',        get: s => ({ val: formatDecimal(s.killsPerMinute),  raw: s.killsPerMinute }),   higher: true },
+        { label: '命中率',     get: s => ({ val: formatPct(s.accuracy),            raw: parseFloat(s.accuracy) }), higher: true },
+        { label: '爆头率',     get: s => ({ val: formatPct(s.headshots),           raw: parseFloat(s.headshots) }), higher: true },
+        { label: '场均击杀',   get: s => ({ val: formatDecimal(s.killsPerMatch),   raw: s.killsPerMatch }),    higher: true },
+        { label: '场均伤害',   get: s => ({ val: formatNum(Math.round(s.damagePerMatch)), raw: s.damagePerMatch }), higher: true },
+        { label: '对局数',     get: s => ({ val: formatNum(s.matchesPlayed),       raw: s.matchesPlayed }),    higher: true },
+        { label: '游戏时长',   get: s => ({ val: formatSeconds(s.secondsPlayed),   raw: s.secondsPlayed }),    higher: true },
+        { label: '复活次数',   get: s => ({ val: formatNum(s.revives),             raw: s.revives }),          higher: true },
+        { label: '治疗次数',   get: s => ({ val: formatNum(s.heals),               raw: s.heals }),            higher: true },
+        { label: '总伤害',     get: s => ({ val: formatNum(s.damage),              raw: s.damage }),           higher: true },
+      ];
+
+      const thead = document.querySelector('#compareTable thead');
+      const tbody = document.querySelector('#compareTable tbody');
+
+      thead.innerHTML = `<tr class="border-b border-gray-700">
+        <th class="text-left py-2 pr-4 text-gray-500 font-medium w-28">指标</th>
+        ${players.map((p, i) => `
+          <th class="text-center py-2 px-3 font-semibold" style="color:${COLORS[i]}">
+            <a href="${buildPlayerUrl(p.game, p.name)}" class="hover:underline">${p.name}</a>
+            <div class="text-xs font-normal text-gray-500">${PLATFORM_LABELS[p.platform] || p.platform}</div>
+          </th>`).join('')}
+      </tr>`;
+
+      tbody.innerHTML = metrics.map(m => {
+        const cells = statsArr.map(s => m.get(s));
+        const raws  = cells.map(c => c.raw ?? 0).map(Number);
+        const best  = m.higher ? Math.max(...raws) : Math.min(...raws);
+        return `<tr class="border-b border-gray-700/40 hover:bg-gray-800/30">
+          <td class="py-2 pr-4 text-gray-400 text-xs">${m.label}</td>
+          ${cells.map((c, i) => {
+            const isBest = raws.length > 1 && raws[i] === best;
+            return `<td class="text-center py-2 px-3 ${isBest ? 'best-val' : 'text-gray-200'}">${c.val}</td>`;
+          }).join('')}
+        </tr>`;
+      }).join('');
+    }
+
+    // 主逻辑
+    document.getElementById('compareBtn').addEventListener('click', async () => {
+      const players = getSlotValues();
+      if (players.length < 2) {
+        alert('请至少输入 2 名玩家');
+        return;
+      }
+
+      document.getElementById('results').classList.add('hidden');
+      const loadingEl = document.getElementById('loadingState');
+      loadingEl.classList.remove('hidden');
+      loadingEl.classList.add('flex');
+
+      try {
+        const statsArr = await Promise.all(
+          players.map(p => getStats(p.game, p.name, p.platform).then(s => {
+            saveSnapshot(p.game, p.platform, p.name, s);
+            saveRecentSearch(p.game, p.platform, p.name);
+            return s;
+          }))
+        );
+
+        loadingEl.classList.add('hidden');
+        loadingEl.classList.remove('flex');
+        document.getElementById('results').classList.remove('hidden');
+
+        renderRadar(players, statsArr);
+        renderTable(players, statsArr);
+      } catch (err) {
+        loadingEl.classList.add('hidden');
+        loadingEl.classList.remove('flex');
+        alert('查询失败：' + err.message);
+      }
+    });
+
+    // URL 预填时自动触发对比
+    if (preName) {
+      setTimeout(() => document.getElementById('compareBtn').click(), 100);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>玩家战绩 - BF Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { accent: '#ff4655', dark: '#1a1e26', card: '#242933' } } }
+    }
+  </script>
+</head>
+<body class="bg-dark text-gray-200 min-h-screen">
+
+  <!-- 导航 -->
+  <nav class="border-b border-gray-700 bg-card sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="index.html" class="text-xl font-bold gradient-text">BF Tracker</a>
+      <div class="flex gap-6 text-sm text-gray-400">
+        <a href="index.html" class="nav-link hover:text-white pb-1">首页</a>
+        <a href="compare.html" class="nav-link hover:text-white pb-1">多人对比</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 顶部搜索栏 -->
+  <div class="bg-card border-b border-gray-700">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap gap-2 items-center">
+      <select id="gameSelect" class="bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"></select>
+      <input id="nameInput" type="text" placeholder="玩家用户名"
+        class="search-input bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm flex-1 min-w-[140px] focus:outline-none focus:border-accent" />
+      <button id="searchBtn" class="bg-accent hover:bg-red-500 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors">查询</button>
+      <a id="compareBtn" href="#" class="border border-gray-600 hover:border-accent text-gray-400 hover:text-accent px-4 py-2 rounded-lg text-sm transition-colors">加入对比</a>
+    </div>
+  </div>
+
+  <!-- 主体 -->
+  <div class="max-w-5xl mx-auto px-4 py-8" id="main">
+
+    <!-- 加载中 -->
+    <div id="loadingState" class="flex flex-col items-center justify-center py-24 gap-4">
+      <div class="spinner"></div>
+      <p id="loadingMsg" class="text-gray-500 text-sm">正在查询全平台数据…</p>
+    </div>
+
+    <!-- 错误 -->
+    <div id="errorState" class="hidden text-center py-20">
+      <p class="text-4xl mb-4">🔍</p>
+      <p id="errorTitle" class="text-white text-lg font-semibold mb-2">未找到玩家</p>
+      <p id="errorMsg" class="text-gray-400 text-sm mb-6"></p>
+      <div id="errorTips" class="text-left inline-block bg-card rounded-xl p-5 text-sm text-gray-400 space-y-2 max-w-sm"></div>
+    </div>
+
+    <!-- 内容 -->
+    <div id="content" class="hidden">
+
+      <!-- 玩家头部 + Tabs 同行 -->
+      <div class="flex items-center gap-4 mb-6 fade-up">
+        <img id="playerAvatar" src="" alt="avatar" class="w-16 h-16 rounded-full bg-gray-700 object-cover">
+        <div>
+          <h1 id="playerName" class="text-2xl font-bold"></h1>
+          <p id="playerMeta" class="text-gray-400 text-sm mt-0.5"></p>
+        </div>
+        <!-- 平台 Tabs -->
+        <div id="tabsBar" class="hidden ml-auto flex gap-2 flex-wrap justify-end"></div>
+      </div>
+
+      <!-- Tab 内容区 -->
+      <div id="tabPanel"></div>
+
+    </div>
+  </div>
+
+  <script type="module">
+    import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS } from './js/api.js';
+    import { saveSnapshot, saveRecentSearch } from './js/storage.js';
+    import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, getUrlParams, buildPlayerUrl } from './js/utils.js';
+
+    const gameSelect = document.getElementById('gameSelect');
+    const nameInput  = document.getElementById('nameInput');
+    const searchBtn  = document.getElementById('searchBtn');
+
+    // 填充游戏下拉
+    Object.entries(GAME_LABELS).forEach(([val, label]) => {
+      gameSelect.innerHTML += `<option value="${val}">${label}</option>`;
+    });
+
+    // 从 URL 初始化
+    const { game, name } = getUrlParams();
+    gameSelect.value = game;
+    nameInput.value  = name;
+
+    // 搜索
+    function doSearch() {
+      const n = nameInput.value.trim();
+      if (!n) return;
+      window.location.href = buildPlayerUrl(gameSelect.value, n);
+    }
+    searchBtn.addEventListener('click', doSearch);
+    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+    // 对比按钮（使用第一个找到平台）
+    document.getElementById('compareBtn').addEventListener('click', e => {
+      e.preventDefault();
+      window.location.href = `compare.html?p1game=${encodeURIComponent(game)}&p1name=${encodeURIComponent(name)}`;
+    });
+
+    // ─── 图表渲染 ───────────────────────────────────────────
+    function renderBarChart(el, labels, values, color = '#ff4655') {
+      requestAnimationFrame(() => {
+        const chart = echarts.init(el, 'dark');
+        chart.setOption({
+          backgroundColor: 'transparent',
+          grid: { left: 10, right: 50, top: 10, bottom: 10, containLabel: true },
+          xAxis: { type: 'value', axisLabel: { color: '#9ca3af', fontSize: 11 }, splitLine: { lineStyle: { color: '#374151' } } },
+          yAxis: { type: 'category', data: labels, axisLabel: { color: '#d1d5db', fontSize: 11 }, axisTick: { show: false } },
+          series: [{
+            type: 'bar', data: values, barMaxWidth: 24,
+            itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color }, { offset: 1, color: '#fb923c' }] }, borderRadius: [0, 4, 4, 0] },
+            label: { show: true, position: 'right', color: '#9ca3af', fontSize: 11 },
+          }],
+          tooltip: { trigger: 'axis', backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' } },
+        });
+        window.addEventListener('resize', () => chart.resize());
+      });
+    }
+
+    function renderPieChart(el, items) {
+      requestAnimationFrame(() => {
+        const chart = echarts.init(el, 'dark');
+        chart.setOption({
+          backgroundColor: 'transparent',
+          tooltip: { trigger: 'item', backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' } },
+          legend: { orient: 'vertical', right: '5%', top: 'middle', textStyle: { color: '#9ca3af', fontSize: 11 } },
+          series: [{
+            type: 'pie', radius: ['38%', '65%'], center: ['38%', '50%'],
+            data: items,
+            label: { show: true, formatter: '{d}%', fontSize: 11, color: '#d1d5db' },
+            labelLine: { lineStyle: { color: '#4b5563' } },
+            emphasis: { itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,.5)' } },
+          }],
+        });
+        window.addEventListener('resize', () => chart.resize());
+      });
+    }
+
+    // ─── 渲染单个平台的完整内容 ──────────────────────────────
+    const CLASS_CN = {
+      'Assault': '突击兵', 'Engineer': '工程师', 'Support': '支援兵',
+      'Recon': '侦察兵', 'Commander': '指挥官', 'Specialist': '特种兵',
+    };
+
+    // 地图官方中文名
+    const MAP_CN = {
+      // BF2042
+      'Breakaway': '断裂区',
+      'Discarded': '废弃船厂',
+      'Exposure': '极地之眼',
+      'Hourglass': '沙漏',
+      'Kaleidoscope': '万花筒',
+      'Manifest': '货运码头',
+      'Orbital': '轨道',
+      'Renewal': '更新',
+      'Stranded': '搁浅',
+      'Spearhead': '矛尖',
+      'Flashpoint': '闪点',
+      'Redacted': '机密',
+      'Reclaimed': '复垦区',
+      'Haven': '天堂',
+      'Caspian Border 2042': '里海边境 2042',
+      'Valparaíso 2042': '瓦尔帕莱索 2042',
+      'Arica Harbor 2042': '阿里卡港 2042',
+      'Noshahr Canals 2042': '诺沙尔运河 2042',
+      'El Alamein 2042': '阿拉曼 2042',
+      // BFV
+      'Aerodrome': '机场',
+      'Al Sundan': '苏丹',
+      'Arras': '阿拉斯',
+      'Devastation': '废墟',
+      'Fjell 652': '652高地',
+      'Hamada': '哈马达',
+      'Iwo Jima': '硫磺岛',
+      'Lofoten Islands': '罗弗敦群岛',
+      'Marita': '马里塔',
+      'Mercury': '墨丘利',
+      'Narvik': '纳尔维克',
+      'Operation Underground': '地下行动',
+      'Pacific Storm': '太平洋风暴',
+      'Panzerstorm': '装甲风暴',
+      'Rotterdam': '鹿特丹',
+      'Twisted Steel': '扭曲钢铁',
+      // BF1
+      'Amiens': '亚眠',
+      'Argonne Forest': '阿尔贡森林',
+      'Ballroom Blitz': '舞厅闪电战',
+      'Brusilov Keep': '布鲁西洛夫防线',
+      'Cape Helles': '海莱斯角',
+      "Empire's Edge": '帝国边缘',
+      'Fao Fortress': '法奥要塞',
+      'Fort De Vaux': '沃克斯堡',
+      'Giant\'s Shadow': '巨人阴影',
+      'Galicia': '加利西亚',
+      'Lupkow Pass': '卢普科夫山口',
+      'Monte Grappa': '格拉帕山',
+      'Nivelle Nights': '尼维尔之夜',
+      'Oil of Empires': '帝国之油',
+      'Operation Kaiserschlacht': '皇帝会战',
+      'Passchendaele': '帕斯尚尔',
+      'Piave Crossing': '皮亚韦渡口',
+      'Razor\'s Edge': '刀锋',
+      'River Somme': '索姆河',
+      'Rupture': '断层',
+      'Sinai Desert': '西奈沙漠',
+      'St. Quentin Scar': '圣康坦疤痕',
+      'Suez': '苏伊士',
+      'Verdun Heights': '凡尔登高地',
+      'Volga River': '伏尔加河',
+      'Łódź': '罗兹',
+      // BF4
+      'Altai Range': '阿尔泰山脉',
+      'Caspian Border': '里海边境',
+      'Dawnbreaker': '黎明破碎',
+      'Dragon Pass': '龙之通道',
+      'Dragon\'s Teeth': '龙牙',
+      'Flood Zone': '洪水区',
+      'Golmud Railway': '戈壁铁路',
+      'Guilin Peaks': '桂林峰林',
+      'Hainan Resort': '海南度假村',
+      'Hammerhead': '锤头',
+      'Lancang Dam': '澜沧江大坝',
+      'Leviathan': '利维坦',
+      'Locker': '监狱',
+      'Lost Islands': '失落群岛',
+      'Lumphini Garden': '伦披尼花园',
+      'Nansha Strike': '南沙突袭',
+      'Operation Firestorm': '火力风暴行动',
+      'Operation Locker': '行动：监狱',
+      'Operation Mortar': '迫击炮行动',
+      'Outbreak': '爆发',
+      'Paracel Storm': '西沙风暴',
+      'Pearl Market': '珍珠市场',
+      'Propaganda': '宣传',
+      'Rogue Transmission': '流氓传输',
+      'Siege of Shanghai': '上海之围',
+      'Sunken Dragon': '沉龙',
+      'Stormy Waters': '风暴海域',
+      'Taipan': '太攀蛇',
+      'Tashgar': '塔什干',
+      'Wave Breaker': '破浪',
+      'Wavebreaker': '破浪',
+      'Zavod 311': '扎沃德 311',
+      'Zavod: Graveyard Shift': '扎沃德：夜班',
+      // BF3
+      'Caspian Border BF3': '里海边境',
+      'Operation Métro': '地铁行动',
+      'Operation Metro': '地铁行动',
+      'Tehran Highway': '德黑兰公路',
+      'Noshahr Canals': '诺沙尔运河',
+      'Grand Bazaar': '大巴扎',
+      'Seine Crossing': '塞纳河渡口',
+      'Damavand Peak': '达马万峰',
+      'Back to Karkand': '重返卡尔干德',
+      'Strike at Karkand': '卡尔干德突袭',
+      'Gulf of Oman': '阿曼湾',
+      'Sharqi Peninsula': '沙尔奇半岛',
+      'Wake Island': '维克岛',
+      'Kharg Island': '哈尔克岛',
+      'Armored Shield': '装甲盾牌',
+      'Death Valley': '死亡谷',
+      'Alborz Mountains': '阿尔波兹山脉',
+      'Bandar Desert': '班达尔沙漠',
+      'Epicenter': '震中',
+      'Markaz Monolith': '马尔卡兹独石',
+      'Ziba Tower': '齐巴塔楼',
+      'Fire by Night': '夜间火力',
+      'Donya Fortress': '多尼亚要塞',
+      'Nebandan Flats': '内班丹平地',
+      'Talah Market': '塔拉集市',
+      // BF6
+      'Empire State': '帝国大厦',
+      'Manhattan Bridge': '曼哈顿大桥',
+      'Mirak Valley': '米拉克山谷',
+      'REDSEC': '试炼场',
+      'Siege of Cairo': '开罗围城',
+      'Operation Firestorm': '火力风暴行动',
+      'Iberian Offensive': '伊比利亚攻势',
+      'Liberation Peak': '解放者山峰',
+      'New Sobek City': '新索贝克城',
+      'Eastwood': '东方木林',
+      'Blackwell Fields': '布莱克韦尔农场',
+      'Saints Quarter': '圣徒街区',
+      'Contaminated': '污染区',
+      'Hagental Base': '哈根塔尔基地',
+    };
+
+    // 游戏模式官方中文名
+    const GAMEMODE_CN = {
+      // ── BF6 官方中文（优先级最高，覆盖旧游戏同名模式）──
+      'Conquest': '征服',
+      'Breakthrough': '突破',
+      'Rush': '突袭',
+      'Escalation': '升级',
+      'Team Deathmatch': '团队死斗',
+      'Squad Deathmatch': '小队死斗',
+      'Deathmatch': '死斗',
+      'Domination': '抢攻',
+      'King of the Hill': '山丘之王',
+      'Gauntlet': '试炼场',
+      'REDSEC': '试炼场',
+      'Redsec': '试炼场',
+      'Duos': '双人大逃杀',
+      'Quads': '四人小队大逃杀',
+      'Strikepoint': '打击点',
+      'Strike Point': '打击点',
+      'Redsec Duo': '双人大逃杀',
+      'Redsec Squad': '四人小队大逃杀',
+      'Sabotage': '破坏',
+      'Battle Royale': '大逃杀',
+      'Battlefield Conflict': '禁区冲突',
+      'Portal': '门户',
+      'Recon': '侦察',
+      'Recon HQ': '侦察总部',
+      // ── BF2042 ──
+      'Hazard Zone': '危险区域',
+      'All-Out Warfare': '全面战争',
+      'Sector Control': '区域控制',
+      // ── BFV ──
+      'Frontlines': '前线',
+      'Squad Conquest': '小队征服',
+      'Operations': '战役行动',
+      'Grand Operations': '大型战役行动',
+      'Firestorm': '火线风暴',
+      'Airborne': '空降',
+      'Outpost': '前哨战',
+      'Last Stand': '最后防线',
+      // ── BF1 ──
+      'War Pigeons': '战鸽传书',
+      'Air Assault': '空中突袭',
+      'Shock Operations': '突击战役行动',
+      'Supply Drop': '物资投放',
+      'Possession': '占有',
+      // ── BF4 ──
+      'Obliteration': '消灭战',
+      'Air Superiority': '空中优势',
+      'Carrier Assault': '航母突袭',
+      'Carrier Assault Large': '大型航母突袭',
+      'Carrier Assault Small': '小型航母突袭',
+      'Chain Link': '链式连接',
+      'Squad Rush': '小队突袭',
+      'Tactical Conquest': '战术征服',
+      'Conquest Large': '大型征服',
+      'Conquest Small': '小型征服',
+      'Conquest Assault': '攻势征服',
+      'Gun Master': '枪械大师',
+      'Gunmaster': '枪械大师',
+      'Defuse': '拆弹',
+      'Capture the Flag': '夺旗',
+      // ── BF3 ──
+      'Squad Team Deathmatch': '小队团队死斗',
+      'Conquest Domination': '统治征服',
+      'Tank Superiority': '坦克优势',
+      'Scavenger': '搜刮者',
+      'Eliminate': '消灭',
+    };
+
+    // 构建大小写不敏感的快速查询表
+    const GAMEMODE_CN_LOWER = Object.fromEntries(
+      Object.entries(GAMEMODE_CN).map(([k, v]) => [k.toLowerCase(), v])
+    );
+    function getModeName(name) {
+      if (!name) return '—';
+      return GAMEMODE_CN[name] || GAMEMODE_CN_LOWER[name.toLowerCase()] || name;
+    }
+
+    function renderPlatformContent(container, { stats, allData, platform }) {
+      const BASE = 'https://api.gametools.network';
+      const detailBase = `detail.html?game=${encodeURIComponent(game)}&platform=${encodeURIComponent(platform)}&name=${encodeURIComponent(name)}`;
+
+      // 计算衍生数据
+      const allClass = allData?.classes?.find(c => c.id === 'kit') || allData?.classes?.[0];
+      // SPM：优先从 classes 计算，其次用 stats.scorePerMinute 直接字段
+      const spm = (allClass?.score && allClass?.secondsPlayed)
+        ? (allClass.score / (allClass.secondsPlayed / 60)).toFixed(2)
+        : (stats.scorePerMinute != null ? parseFloat(stats.scorePerMinute).toFixed(2) : null);
+      // matchesPlayed：字段不存在时用 wins + loses 兜底
+      const matchesPlayed = stats.matchesPlayed ?? ((stats.wins != null && stats.loses != null) ? stats.wins + stats.loses : null);
+      const deathsPerMatch = matchesPlayed
+        ? ((allClass?.deaths ?? stats.deaths ?? 0) / matchesPlayed).toFixed(2) : null;
+      const assists    = allClass?.assists ?? stats.killAssists;
+      const humanKills = stats.dividedKills?.human || stats.kills || 0;
+      const humanKd    = stats.deaths ? (humanKills / stats.deaths) : 0;
+      const humanKillsPerMatch = matchesPlayed ? (humanKills / matchesPlayed) : 0;
+
+      container.innerHTML = `
+        <!-- 玩家总览 -->
+        <div class="bg-card rounded-2xl p-5 mb-8 fade-up">
+          <!-- 第一行：KD + 胜率 等宽 -->
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="bg-dark rounded-xl p-4">
+              <p class="text-4xl font-black" style="color:${kdColor(humanKd)}">${formatDecimal(humanKd)}</p>
+              <p class="text-xs text-gray-500 mt-1">K/D</p>
+              <div class="flex gap-4 mt-3 text-sm">
+                <div><p class="text-white font-semibold">${formatNum(humanKills)}</p><p class="text-xs text-gray-500">击杀</p></div>
+                <div><p class="text-white font-semibold">${formatNum(stats.deaths)}</p><p class="text-xs text-gray-500">死亡</p></div>
+                ${stats.infantryKillDeath != null ? `<div><p class="text-white font-semibold">${formatDecimal(stats.infantryKillDeath)}</p><p class="text-xs text-gray-500">步兵KD</p></div>` : ''}
+              </div>
+            </div>
+            <div class="bg-dark rounded-xl p-4 flex flex-col justify-between">
+              <div>
+                <p class="text-4xl font-black" style="color:${winColor(parseFloat(stats.winPercent))}">${formatPct(stats.winPercent)}</p>
+                <p class="text-xs text-gray-500 mt-1">胜率</p>
+              </div>
+              <div class="flex gap-4 mt-3 text-sm">
+                <div><p class="text-white font-semibold">${formatNum(matchesPlayed)}</p><p class="text-xs text-gray-500">总场次</p></div>
+                <div><p class="text-white font-semibold">${formatNum(stats.wins)}</p><p class="text-xs text-gray-500">胜场</p></div>
+              </div>
+            </div>
+          </div>
+          <!-- 第二行：4 个指标 -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            <div class="bg-dark rounded-xl p-4"><p class="text-2xl font-bold text-white">${spm ?? '—'}</p><p class="text-xs text-gray-500 mt-1">每分钟得分</p></div>
+            <div class="bg-dark rounded-xl p-4"><p class="text-2xl font-bold text-white">${formatPct(stats.headshots)}</p><p class="text-xs text-gray-500 mt-1">爆头率</p></div>
+            <div class="bg-dark rounded-xl p-4"><p class="text-2xl font-bold text-white">${formatPct(stats.accuracy)}</p><p class="text-xs text-gray-500 mt-1">命中率</p></div>
+            <div class="bg-dark rounded-xl p-4"><p class="text-2xl font-bold text-white">${formatDecimal(stats.killsPerMinute)}</p><p class="text-xs text-gray-500 mt-1">KPM</p></div>
+          </div>
+          <!-- 第三行：8 个小数据 -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-0 divide-y divide-gray-700/40 sm:divide-y-0">
+            <div class="py-3 sm:border-r border-gray-700/40 flex flex-col gap-3">
+              <div><p class="text-lg font-bold text-white">${formatDecimal(humanKillsPerMatch)}</p><p class="text-xs text-gray-500">场均击杀</p></div>
+              <div><p class="text-lg font-bold text-white">${formatNum(stats.kills)}</p><p class="text-xs text-gray-500">击杀数</p></div>
+            </div>
+            <div class="py-3 sm:border-r border-gray-700/40 flex flex-col gap-3">
+              <div><p class="text-lg font-bold text-white">${deathsPerMatch ?? '—'}</p><p class="text-xs text-gray-500">场均死亡</p></div>
+              <div><p class="text-lg font-bold text-white">${formatNum(stats.headShots)}</p><p class="text-xs text-gray-500">爆头数</p></div>
+            </div>
+            <div class="py-3 sm:border-r border-gray-700/40 flex flex-col gap-3">
+              <div><p class="text-lg font-bold text-white">${formatNum(matchesPlayed)}</p><p class="text-xs text-gray-500">总场次</p></div>
+              <div><p class="text-lg font-bold text-white">${formatNum(assists)}</p><p class="text-xs text-gray-500">助攻数</p></div>
+            </div>
+            <div class="py-3 flex flex-col gap-3">
+              <div><p class="text-lg font-bold text-white">${formatNum(stats.wins)}</p><p class="text-xs text-gray-500">胜场数</p></div>
+              <div><p class="text-lg font-bold text-white">${formatNum(stats.revives)}</p><p class="text-xs text-gray-500">急救数</p></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 兵种总览 -->
+        <div class="bg-card rounded-2xl p-5 mb-8" id="classSection-${platform}" style="display:none">
+          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">兵种数据</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="classCards-${platform}"></div>
+        </div>
+
+        <!-- 武器 Top10 & 载具 Top10 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="weaponVehicleSection-${platform}" style="display:none">
+          <div class="bg-card rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">武器击杀 Top 10</h2>
+              <a href="${detailBase}&type=weapons" class="text-xs text-accent hover:underline">详情 →</a>
+            </div>
+            <div id="weaponChart-${platform}" class="chart-box-lg"></div>
+          </div>
+          <div class="bg-card rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">载具击杀排行</h2>
+              <a href="${detailBase}&type=vehicles" class="text-xs text-accent hover:underline">详情 →</a>
+            </div>
+            <div id="vehicleChart-${platform}" class="chart-box-lg"></div>
+          </div>
+        </div>
+
+        <!-- 配备击杀 Top10 -->
+        <div class="bg-card rounded-xl p-5 mb-8" id="gadgetSection-${platform}" style="display:none">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">配备击杀 Top 10</h2>
+            <a href="${detailBase}&type=gadgets" class="text-xs text-accent hover:underline">详情 →</a>
+          </div>
+          <div id="gadgetChart-${platform}" class="chart-box-lg"></div>
+        </div>
+
+        <!-- 地图数据 -->
+        <div class="bg-card rounded-xl p-5 mb-8" id="mapSection-${platform}" style="display:none">
+          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">地图胜率</h2>
+          <div id="mapChart-${platform}" style="height:320px"></div>
+        </div>
+
+        <!-- 击杀类型分布 & 兵种分布 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div class="bg-card rounded-xl p-5">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">击杀类型分布</h2>
+            <div id="killTypeChart-${platform}" class="chart-box"></div>
+          </div>
+          <div class="bg-card rounded-xl p-5">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">兵种击杀分布</h2>
+            <div id="classChart-${platform}" class="chart-box"></div>
+          </div>
+        </div>
+
+        <!-- REDSEC 模式 -->
+        <div class="bg-card rounded-xl p-5 mb-8" id="redsecSection-${platform}" style="display:none">
+          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">REDSEC 模式</h2>
+          <div id="redsecContent-${platform}"></div>
+        </div>
+
+        <!-- 个人记录 -->
+        <div class="bg-card rounded-xl p-5 mb-8" id="recordSection-${platform}" style="display:none">
+          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">个人记录</h2>
+          <div id="recordCards-${platform}" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+        </div>
+
+        <!-- 赛季历史 -->
+        <div class="bg-card rounded-xl p-5 mb-8" id="seasonSection-${platform}" style="display:none">
+          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">赛季历史</h2>
+          <div id="seasonChart-${platform}" class="chart-box-lg"></div>
+        </div>
+
+        <!-- 游戏模式 -->
+        <div class="bg-card rounded-xl p-5 mb-8" id="modeSection-${platform}" style="display:none">
+          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">游戏模式分析</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm" id="modeTable-${platform}"></table>
+          </div>
+        </div>
+
+        <!-- 支援与目标 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="supportSection-${platform}" style="display:none">
+          <div class="bg-card rounded-xl p-5">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">团队贡献</h2>
+            <div id="supportStats-${platform}" class="grid grid-cols-2 gap-3 text-sm"></div>
+          </div>
+          <div class="bg-card rounded-xl p-5">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">目标数据</h2>
+            <div id="objectiveStats-${platform}" class="grid grid-cols-2 gap-3 text-sm"></div>
+          </div>
+        </div>
+      `;
+
+      // ── 武器 ──
+      if (allData?.weapons?.length) {
+        document.getElementById(`weaponVehicleSection-${platform}`).style.display = '';
+        const top10 = [...allData.weapons].filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 10).reverse();
+        renderBarChart(document.getElementById(`weaponChart-${platform}`), top10.map(w => w.weaponName), top10.map(w => w.kills));
+      }
+
+      // ── 载具 ──
+      if (allData?.vehicles?.length) {
+        const topV = [...allData.vehicles].filter(v => v.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 10).reverse();
+        if (topV.length) {
+          document.getElementById(`weaponVehicleSection-${platform}`).style.display = '';
+          renderBarChart(document.getElementById(`vehicleChart-${platform}`), topV.map(v => v.vehicleName), topV.map(v => v.kills), '#3b82f6');
+        } else {
+          document.getElementById(`vehicleChart-${platform}`).innerHTML = '<p class="text-gray-600 text-sm text-center pt-10">暂无载具击杀数据</p>';
+        }
+      }
+
+      // ── 配备 ──
+      const gadgetItems = [
+        ...(allData?.gadgets || []), ...(allData?.melee || []), ...(allData?.battlePickups || []),
+      ].filter(g => g.kills > 0).sort((a, b) => b.kills - a.kills);
+      if (gadgetItems.length) {
+        document.getElementById(`gadgetSection-${platform}`).style.display = '';
+        renderBarChart(document.getElementById(`gadgetChart-${platform}`), gadgetItems.slice(0, 10).reverse().map(g => g.gadgetName || g.meleeName || g.weaponName), gadgetItems.slice(0, 10).reverse().map(g => g.kills), '#22c55e');
+      }
+
+      // ── 击杀类型饼图 ──
+      const dk = stats.dividedKills || {};
+      const killTypes = [
+        { name: '步兵击杀', value: dk.human || 0 },
+        { name: '载具击杀', value: dk.vehicle || 0 },
+        { name: '远距离',   value: dk.longDistance || 0 },
+        { name: '手雷',     value: dk.grenades || 0 },
+        { name: '近战',     value: dk.melee || 0 },
+        { name: '路杀',     value: dk.roadkills || 0 },
+        { name: '降落伞',   value: dk.parachute || 0 },
+        { name: '多杀',     value: dk.multiKills || 0 },
+        { name: '乘客击杀', value: dk.passenger || 0 },
+      ].filter(x => x.value > 0);
+      if (killTypes.length) renderPieChart(document.getElementById(`killTypeChart-${platform}`), killTypes);
+
+      // ── 兵种 ──
+      const classes = (allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0);
+      if (classes.length) {
+        document.getElementById(`classSection-${platform}`).style.display = '';
+        const allClassData = allData.classes.find(c => c.className === 'All') || {};
+        document.getElementById(`classCards-${platform}`).innerHTML = classes.map(c => {
+          const spmVal = c.score && c.secondsPlayed ? (c.score / (c.secondsPlayed / 60)).toFixed(0) : '—';
+          const pct = allClassData.secondsPlayed ? Math.round(c.secondsPlayed / allClassData.secondsPlayed * 100) : 0;
+          return `
+            <div class="bg-dark rounded-xl p-4">
+              <div class="flex items-center gap-3 mb-3">
+                ${c.image ? `<img src="${c.image}" class="w-8 h-8 opacity-80" alt="${c.className}">` : ''}
+                <div>
+                  <p class="text-sm font-semibold text-white">${CLASS_CN[c.className] || c.className}</p>
+                  <p class="text-xs text-gray-500">${formatSeconds(c.secondsPlayed)} · ${pct}% 时长</p>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                <div><p class="font-bold" style="color:${kdColor(c.killDeath)}">${formatDecimal(c.killDeath)}</p><p class="text-xs text-gray-500">K/D</p></div>
+                <div><p class="font-bold text-white">${formatDecimal(c.kpm)}</p><p class="text-xs text-gray-500">KPM</p></div>
+                <div><p class="font-bold text-white">${formatNum(c.kills)}</p><p class="text-xs text-gray-500">击杀</p></div>
+                <div><p class="font-bold text-white">${formatNum(c.assists)}</p><p class="text-xs text-gray-500">助攻</p></div>
+                <div><p class="font-bold text-white">${formatNum(c.spawns)}</p><p class="text-xs text-gray-500">出生次数</p></div>
+                <div><p class="font-bold text-white">${spmVal}</p><p class="text-xs text-gray-500">SPM</p></div>
+              </div>
+            </div>`;
+        }).join('');
+        renderPieChart(document.getElementById(`classChart-${platform}`), classes.map(c => ({ name: CLASS_CN[c.className] || c.className, value: c.kills })));
+      } else {
+        document.getElementById(`classChart-${platform}`).innerHTML = '<p class="text-gray-600 text-sm text-center pt-10">暂无兵种数据</p>';
+      }
+
+      // ── REDSEC（结构：[{ season, modes: [...] }]）──
+      const redsecSeasons = Array.isArray(allData?.redsec) ? allData.redsec : [];
+      // 展平为行：每个赛季×模式组合一行
+      const redsecRows = redsecSeasons.flatMap(s =>
+        (s.modes || []).map(m => ({ season: s.season, ...m }))
+      );
+      if (redsecRows.length) {
+        document.getElementById(`redsecSection-${platform}`).style.display = '';
+        const redsecCols = [
+          { label: '赛季',   get: r => r.season },
+          { label: '模式',   get: r => getModeName(r.mode || r.gamemodeName) },
+          { label: '场次',   get: r => formatNum(r.matches) },
+          { label: '胜场',   get: r => formatNum(r.wins) },
+          { label: 'K/D',    get: r => formatDecimal(r.killDeath) },
+          { label: '击杀',   get: r => formatNum(r.kills) },
+          { label: '死亡',   get: r => formatNum(r.deaths) },
+          { label: '撤离',   get: r => formatNum(r.extractions) },
+          { label: '复活',   get: r => formatNum(r.rivivals ?? r.revivals) },
+          { label: '最佳名次', get: r => r.lastPlacement != null ? `#${r.lastPlacement}` : '—' },
+          { label: '时长',   get: r => r.timePlayed || formatSeconds(r.secondsPlayed) },
+        ];
+        // 过滤无数据列
+        const validCols = redsecCols.filter((c, i) => i < 2 || redsecRows.some(r => {
+          const v = c.get(r); return v != null && v !== '—' && v !== '-' && v !== formatNum(null);
+        }));
+        document.getElementById(`redsecContent-${platform}`).innerHTML = `
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr class="border-b border-gray-700">
+                ${validCols.map(c => `<th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs whitespace-nowrap">${c.label}</th>`).join('')}
+              </tr></thead>
+              <tbody>${redsecRows.map(r => `
+                <tr class="border-b border-gray-700/40 hover:bg-gray-800/30">
+                  ${validCols.map((c, i) => `<td class="py-2 pr-4 whitespace-nowrap ${i <= 1 ? 'text-white font-medium' : 'text-gray-300'}">${c.get(r) ?? '—'}</td>`).join('')}
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      }
+
+      // ── 个人记录 ──
+      const recordDefs = [
+        { label: '最远爆头距离', value: stats.longestHeadShot != null ? formatNum(Math.round(stats.longestHeadShot)) + ' m' : null },
+        { label: '最高连杀',     value: stats.highestKillStreak != null ? formatNum(stats.highestKillStreak) : null },
+        { label: '夺取狗牌',     value: stats.dogtagsTaken != null ? formatNum(stats.dogtagsTaken) : null },
+        { label: '最高得分/局',  value: stats.highestScore != null ? formatNum(stats.highestScore) : null },
+        { label: '最高K/D局',    value: stats.bestGame?.kills != null ? formatNum(stats.bestGame.kills) + '杀' : null },
+        { label: '最高伤害/局',  value: stats.highestDamageDealt != null ? formatNum(Math.round(stats.highestDamageDealt)) : null },
+        { label: '最远击杀',     value: stats.longestKillStreak != null ? formatNum(Math.round(stats.longestKillStreak)) + ' m' : null },
+        { label: '连杀纪录',     value: stats.highestKillSteakGame != null ? formatNum(stats.highestKillSteakGame) : null },
+      ].filter(r => r.value != null);
+      if (recordDefs.length) {
+        document.getElementById(`recordSection-${platform}`).style.display = '';
+        document.getElementById(`recordCards-${platform}`).innerHTML = recordDefs.map(r => `
+          <div class="bg-dark rounded-xl p-4">
+            <p class="text-lg font-bold text-accent">${r.value}</p>
+            <p class="text-xs text-gray-500 mt-1">${r.label}</p>
+          </div>`).join('');
+      }
+
+      // ── 赛季历史 ──
+      const seasons = Array.isArray(allData?.seasons) ? allData.seasons : [];
+      if (seasons.length > 1) {
+        // 每个赛季汇总所有模式的数据
+        const seasonSummary = seasons.map(s => {
+          const all = s.modes || [];
+          const kills   = all.reduce((a, m) => a + (m.kills || 0), 0);
+          const deaths  = all.reduce((a, m) => a + (m.deaths || 0), 0);
+          const wins    = all.reduce((a, m) => a + (m.wins || 0), 0);
+          const matches = all.reduce((a, m) => a + (m.matches || 0), 0);
+          return {
+            season: s.season,
+            kd:     deaths ? (kills / deaths) : 0,
+            wins,
+            matches,
+            winRate: matches ? (wins / matches * 100) : 0,
+            kills,
+          };
+        });
+        document.getElementById(`seasonSection-${platform}`).style.display = '';
+        requestAnimationFrame(() => {
+          const chart = echarts.init(document.getElementById(`seasonChart-${platform}`), 'dark');
+          chart.setOption({
+            backgroundColor: 'transparent',
+            legend: { data: ['K/D', '胜率(%)'], textStyle: { color: '#9ca3af' }, top: 0 },
+            grid: { left: 45, right: 55, top: 40, bottom: 40 },
+            xAxis: { type: 'category', data: seasonSummary.map(s => s.season), axisLabel: { color: '#6b7280', fontSize: 10 }, splitLine: { show: false } },
+            yAxis: [
+              { type: 'value', name: 'K/D', nameTextStyle: { color: '#6b7280', fontSize: 10 }, axisLabel: { color: '#6b7280', fontSize: 10 }, splitLine: { lineStyle: { color: '#374151' } } },
+              { type: 'value', name: '胜率%', nameTextStyle: { color: '#6b7280', fontSize: 10 }, position: 'right', axisLabel: { color: '#6b7280', fontSize: 10, formatter: '{value}%' }, splitLine: { show: false } },
+            ],
+            tooltip: {
+              trigger: 'axis', backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' },
+              formatter: params => {
+                const s = seasonSummary[params[0].dataIndex];
+                return `${s.season}<br/>${params.map(p => `${p.marker}${p.seriesName}: <b>${p.value}</b>${p.seriesName === '胜率(%)' ? '%' : ''}`).join('<br/>')}<br/>场次: ${s.matches}  击杀: ${s.kills}`;
+              },
+            },
+            series: [
+              { name: 'K/D',    yAxisIndex: 0, type: 'line', smooth: true, data: seasonSummary.map(s => s.kd.toFixed(2)),       lineStyle: { color: '#ff4655' }, itemStyle: { color: '#ff4655' }, symbol: 'circle', symbolSize: 6 },
+              { name: '胜率(%)', yAxisIndex: 1, type: 'line', smooth: true, data: seasonSummary.map(s => s.winRate.toFixed(1)), lineStyle: { color: '#22c55e' }, itemStyle: { color: '#22c55e' }, symbol: 'circle', symbolSize: 6 },
+            ],
+          });
+          window.addEventListener('resize', () => chart.resize());
+        });
+      }
+
+      // ── 游戏模式 ──
+      const SKIP_MODES = new Set(['Official', 'All', 'Custom']);
+      const gameModes = (allData?.gameModes || allData?.gamemodes || [])
+        .filter(m => !SKIP_MODES.has(m.gamemodeName) && m.matches > 0)
+        .sort((a, b) => b.matches - a.matches);
+      if (gameModes.length) {
+        document.getElementById(`modeSection-${platform}`).style.display = '';
+        const cols = [
+          { label: '模式',   get: m => getModeName(m.gamemodeName) },
+          { label: '场次',   get: m => formatNum(m.matches) },
+          { label: 'K/D',    get: m => formatDecimal(m.killDeath) },
+          { label: '胜率',   get: m => m.winPercent },
+          { label: 'KPM',    get: m => formatDecimal(m.kpm) },
+          { label: '击杀',   get: m => formatNum(m.kills) },
+          { label: '爆头率', get: m => m.headshots },
+          { label: '占点',   get: m => formatNum(m.objectivesCaptured) },
+          { label: '时长',   get: m => formatSeconds(m.secondsPlayed) },
+        ];
+        document.getElementById(`modeTable-${platform}`).innerHTML = `
+          <thead><tr class="border-b border-gray-700">
+            ${cols.map(c => `<th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs whitespace-nowrap">${c.label}</th>`).join('')}
+          </tr></thead>
+          <tbody>${gameModes.map(m => `
+            <tr class="border-b border-gray-700/40 hover:bg-gray-800/30">
+              ${cols.map((c, i) => `<td class="py-2 pr-4 whitespace-nowrap ${i === 0 ? 'text-white font-medium' : 'text-gray-300'}">${c.get(m)}</td>`).join('')}
+            </tr>`).join('')}
+          </tbody>`;
+      }
+
+      // ── 地图 ──（按胜率降序）
+      const maps = (allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0)
+        .sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0));
+      if (maps.length) {
+        document.getElementById(`mapSection-${platform}`).style.display = '';
+        const el = document.getElementById(`mapChart-${platform}`);
+        el.style.height = Math.max(280, maps.length * 36 + 60) + 'px';
+        // 图表从下到上渲染，反转数组让胜率最高的显示在顶部
+        const mapsAsc = [...maps].reverse();
+        requestAnimationFrame(() => {
+          const chart = echarts.init(el, 'dark');
+          chart.setOption({
+            backgroundColor: 'transparent',
+            grid: { left: 10, right: 80, top: 10, bottom: 30, containLabel: true },
+            xAxis: { type: 'value', max: 100, axisLabel: { color: '#9ca3af', fontSize: 11, formatter: '{value}%' }, splitLine: { lineStyle: { color: '#374151' } } },
+            yAxis: { type: 'category', data: mapsAsc.map(m => MAP_CN[m.mapName] || m.mapName), axisLabel: { color: '#d1d5db', fontSize: 11 }, axisTick: { show: false } },
+            series: [{
+              type: 'bar', barMaxWidth: 22,
+              data: mapsAsc.map(m => parseFloat(m.winPercent) || 0),
+              itemStyle: {
+                color: params => params.value >= 50 ? '#22c55e' : params.value >= 40 ? '#facc15' : '#f87171',
+                borderRadius: [0, 4, 4, 0],
+              },
+              label: { show: true, position: 'right', color: '#9ca3af', fontSize: 11, formatter: p => `${p.value.toFixed(1)}%  ${mapsAsc[p.dataIndex]?.matches}场` },
+            }],
+            tooltip: {
+              trigger: 'axis', backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' },
+              formatter: p => {
+                const m = mapsAsc[p[0].dataIndex];
+                const displayName = MAP_CN[m.mapName] || m.mapName;
+                return `${displayName}<br/>胜率: ${m.winPercent}<br/>场次: ${m.matches} (${m.wins}胜/${m.losses}负)<br/>时长: ${formatSeconds(m.secondsPlayed)}`;
+              },
+            },
+          });
+          window.addEventListener('resize', () => chart.resize());
+        });
+      }
+
+      // ── 支援与目标 ──
+      function statCell(label, value) {
+        return `<div class="bg-dark rounded-xl p-3">
+          <p class="text-base font-bold text-white">${value}</p>
+          <p class="text-xs text-gray-500 mt-0.5">${label}</p>
+        </div>`;
+      }
+      const obj = stats.objective || {};
+      const supportItems = [
+        ['救援击杀', formatNum(stats.saviorKills)],
+        ['助攻',     formatNum(stats.killAssists)],
+        ['侦察',     formatNum(stats.enemiesSpotted)],
+        ['复活',     formatNum(stats.revives)],
+        ['治疗',     formatNum(stats.heals)],
+        ['补给',     formatNum(stats.resupplies)],
+        ['修理',     formatNum(stats.repairs)],
+        ['摧毁配备', formatNum(stats.gadgetsDestroyed ?? stats.gadgetsDestoyed)],
+      ].filter(([, v]) => v !== '-' && v !== '0' && v !== formatNum(0));
+      const objectiveItems = [
+        ['占点数',   formatNum(obj.captured)],
+        ['防守次数', formatNum(obj.defended ?? obj.time?.defended)],
+        ['安弹次数', formatNum(obj.armed)],
+        ['拆弹次数', formatNum(obj.defused)],
+        ['摧毁目标', formatNum(obj.destroyed)],
+        ['目标时间', formatSeconds(obj.time?.total)],
+      ].filter(([, v]) => v !== '-' && v !== '0' && v !== formatNum(0));
+      if (supportItems.length || objectiveItems.length) {
+        document.getElementById(`supportSection-${platform}`).style.display = '';
+        document.getElementById(`supportStats-${platform}`).innerHTML    = supportItems.map(([l, v]) => statCell(l, v)).join('');
+        document.getElementById(`objectiveStats-${platform}`).innerHTML  = objectiveItems.map(([l, v]) => statCell(l, v)).join('') || '<p class="text-gray-600 text-sm col-span-2 pt-4">暂无目标数据</p>';
+      }
+    }
+
+    // ─── 主加载逻辑 ──────────────────────────────────────────
+    async function load() {
+      if (!name) {
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('errorState').classList.remove('hidden');
+        document.getElementById('errorTitle').textContent = '请输入玩家用户名';
+        document.getElementById('errorMsg').textContent   = '';
+        document.getElementById('errorTips').style.display = 'none';
+        return;
+      }
+
+      const BASE      = 'https://api.gametools.network';
+      const platforms = GAME_PLATFORMS[game] || ['pc'];
+
+      // 全平台并发查询
+      const settled = await Promise.allSettled(
+        platforms.map(async p => {
+          const [stats, allData] = await Promise.all([
+            getStats(game, name, p),
+            fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${p}`, { signal: AbortSignal.timeout?.(15000) })
+              .then(r => r.json()).catch(() => null),
+          ]);
+          return { platform: p, stats, allData };
+        })
+      );
+
+      // 过滤成功结果，按 userId 去重
+      const seen = new Set();
+      const results = settled
+        .filter(r => r.status === 'fulfilled')
+        .map(r => r.value)
+        .filter(({ stats }) => {
+          const uid = stats.userId ?? stats.id;
+          if (uid == null) return true;
+          if (seen.has(uid)) return false;
+          seen.add(uid);
+          return true;
+        });
+
+      if (!results.length) {
+        // 取第一个失败原因作为错误信息
+        const firstErr = settled.find(r => r.status === 'rejected')?.reason;
+        showError(firstErr?.message || 'NOTFOUND');
+        return;
+      }
+
+      // 保存搜索记录（用第一个结果的平台）
+      saveSnapshot(game, results[0].platform, name, results[0].stats);
+      saveRecentSearch(game, results[0].platform, name);
+
+      // 填充玩家头部（用第一个结果）
+      const first = results[0];
+      document.getElementById('playerAvatar').src = first.stats.avatar || '';
+      document.getElementById('playerName').textContent = first.stats.userName || name;
+      document.getElementById('playerMeta').textContent =
+        `${GAME_LABELS[game] || game} · ${formatSeconds(first.stats.secondsPlayed)} 游戏时长`;
+
+      // 构建 Tabs
+      const tabsBar   = document.getElementById('tabsBar');
+      const tabPanel  = document.getElementById('tabPanel');
+
+      tabsBar.classList.remove('hidden');
+      tabsBar.innerHTML = results.map((r, i) => `
+          <button data-idx="${i}"
+            class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors ${i === 0 ? 'bg-accent text-white' : 'bg-card border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400'}">
+            ${PLATFORM_LABELS[r.platform] || r.platform}
+          </button>`).join('');
+
+      tabsBar.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabsBar.querySelectorAll('.tab-btn').forEach(b => {
+            b.className = 'tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-card border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400';
+          });
+          btn.className = 'tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-accent text-white';
+          const idx = parseInt(btn.dataset.idx);
+          renderPlatformContent(tabPanel, results[idx]);
+        });
+      });
+
+      // 渲染第一个 tab 内容
+      renderPlatformContent(tabPanel, first);
+
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('content').classList.remove('hidden');
+    }
+
+    function showError(msg) {
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('errorState').classList.remove('hidden');
+      const isNotFound = /not found|player|NOTFOUND/i.test(msg);
+      const isNoStats  = msg === 'NO_STATS';
+      const isTimeout  = msg === 'TIMEOUT';
+      const isNetwork  = msg === 'NETWORK';
+
+      document.getElementById('errorTitle').textContent =
+        isNoStats ? '暂无战绩数据' : isNotFound ? '未找到玩家' :
+        isTimeout ? '请求超时'     : isNetwork  ? '网络连接失败' : '查询失败';
+
+      document.getElementById('errorMsg').textContent =
+        isNoStats  ? `找到了玩家 "${name}"，但该账号在 ${GAME_LABELS[game] || game} 中没有战绩记录` :
+        isNotFound ? `在 ${GAME_LABELS[game] || game} 的所有平台中均未找到玩家 "${name}"` :
+        isTimeout  ? '数据服务响应超时，请稍后重试' :
+        isNetwork  ? '无法连接到数据服务，请检查网络后重试' : msg;
+
+      document.getElementById('errorTips').innerHTML =
+        isNoStats ? `
+          <p class="text-gray-300 font-medium mb-3">可能的原因：</p>
+          <p>· 该账号未购买或未玩过此游戏</p>
+          <p>· 游戏数据尚未同步到统计服务</p>` :
+        (isTimeout || isNetwork) ? `
+          <p class="text-gray-300 font-medium mb-3">建议操作：</p>
+          <p>· 检查网络连接是否正常</p>
+          <p>· 刷新页面重新查询</p>
+          <p>· 尝试切换网络环境（如 WiFi / 移动数据）</p>
+          <p>· 数据服务可能暂时不稳定，稍后再试</p>` : `
+          <p class="text-gray-300 font-medium mb-3">可能的原因：</p>
+          <p>· 用户名拼写错误，注意大小写</p>
+          <p>· 该玩家从未在此游戏中有过记录</p>
+          <p>· 游戏服务器暂时不可用，稍后再试</p>`;
+      document.getElementById('errorTips').style.display = '';
+    }
+
+    load();
+  </script>
+</body>
+</html>
