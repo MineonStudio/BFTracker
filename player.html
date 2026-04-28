@@ -85,6 +85,14 @@
       <!-- Tab 内容区 -->
       <div id="tabPanel"></div>
 
+      <!-- 画像按钮 -->
+      <div id="portraitBtn" class="hidden mt-4">
+        <button id="showPortraitBtn" class="w-full bg-card border border-gray-700 hover:border-accent text-gray-400 hover:text-accent rounded-xl py-3 text-sm font-medium transition-colors">
+          🧠 查看玩家画像分析
+        </button>
+      </div>
+      <div id="portraitPanel" class="hidden mt-4"></div>
+
     </div>
   </div>
 
@@ -94,6 +102,7 @@
     import * as echarts from 'echarts';
     import { checkBan, checkEacBan, getInventory } from './js/api.js';
     import { MAP_CN, getModeName, CLASS_CN } from './js/constants.js';
+    import { renderPortrait } from './js/portrait.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, getUrlParams, buildPlayerUrl } from './js/utils.js';
 
     const gameSelect = document.getElementById('gameSelect');
