@@ -68,3 +68,14 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* 骨架屏 Pulse 动画（Tailwind animate-pulse 备用） */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes skeleton-pulse {
+    0%, 100% { opacity: .4; }
+    50% { opacity: .7; }
+  }
+  .animate-pulse {
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+  }
+}
