@@ -72,7 +72,10 @@
       <div class="flex items-center gap-4 mb-6 fade-up">
         <img id="playerAvatar" src="" alt="avatar" class="w-16 h-16 rounded-full bg-gray-700 object-cover">
         <div>
-          <h1 id="playerName" class="text-2xl font-bold"></h1>
+          <div class="flex items-center gap-2">
+            <h1 id="playerName" class="text-2xl font-bold"></h1>
+            <span id="banStatus"></span>
+          </div>
           <p id="playerMeta" class="text-gray-400 text-sm mt-0.5"></p>
         </div>
         <!-- 平台 Tabs -->
@@ -89,6 +92,7 @@
     import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS } from './js/api.js';
     import { saveSnapshot, saveRecentSearch, saveApiCache } from './js/storage.js';
     import * as echarts from 'echarts';
+    import { checkBan, checkEacBan, getInventory } from './js/api.js';
     import { MAP_CN, getModeName, CLASS_CN } from './js/constants.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, getUrlParams, buildPlayerUrl } from './js/utils.js';
 
@@ -316,6 +320,12 @@
             <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">目标数据</h2>
             <div id="objectiveStats-${platform}" class="grid grid-cols-2 gap-3 text-sm"></div>
           </div>
+        </div>
+
+        <!-- BF2042 名片 -->
+        <div class="bg-card rounded-xl p-5 mb-8" id="inventorySection" style="display:none">
+          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">玩家名片</h2>
+          <div id="inventoryContent"></div>
         </div>
       `;
 

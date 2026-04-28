@@ -72,7 +72,8 @@
   </div>
 
   <script type="module">
-    import { GAME_LABELS } from './js/api.js';
+    import * as echarts from 'echarts';
+    import { GAME_LABELS, getStatusHistory } from './js/api.js';
     import { getRecentSearches, saveRecentSearch, removeRecentSearch, clearRecentSearches } from './js/storage.js';
     import { buildPlayerUrl, formatNum } from './js/utils.js';
 
@@ -260,6 +261,65 @@
         </div>
       `).join('');
     });
+
+    // ── 在线趋势图 ──
+    const trendSelect = document.getElementById('trendGameSelect');
+    const trendSection = document.getElementById('trendSection');
+    const trendChartEl = document.getElementById('trendChart');
+
+    STATUS_GAMES.forEach(g => {
+      const opt = document.createElement('option');
+      opt.value = g.key;
+      opt.textContent = g.label;
+      trendSelect.appendChild(opt);
+    });
+
+    let trendChart = null;
+    async function loadTrend(gameKey) {
+      try {
+        const data = await getStatusHistory(gameKey, 7);
+        if (!data || !data.amounts) return;
+
+        const amounts = data.amounts;
+        const timestamps = data.timestamps || [];
+        const labels = timestamps.map(t => {
+          const d = new Date(t * 1000);
+          return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:00`;
+        });
+
+        trendSection.style.display = '';
+        if (!trendChart) trendChart = echarts.init(trendChartEl, 'dark');
+
+        trendChart.setOption({
+          backgroundColor: 'transparent',
+          grid: { left: 60, right: 20, top: 20, bottom: 30 },
+          xAxis: {
+            type: 'category', data: labels,
+            axisLabel: { color: '#9ca3af', fontSize: 10, rotate: 45 },
+            splitLine: { show: false },
+          },
+          yAxis: {
+            type: 'value',
+            axisLabel: { color: '#9ca3af', fontSize: 11 },
+            splitLine: { lineStyle: { color: '#374151' } },
+          },
+          series: [{
+            type: 'line', data: amounts, smooth: true,
+            lineStyle: { color: '#ff4655', width: 2 },
+            areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(255,70,85,.3)' }, { offset: 1, color: 'rgba(255,70,85,0)' }] } },
+            symbol: 'none',
+            tooltip: { valueFormatter: v => `${v} 人在线` },
+          }],
+          tooltip: { trigger: 'axis', backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' } },
+        });
+
+        window.addEventListener('resize', () => trendChart?.resize());
+      } catch {}
+    }
+
+    trendSelect.addEventListener('change', () => loadTrend(trendSelect.value));
+    // 默认加载 BF6
+    loadTrend('bf6');
   </script>
   <script>
   document.addEventListener('keydown', e => {
