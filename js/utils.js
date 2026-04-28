@@ -64,3 +64,12 @@ export function getUrlParams() {
 export function buildPlayerUrl(game, name) {
   return `player.html?game=${encodeURIComponent(game)}&name=${encodeURIComponent(name)}`;
 }
+
+// 防抖函数
+export function debounce(fn, delay = 300) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+}

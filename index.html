@@ -2,6 +2,11 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+    <meta property="og:title" content="战地战绩查询 - BF Tracker">
+  <meta property="og:description" content="支持 BF6 / BF2042 / BFV / BF1 / BF4 全平台战绩查询与数据分析">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mineonstudio.github.io/BFTracker/">
+  <meta name="description" content="战地系列战绩查询网站，支持 BF6/BF2042/BFV/BF1/BF4 全平台查询">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>战地战绩查询</title>
   <link rel="stylesheet" href="css/input.css">
@@ -14,8 +19,8 @@
     <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
       <a href="index.html" class="text-xl font-bold gradient-text">BF Tracker</a>
       <div class="flex gap-6 text-sm text-gray-400">
-        <a href="index.html" class="nav-link active pb-1">首页</a>
-        <a href="compare.html" class="nav-link hover:text-white pb-1">多人对比</a>
+        <a href="index.html" aria-label="首页" class="nav-link active pb-1">首页</a>
+        <a href="compare.html" aria-label="多人对比" class="nav-link hover:text-white pb-1">多人对比</a>
       </div>
     </div>
   </nav>
@@ -31,15 +36,15 @@
     <div class="bg-card rounded-2xl p-6 shadow-xl max-w-2xl mx-auto">
       <div class="flex gap-3 mb-3">
         <!-- 游戏选择 -->
-        <select id="gameSelect"
+        <select id="gameSelect" aria-label="选择游戏"
           class="bg-dark border border-gray-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent">
         </select>
       </div>
       <div class="flex gap-3">
-        <input id="nameInput" type="text" placeholder="输入玩家用户名，自动匹配全平台..."
+        <input id="nameInput" type="text" placeholder="输入玩家用户名，自动匹配全平台..." aria-label="玩家用户名搜索"
           class="search-input flex-1 bg-dark border border-gray-600 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent"
         />
-        <button id="searchBtn"
+        <button id="searchBtn" aria-label="搜索"
           class="bg-accent hover:bg-red-500 text-white font-semibold px-6 py-3 rounded-lg text-sm transition-colors">
           查询
         </button>
@@ -90,6 +95,18 @@
     }
     searchBtn.addEventListener('click', doSearch);
     nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+  // 搜索框聚焦时自动弹出最近搜索
+  nameInput.addEventListener('focus', () => {
+    const section = document.getElementById('recentSection');
+    if (section && section.style.display !== 'none') return; // already visible
+    const list = getRecentSearches();
+    if (list.length) {
+      document.getElementById('recentSection').style.display = '';
+      renderRecent();
+    }
+  });
+
 
     // 最近搜索
     function renderRecent() {
@@ -244,5 +261,13 @@
       `).join('');
     });
   </script>
+  <script>
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+      e.preventDefault();
+      const searchInput = document.querySelector('#nameInput');
+      if (searchInput) searchInput.focus();
+    }
+  });</script>
 </body>
 </html>
