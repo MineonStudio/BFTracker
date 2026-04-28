@@ -322,6 +322,12 @@
           </div>
         </div>
 
+        <!-- BF6 赛季数据 -->
+        <div class="bg-card rounded-xl p-5 mb-8" id="seasonStatsSection" style="display:none">
+          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">赛季数据详情</h2>
+          <div id="seasonStatsContent"></div>
+        </div>
+
         <!-- BF2042 名片 -->
         <div class="bg-card rounded-xl p-5 mb-8" id="inventorySection" style="display:none">
           <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">玩家名片</h2>
@@ -641,6 +647,69 @@
       const first = results[0];
       document.getElementById('playerAvatar').src = first.stats.avatar || '';
       document.getElementById('playerName').textContent = first.stats.userName || name;
+
+      // ── 封禁检测 ──
+      (async () => {
+        try {
+          const [banData, eacData] = await Promise.all([
+            checkBan(name).catch(() => null),
+            checkEacBan(name).catch(() => null),
+          ]);
+          const el = document.getElementById('banStatus');
+          if (el) {
+            if (banData?.isBanned || eacData?.isBanned) {
+              el.innerHTML = '<span class="text-red-400 text-xs font-semibold ml-2 px-2 py-0.5 rounded-full bg-red-900/50">🔴 已被封禁</span>';
+            } else {
+              el.innerHTML = '<span class="text-green-400 text-xs font-semibold ml-2 px-2 py-0.5 rounded-full bg-green-900/50">✅ 账号正常</span>';
+            }
+          }
+        } catch {}
+      })();
+
+      // ── BF6 赛季分离数据 ──
+      if (game === 'bf6') {
+        (async () => {
+          try {
+            const data = await getStatsSeparated('bf6', name, results[0].platform).catch(() => null);
+            if (!data) return;
+            const seasons = data.seasons || data.gamemodeSeperation || [];
+            if (!seasons.length) return;
+            const sec = document.getElementById('seasonStatsSection');
+            const ct = document.getElementById('seasonStatsContent');
+            if (!sec || !ct) return;
+            sec.style.display = '';
+            ct.innerHTML = '<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b border-gray-700"><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">赛季</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">K/D</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">胜率</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">KPM</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">击杀</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">场次</th></tr></thead><tbody>' +
+              seasons.map(s => {
+                const kd = s.killDeath || s.kd;
+                const wp = s.winPercent || (s.wins / (s.wins + s.loses) * 100);
+                return `<tr class="border-b border-gray-700/40 hover:bg-gray-800/30"><td class="py-2 pr-4 text-white font-medium">${s.season || s.gamemode || '—'}</td><td class="py-2 pr-4 text-gray-300">${formatDecimal(kd)}</td><td class="py-2 pr-4 text-gray-300">${formatPct(wp)}</td><td class="py-2 pr-4 text-gray-300">${formatDecimal(s.killsPerMinute || s.kpm)}</td><td class="py-2 pr-4 text-gray-300">${formatNum(s.kills)}</td><td class="py-2 pr-4 text-gray-300">${formatNum(s.matchesPlayed || s.matches)}</td></tr>`;
+              }).join('') + '</tbody></table></div>';
+          } catch {}
+        })();
+      }
+
+      // ── BF2042 玩家名片 ──
+      if (game === 'bf2042') {
+        (async () => {
+          try {
+            const inv = await getInventory('bf2042', name, results[0].platform).catch(() => null);
+            if (!inv) return;
+            const sec = document.getElementById('inventorySection');
+            const ct = document.getElementById('inventoryContent');
+            if (!sec || !ct) return;
+            sec.style.display = '';
+            const badges = inv.badges || inv.emblem || [];
+            if (badges.length) {
+              ct.innerHTML = '<div class="flex flex-wrap gap-2">' +
+                badges.slice(0, 12).map(b => `<span class="bg-dark rounded-lg px-3 py-1.5 text-xs text-gray-300 border border-gray-700">${b.name || b.id || '徽章'}</span>`).join('') +
+                '</div>';
+            } else {
+              ct.innerHTML = '<p class="text-gray-500 text-xs">暂无名片数据</p>';
+            }
+          } catch {}
+        })();
+      }
+
       document.getElementById('playerMeta').textContent =
         `${GAME_LABELS[game] || game} · ${formatSeconds(first.stats.secondsPlayed)} 游戏时长`;
 
