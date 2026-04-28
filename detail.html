@@ -4,14 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>详细数据 - BF Tracker</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <link rel="stylesheet" href="css/input.css">
   <link rel="stylesheet" href="css/style.css">
-  <script>
-    tailwind.config = {
-      theme: { extend: { colors: { accent: '#ff4655', dark: '#1a1e26', card: '#242933' } } }
-    }
-  </script>
 </head>
 <body class="bg-dark text-gray-200 min-h-screen">
 
@@ -71,35 +66,11 @@
 
   <script type="module">
     import { GAME_LABELS, PLATFORM_LABELS } from './js/api.js';
+    import { MAP_CN, getMapName, getModeName } from './js/constants.js';
     import { formatNum, formatPct, formatDecimal } from './js/utils.js';
     import { getApiCache } from './js/storage.js';
 
     // 地图中文名映射（从 player.html 复制）
-    const MAP_CN = {
-      'Empire State': '帝国大厦', 'Manhattan Bridge': '曼哈顿大桥', 'Mirak Valley': '米拉克山谷',
-      'REDSEC': '试炼场', 'Siege of Cairo': '开罗围城', 'Operation Firestorm': '火力风暴行动',
-      'Iberian Offensive': '伊比利亚攻势', 'Liberation Peak': '解放者山峰', 'New Sobek City': '新索贝克城',
-      'Eastwood': '东方木林', 'Blackwell Fields': '布莱克韦尔农场', 'Saints Quarter': '圣徒街区',
-      'Contaminated': '污染区', 'Hagental Base': '哈根塔尔基地',
-    };
-
-    // 游戏模式中文名映射
-    const GAMEMODE_CN = {
-      'Conquest': '征服', 'Breakthrough': '突破', 'Rush': '突袭', 'Escalation': '升级',
-      'Team Deathmatch': '团队死斗', 'Squad Deathmatch': '小队死斗', 'Deathmatch': '死斗',
-      'Domination': '抢攻', 'King of the Hill': '山丘之王', 'Gauntlet': '试炼场',
-      'Duos': '双人大逃杀', 'Quads': '四人小队大逃杀', 'Strikepoint': '打击点',
-      'Strike Point': '打击点', 'Sabotage': '破坏', 'Battle Royale': '大逃杀',
-      'Battlefield Conflict': '禁区冲突', 'Portal': '门户',
-    };
-
-    const GAMEMODE_CN_LOWER = Object.fromEntries(
-      Object.entries(GAMEMODE_CN).map(([k, v]) => [k.toLowerCase(), v])
-    );
-    function getModeName(name) {
-      if (!name) return '—';
-      return GAMEMODE_CN[name] || GAMEMODE_CN_LOWER[name.toLowerCase()] || name;
-    }
 
     const p = new URLSearchParams(window.location.search);
     const game     = p.get('game')     || 'bf6';
@@ -130,6 +101,10 @@
         if (!data) {
           const BASE = 'https://api.gametools.network';
           const res  = await fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${platform}`);
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err?.message || err?.errors?.[0] || '查询失败');
+          }
           data = await res.json();
         }
 
