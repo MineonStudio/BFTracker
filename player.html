@@ -492,7 +492,7 @@
       }
 
       // ── 游戏模式（按胜率降序，横向柱状图）──
-      const SKIP_MODES = new Set(['Official', 'All', 'Custom']);
+      const SKIP_MODES = new Set(['Official', 'All', 'Custom', 'Duos', 'Quads', 'Gauntlet', 'REDSEC', 'Redsec', 'Redsec Duo', 'Redsec Squad', 'Battle Royale']);
       const gameModes = (allData?.gameModes || allData?.gamemodes || [])
         .filter(m => !SKIP_MODES.has(m.gamemodeName) && m.matches > 0)
         .sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0));
