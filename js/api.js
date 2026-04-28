@@ -96,20 +96,11 @@ export async function getMultiple(game, playerids) {
 }
 
 // BF6 全局在线人数
-export async function getBF6Status() {
-  return request(`${BASE}/bf6/status/`);
-}
-
 // 搜索玩家（获取 playerid）
 export async function searchPlayer(game, name, platform) {
   return request(`${BASE}/${game}/player/?name=${encodeURIComponent(name)}&platform=${platform}`);
 }
 
-
-// BF6 历史在线人数（小时级）
-export async function getStatusHistory(game, days = 7, region = 'all') {
-  return request(`${BASE}/${game}/statusarray/?days=${days}&region=${region}`);
-}
 
 // BF6 赛季/模式分离统计数据
 export async function getStatsSeparated(game, name, platform) {

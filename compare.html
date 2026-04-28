@@ -98,7 +98,6 @@
     // 渲染玩家输入槽
     function renderSlots() {
       const game = gameSelect.value;
-      const platforms = GAME_PLATFORMS[game] || ['pc'];
       const slotsEl = document.getElementById('playerSlots');
       slotsEl.innerHTML = '';
       for (let i = 0; i < MAX; i++) {

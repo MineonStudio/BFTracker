@@ -57,12 +57,13 @@ export function getUrlParams() {
   return {
     game: p.get('game') || 'bf6',
     name: p.get('name') || '',
+    platform: p.get('platform') || 'xbox',
   };
 }
 
 // 构建跳转 URL
-export function buildPlayerUrl(game, name) {
-  return `player.html?game=${encodeURIComponent(game)}&name=${encodeURIComponent(name)}`;
+export function buildPlayerUrl(game, name, platform = 'xbox') {
+  return `player.html?game=${encodeURIComponent(game)}&platform=${encodeURIComponent(platform)}&name=${encodeURIComponent(name)}`;
 }
 
 // 防抖函数
