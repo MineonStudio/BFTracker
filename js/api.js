@@ -98,10 +98,17 @@ export async function getStatsSeparated(game, name, platform) {
 // BFBan 封禁检测
 export async function checkBan(name) {
   try {
-    const res = await fetch(`${BASE}/bfban/check/?player=${encodeURIComponent(name)}`);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(`${BASE}/bfban/checkban/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerids: [name] }),
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
     if (!res.ok) return null;
-    const data = await res.json();
-    return data;
+    return await res.json();
   } catch {
     return null;
   }
@@ -121,9 +128,17 @@ export async function getInventory(game, name, platform) {
 // BF-EAC 封禁检测
 export async function checkEacBan(name) {
   try {
-    const res = await fetch(`${BASE}/bfeac/check/?player=${encodeURIComponent(name)}`);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    const res = await fetch(`${BASE}/bfeac/banned_players`, { signal: controller.signal });
+    clearTimeout(timer);
     if (!res.ok) return null;
-    return await res.json();
+    const data = await res.json();
+    // Check if player ID is in the ban list
+    if (Array.isArray(data)) {
+      return { isBanned: data.some(p => p.name?.toLowerCase() === name.toLowerCase() || p.playerid === name) };
+    }
+    return { isBanned: false };
   } catch {
     return null;
   }
