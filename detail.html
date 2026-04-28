@@ -121,7 +121,7 @@
           items = (data.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0)
             .sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0));
         } else if (isMode) {
-          const SKIP = new Set(['Official', 'All', 'Custom']);
+          const SKIP = new Set(['Official', 'All', 'Custom', 'Duos', 'Quads', 'Gauntlet', 'REDSEC', 'Redsec', 'Redsec Duo', 'Redsec Squad', 'Battle Royale']);
           items = (data.gameModes || data.gamemodes || [])
             .filter(m => !SKIP.has(m.gamemodeName) && m.matches > 0)
             .sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0));
