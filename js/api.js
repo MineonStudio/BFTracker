@@ -20,6 +20,27 @@ export const PLATFORM_LABELS = {
   ps5:        'PS5',
 };
 
+
+// 三大平台分类
+export const PLATFORM_CATEGORIES = ['PC', 'Xbox', 'PlayStation'];
+
+// 三大平台 → 细分平台的映射
+export const CATEGORY_PLATFORMS = {
+  'PC': ['pc'],
+  'Xbox': ['xbox', 'xboxone', 'xboxseries'],
+  'PlayStation': ['psn', 'ps4', 'ps5'],
+};
+
+// 各游戏在三大分类下支持的细分平台
+export const GAME_CATEGORY_PLATFORMS = {
+  bf6:    { 'PC': ['pc'], 'Xbox': ['xbox', 'xboxone', 'xboxseries'], 'PlayStation': ['psn', 'ps4', 'ps5'] },
+  bf2042: { 'PC': ['pc'], 'Xbox': ['xbox', 'xboxone', 'xboxseries'], 'PlayStation': ['psn', 'ps4', 'ps5'] },
+  bfv:    { 'PC': ['pc'], 'Xbox': ['xboxone'],                      'PlayStation': ['ps4'] },
+  bf1:    { 'PC': ['pc'], 'Xbox': ['xboxone'],                      'PlayStation': ['ps4'] },
+  bf4:    { 'PC': ['pc'],                                             'PlayStation': ['ps4'] },
+  bf3:    { 'PC': ['pc'],                                             'PlayStation': ['ps4'] },
+};
+
 export const GAME_LABELS = {
   bf6:    'Battlefield 6',
   bf2042: 'Battlefield 2042',

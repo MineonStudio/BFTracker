@@ -75,7 +75,7 @@
 
   <script type="module">
     import * as echarts from 'echarts';
-    import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS } from './js/api.js';
+    import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
     import { saveSnapshot, saveRecentSearch } from './js/storage.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, buildPlayerUrl } from './js/utils.js';
 
@@ -91,7 +91,7 @@
     // 从 URL 预填第一个玩家
     const urlParams = new URLSearchParams(window.location.search);
     const preGame     = urlParams.get('p1game')     || 'bf6';
-    const prePlatform = urlParams.get('p1platform') || 'xbox';
+    const prePlatform = urlParams.get('p1platform') || 'Xbox';
     const preName     = urlParams.get('p1name')     || '';
     gameSelect.value = preGame;
 
@@ -247,12 +247,21 @@
       loadingEl.classList.add('flex');
 
       try {
+        // 查询所有玩家（每个玩家查其分类下所有子平台，取第一个有数据的）
         const statsArr = await Promise.all(
-          players.map(p => getStats(p.game, p.name, p.platform).then(s => {
-            saveSnapshot(p.game, p.platform, p.name, s);
-            saveRecentSearch(p.game, p.platform, p.name);
-            return s;
-          }))
+          players.map(async p => {
+            // 依次尝试子平台，取第一个有数据的
+            for (const sub of p.subPlatforms) {
+              try {
+                const s = await getStats(p.game, p.name, sub);
+                saveSnapshot(p.game, sub, p.name, s);
+                saveRecentSearch(p.game, sub, p.name);
+                p.platform = sub; // 更新为实际使用的平台
+                return s;
+              } catch {}
+            }
+            throw new Error(`${p.name} 无可用数据`);
+          })
         );
 
         loadingEl.classList.add('hidden');
