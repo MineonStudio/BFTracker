@@ -83,3 +83,48 @@ export async function getBF6Status() {
 export async function searchPlayer(game, name, platform) {
   return request(`${BASE}/${game}/player/?name=${encodeURIComponent(name)}&platform=${platform}`);
 }
+
+
+// BF6 历史在线人数（小时级）
+export async function getStatusHistory(game, days = 7, region = 'all') {
+  return request(`${BASE}/${game}/statusarray/?days=${days}&region=${region}`);
+}
+
+// BF6 赛季/模式分离统计数据
+export async function getStatsSeparated(game, name, platform) {
+  return request(`${BASE}/${game}/stats/?name=${encodeURIComponent(name)}&platform=${platform}&format_values=false&seperation=true`);
+}
+
+// BFBan 封禁检测
+export async function checkBan(name) {
+  try {
+    const res = await fetch(`${BASE}/bfban/check/?player=${encodeURIComponent(name)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+// BF2042 玩家名片信息
+export async function getInventory(game, name, platform) {
+  try {
+    const res = await fetch(`${BASE}/${game}/inventory/?name=${encodeURIComponent(name)}&platform=${platform}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+// BF-EAC 封禁检测
+export async function checkEacBan(name) {
+  try {
+    const res = await fetch(`${BASE}/bfeac/check/?player=${encodeURIComponent(name)}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
