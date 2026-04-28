@@ -79,19 +79,16 @@
           <p id="playerMeta" class="text-gray-400 text-sm mt-0.5"></p>
         </div>
         <!-- 平台 Tabs -->
-        <div id="tabsBar" class="hidden ml-auto flex gap-2 flex-wrap justify-end"></div>
+        <div id="tabsBar" class="hidden ml-auto flex gap-2 flex-wrap justify-end">
+        <button id="portraitTabBtn" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-card border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400">🧠 画像</button>
+      </div>
       </div>
 
       <!-- Tab 内容区 -->
       <div id="tabPanel"></div>
+      <div id="portraitPanel" class="hidden mt-2"></div>
 
-      <!-- 画像按钮 -->
-      <div id="portraitBtn" class="hidden mt-4">
-        <button id="showPortraitBtn" class="w-full bg-card border border-gray-700 hover:border-accent text-gray-400 hover:text-accent rounded-xl py-3 text-sm font-medium transition-colors">
-          🧠 查看玩家画像分析
-        </button>
-      </div>
-      <div id="portraitPanel" class="hidden mt-4"></div>
+
 
     </div>
   </div>
@@ -732,6 +729,31 @@
             class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors ${i === 0 ? 'bg-accent text-white' : 'bg-card border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400'}">
             ${PLATFORM_LABELS[r.platform] || r.platform}
           </button>`).join('');
+
+      // ── 画像 Tab 点击 ──
+      document.getElementById('portraitTabBtn').addEventListener('click', () => {
+        const panel = document.getElementById('portraitPanel');
+        const tabPanel = document.getElementById('tabPanel');
+
+        // Toggle
+        if (panel.style.display !== 'none') {
+          panel.style.display = 'none';
+          tabPanel.style.display = '';
+          document.getElementById('portraitTabBtn').classList.remove('bg-accent', 'text-white');
+          document.getElementById('portraitTabBtn').classList.add('bg-card', 'border', 'border-gray-600', 'text-gray-400');
+          return;
+        }
+        // Hide platform tabs content, show portrait
+        tabPanel.style.display = 'none';
+        panel.style.display = '';
+        document.getElementById('portraitTabBtn').classList.add('bg-accent', 'text-white');
+        document.getElementById('portraitTabBtn').classList.remove('bg-card', 'border', 'border-gray-600', 'text-gray-400');
+
+        // Render with first platform data
+        if (results[0]) {
+          renderPortrait(panel, results[0].stats, results[0].allData);
+        }
+      });
 
       tabsBar.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
