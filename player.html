@@ -94,7 +94,7 @@
   </div>
 
   <script type="module">
-    import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS } from './js/api.js';
+    import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS, searchPlayer } from './js/api.js';
     import { saveSnapshot, saveRecentSearch, saveApiCache } from './js/storage.js';
     import * as echarts from 'echarts';
     import { checkBan, checkEacBan, getInventory } from './js/api.js';
@@ -609,9 +609,27 @@
       }
 
       const BASE      = 'https://api.gametools.network';
-      const platforms = GAME_PLATFORMS[game] || ['pc'];
 
-      // 全平台并发查询
+      // 智能平台检测
+      let platforms = GAME_PLATFORMS[game] || ['pc'];
+      try {
+        const playerResults = await searchPlayer(game, name, platforms[0]);
+        if (playerResults?.results?.length) {
+          const activePlatforms = new Set();
+          playerResults.results.forEach(r => {
+            if (r.platform && platforms.includes(r.platform)) {
+              activePlatforms.add(r.platform);
+            }
+          });
+          if (activePlatforms.size > 0) {
+            platforms = [...activePlatforms];
+          } else if (playerResults.results.length > 0 && platforms.includes('pc')) {
+            platforms = ['pc'];
+          }
+        }
+      } catch {}
+
+      // 并发查询（只查检测到的平台）
       const settled = await Promise.allSettled(
         platforms.map(async p => {
           const [stats, allData] = await Promise.all([
