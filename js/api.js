@@ -22,7 +22,7 @@ export const PLATFORM_LABELS = {
 
 
 // 三大平台分类
-export const PLATFORM_CATEGORIES = ['PC', 'Xbox', 'PlayStation'];
+export const PLATFORM_CATEGORIES = ['Xbox', 'PlayStation', 'PC'];
 
 // 三大平台 → 细分平台的映射
 export const CATEGORY_PLATFORMS = {
