@@ -633,7 +633,8 @@
       const gameCatPlatforms = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['pc'] };
       let platforms = gameCatPlatforms[platformCategory] || ['pc'];
 
-      // 如果平台太多，用智能检测缩小范围
+      // 智能检测：找出该玩家实际活跃的子平台，配合通用平台作为兜底
+      let detectedPlatforms = null;
       if (platforms.length > 2) {
         try {
           const playerResults = await searchPlayer(game, name, platforms[0]);
@@ -644,9 +645,13 @@
                 activePlatforms.add(r.platform);
               }
             });
-            if (activePlatforms.size > 0) platforms = [...activePlatforms];
+            if (activePlatforms.size > 0) detectedPlatforms = [...activePlatforms];
           }
         } catch {}
+      }
+      // 用检测到的平台优先，但保留全量作为兜底（兼容 API 只认通用平台名的情况）
+      if (detectedPlatforms) {
+        platforms = [...new Set([...detectedPlatforms, ...platforms])];
       }
 
       // 并发查询（只查检测到的平台）
