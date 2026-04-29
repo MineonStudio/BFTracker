@@ -774,11 +774,14 @@
       const tabPanel  = document.getElementById('tabPanel');
 
       tabsBar.classList.remove('hidden');
-      tabsBar.innerHTML = results.map((r, i) => `
-          <button data-idx="${i}"
-            class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors ${i === 0 ? 'bg-accent text-white' : 'bg-card border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400'}">
-            ${PLATFORM_LABELS[r.platform] || r.platform}
-          </button>`).join('');
+      tabsBar.innerHTML = `
+          <button id="portraitTabBtn"
+            class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-card border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400">🧠 画像</button>
+          ${results.map((r, i) => `
+            <button data-idx="${i}"
+              class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors ${i === 0 ? 'bg-accent text-white' : 'bg-card border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400'}">
+              ${PLATFORM_LABELS[r.platform] || r.platform}
+            </button>`).join('')}`;
 
       // ── 画像 Tab 点击 ──
       document.getElementById('portraitTabBtn').addEventListener('click', () => {
