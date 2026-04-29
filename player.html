@@ -73,23 +73,6 @@
     <!-- 内容 -->
     <div id="content" class="hidden">
 
-      <!-- 玩家头部 + Tabs 同行 -->
-      <div class="flex flex-wrap items-center gap-3 sm:gap-4 mb-4 sm:mb-6 fade-up">
-        <img id="playerAvatar" src="" alt="avatar" class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-700 object-cover">
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2">
-            <h1 id="playerName" class="text-xl sm:text-2xl font-bold"></h1>
-          </div>
-          <div class="flex items-center justify-between mt-0.5">
-            <span id="playerPlayTime" class="text-gray-400 text-xs sm:text-sm"></span>
-            <div class="flex items-center gap-2">
-              <span id="gameLabel" class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-accent/10"></span>
-              <span id="banStatus"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Tab 内容区 -->
       <div id="tabPanel"></div>
 
@@ -206,6 +189,22 @@
         <!-- 玩家总览 -->
         <div class="bg-card rounded-2xl p-5 mb-8 fade-up">
           <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">玩家概览</h2>
+          <!-- 玩家信息 -->
+          <div class="flex items-center gap-3 mb-4">
+            ${stats.avatar && !stats.avatar.includes('default-avatar') ? `<img src="${stats.avatar}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 object-cover" alt="">` : ''}
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <h1 class="text-lg sm:text-xl font-bold">${stats.userName || name}</h1>
+              </div>
+              <div class="flex items-center justify-between mt-0.5">
+                <span class="text-gray-400 text-xs sm:text-sm">${formatSeconds(stats.secondsPlayed)} 游戏时长</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-accent/10">${GAME_LABELS[game] || game}</span>
+                  <span id="banStatus"></span>
+                </div>
+              </div>
+            </div>
+          </div>
           <!-- 第一行：KD + 胜率 等宽 -->
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="bg-dark rounded-xl p-4">
@@ -731,9 +730,6 @@
           } catch {}
         })();
       }
-
-      document.getElementById('gameLabel').textContent = GAME_LABELS[game] || game;
-      document.getElementById('playerPlayTime').textContent = formatSeconds(first.stats.secondsPlayed) + ' 游戏时长';
 
       const tabPanel  = document.getElementById('tabPanel');
 
