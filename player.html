@@ -194,7 +194,7 @@
             ${stats.avatar && !stats.avatar.includes('default-avatar') ? `<img src="${stats.avatar}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 object-cover" alt="">` : ''}
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
-                <h1 class="text-lg sm:text-xl font-bold">${stats.userName || name}</h1>
+                <h1 class="text-xl sm:text-3xl font-black gradient-text tracking-tight">${stats.userName || name}</h1>
               </div>
               <div class="flex items-center justify-between mt-0.5">
                 <span class="text-gray-400 text-xs sm:text-sm">${formatSeconds(stats.secondsPlayed)} 游戏时长</span>
