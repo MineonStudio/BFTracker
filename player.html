@@ -224,7 +224,7 @@
       container.innerHTML = `
         <!-- 玩家总览 -->
         <div class="bg-card rounded-2xl p-5 mb-8 fade-up">
-          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">玩家概览 <button onclick="openShareModal()" class="ml-2 text-xs text-accent hover:text-white transition-colors">📤 分享</button></h2>
+          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">玩家概览 <button onclick="window.openShareModal()" class="ml-2 text-xs text-accent hover:text-white transition-colors">📤 分享</button></h2>
           <!-- 玩家信息 -->
           <div class="flex items-center gap-3 mb-4">
             ${stats.avatar && !stats.avatar.includes('default-avatar') ? `<img src="${stats.avatar}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 object-cover" alt="">` : ''}
@@ -824,12 +824,24 @@
       document.getElementById('errorTips').style.display = '';
     }
 
-    // ─── 分享功能 ──────────────────────────────────────────
+    load().catch(err => {
+      const loadingState = document.getElementById('loadingState');
+      const errorState = document.getElementById('errorState');
+      if (loadingState) loadingState.classList.add('hidden');
+      if (errorState) {
+        errorState.classList.remove('hidden');
+        document.getElementById('errorTitle').textContent = '查询失败';
+        document.getElementById('errorMsg').textContent = err?.message || '未知错误，请稍后重试';
+        const tips = document.getElementById('errorTips');
+        if (tips) tips.style.display = 'none';
+      }
+    });
+
+    // ─── 分享功能（放在最后避免初始化顺序问题） ───
     window.openShareModal = () => {
       const modal = document.getElementById('shareModal');
       if (!modal) return;
       modal.classList.remove('hidden');
-      // 根据数据有无自动勾选板块（1项以上即选中）
       const ops = window.__shareOps;
       document.querySelectorAll('#shareSections input[type=checkbox]').forEach(cb => {
         if (cb.value === 'weapons') cb.checked = ops?.weapons?.length > 0;
@@ -886,19 +898,6 @@
       }
       window.closeShareModal();
     };
-
-    load().catch(err => {
-      const loadingState = document.getElementById('loadingState');
-      const errorState = document.getElementById('errorState');
-      if (loadingState) loadingState.classList.add('hidden');
-      if (errorState) {
-        errorState.classList.remove('hidden');
-        document.getElementById('errorTitle').textContent = '查询失败';
-        document.getElementById('errorMsg').textContent = err?.message || '未知错误，请稍后重试';
-        const tips = document.getElementById('errorTips');
-        if (tips) tips.style.display = 'none';
-      }
-    });
   </script>
   <script>
   document.addEventListener('keydown', e => {
