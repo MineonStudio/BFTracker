@@ -703,6 +703,8 @@
         kdColor: kdColor(stats.killDeath),
         wr: formatPct(stats.winPercent),
         wrColor: winColor(parseFloat(stats.winPercent)),
+        platform: first.platform,
+        url: location.href,
       };
       // 缓存板块数据供分享文本使用
       window.__shareOps = {
@@ -827,20 +829,14 @@
       const modal = document.getElementById('shareModal');
       if (!modal) return;
       modal.classList.remove('hidden');
-      // 勾选有数据的板块
+      // 根据数据有无自动勾选板块（1项以上即选中）
       const ops = window.__shareOps;
       document.querySelectorAll('#shareSections input[type=checkbox]').forEach(cb => {
-        if (cb.value === 'overview' || cb.value === 'weapons' || cb.value === 'vehicles') {
-          const panel = document.getElementById('killsSection');
-          cb.checked = panel && panel.style.display !== 'none';
-        } else if (cb.value === 'maps') {
-          const panel = document.getElementById('winRateSection');
-          cb.checked = panel && panel.style.display !== 'none';
-        } else if (cb.value === 'classes') {
-          const panel = document.getElementById('classSection');
-          cb.checked = panel && panel.style.display !== 'none';
-        }
-        if (cb.value === 'overview') cb.disabled = true;
+        if (cb.value === 'weapons') cb.checked = ops?.weapons?.length > 0;
+        else if (cb.value === 'vehicles') cb.checked = ops?.vehicles?.length > 0;
+        else if (cb.value === 'maps') cb.checked = ops?.maps?.length > 0;
+        else if (cb.value === 'classes') cb.checked = ops?.classes?.length > 0;
+        cb.disabled = cb.value === 'overview';
       });
     };
     window.closeShareModal = () => document.getElementById('shareModal')?.classList.add('hidden');
