@@ -694,7 +694,14 @@
 
       // 填充玩家头部（用第一个结果）
       const first = results[0];
-      document.getElementById('playerAvatar').src = first.stats.avatar || '';
+      // 设置头像（有头像时显示，无头像时隐藏 img 标签）
+      const avatarEl = document.getElementById('playerAvatar');
+      if (first.stats.avatar && !first.stats.avatar.includes('default-avatar')) {
+        avatarEl.src = first.stats.avatar;
+        avatarEl.style.display = '';
+      } else {
+        avatarEl.style.display = 'none';
+      }
       document.getElementById('playerName').textContent = first.stats.userName || name;
 
       // ── 封禁检测 ──
@@ -852,7 +859,18 @@
       document.getElementById('errorTips').style.display = '';
     }
 
-    load();
+    load().catch(err => {
+      const loadingState = document.getElementById('loadingState');
+      const errorState = document.getElementById('errorState');
+      if (loadingState) loadingState.classList.add('hidden');
+      if (errorState) {
+        errorState.classList.remove('hidden');
+        document.getElementById('errorTitle').textContent = '查询失败';
+        document.getElementById('errorMsg').textContent = err?.message || '未知错误，请稍后重试';
+        const tips = document.getElementById('errorTips');
+        if (tips) tips.style.display = 'none';
+      }
+    });
   </script>
   <script>
   document.addEventListener('keydown', e => {

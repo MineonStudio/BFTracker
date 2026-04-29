@@ -75,7 +75,7 @@
 
   <script type="module">
     import * as echarts from 'echarts';
-    import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
+    import { getStats, GAME_LABELS, PLATFORM_LABELS, PLATFORM_CATEGORIES, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
     import { saveSnapshot, saveRecentSearch } from './js/storage.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, buildPlayerUrl } from './js/utils.js';
 
@@ -94,6 +94,10 @@
     const prePlatform = urlParams.get('p1platform') || 'Xbox';
     const preName     = urlParams.get('p1name')     || '';
     gameSelect.value = preGame;
+
+    // 平台分类 → 该分类下第一个有效子平台
+    const CAT_FIRST_PLATFORM = { 'PC': 'pc', 'Xbox': 'xbox', 'PlayStation': 'psn' };
+    const defaultSubPlatform = CAT_FIRST_PLATFORM[prePlatform] || 'xbox';
 
     // 渲染玩家输入槽
     function renderSlots() {
@@ -114,7 +118,7 @@
             class="search-input w-full bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:border-accent" />
           <select data-slot="${i}" data-field="platform"
             class="w-full bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent">
-            ${platforms.map(p => `<option value="${p}" ${p === (isFirst ? prePlatform : 'xbox') ? 'selected' : ''}>${PLATFORM_LABELS[p]}</option>`).join('')}
+            ${platforms.map(p => `<option value="${p}" ${p === (isFirst ? defaultSubPlatform : 'xbox') ? 'selected' : ''}>${PLATFORM_LABELS[p]}</option>`).join('')}
           </select>
         `;
         slotsEl.appendChild(div);
@@ -216,7 +220,7 @@
         <th class="text-left py-2 pr-4 text-gray-500 font-medium w-28">指标</th>
         ${players.map((p, i) => `
           <th class="text-center py-2 px-3 font-semibold" style="color:${COLORS[i]}">
-            <a href="${buildPlayerUrl(p.game, p.name)}" class="hover:underline">${p.name}</a>
+            <a href="${buildPlayerUrl(p.game, p.name, p.platform)}" class="hover:underline">${p.name}</a>
             <div class="text-xs font-normal text-gray-500">${PLATFORM_LABELS[p.platform] || p.platform}</div>
           </th>`).join('')}
       </tr>`;
@@ -249,20 +253,17 @@
       loadingEl.classList.add('flex');
 
       try {
-        // 查询所有玩家（每个玩家查其分类下所有子平台，取第一个有数据的）
+        // 查询所有玩家（直接用选定的子平台查询）
         const statsArr = await Promise.all(
           players.map(async p => {
-            // 依次尝试子平台，取第一个有数据的
-            for (const sub of p.subPlatforms) {
-              try {
-                const s = await getStats(p.game, p.name, sub);
-                saveSnapshot(p.game, sub, p.name, s);
-                saveRecentSearch(p.game, sub, p.name);
-                p.platform = sub; // 更新为实际使用的平台
-                return s;
-              } catch {}
+            try {
+              const s = await getStats(p.game, p.name, p.platform);
+              saveSnapshot(p.game, p.platform, p.name, s);
+              saveRecentSearch(p.game, p.platform, p.name);
+              return s;
+            } catch {
+              throw new Error(`${p.name} 无可用数据`);
             }
-            throw new Error(`${p.name} 无可用数据`);
           })
         );
 

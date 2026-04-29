@@ -164,7 +164,9 @@
 
     async function fetchGameStatus(game) {
       const res = await fetch(`https://api.gametools.network/${game}/status/`);
-      const data = await res.json();
+      if (!res.ok) throw new Error('API error');
+      const text = await res.text();
+      const data = JSON.parse(text);
       statusRawData[game] = data;
       const regions = data.regions || {};
       const all = regions['ALL'] || regions['all'] || Object.values(regions)[0] || {};
