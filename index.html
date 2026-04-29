@@ -69,7 +69,7 @@
 
   <script type="module">
     import * as echarts from 'echarts';
-    import { GAME_LABELS, PLATFORM_CATEGORIES, PLATFORM_LABELS } from './js/api.js';
+    import { GAME_LABELS, PLATFORM_CATEGORIES } from './js/api.js';
     import { getRecentSearches, saveRecentSearch, removeRecentSearch, clearRecentSearches } from './js/storage.js';
     import { buildPlayerUrl, formatNum } from './js/utils.js';
 
@@ -121,11 +121,13 @@
       const section = document.getElementById('recentSection');
       if (!list.length) { section.style.display = 'none'; return; }
       section.style.display = '';
+      const PLATFORM_CATEGORY_MAP = { xbox: 'Xbox', xboxone: 'Xbox', xboxseries: 'Xbox', pc: 'PC', psn: 'PlayStation', ps4: 'PlayStation', ps5: 'PlayStation', playstation: 'PlayStation' };
+      const formatPlatform = p => PLATFORM_CATEGORY_MAP[p?.toLowerCase()] || p?.charAt(0)?.toUpperCase() + p?.slice(1) || '—';
       document.getElementById('recentList').innerHTML = list.map(r => `
         <div class="group relative flex items-center bg-card border border-gray-700 hover:border-accent rounded-full pl-4 pr-2 py-1.5 text-sm transition-colors">
           <a href="${buildPlayerUrl(r.game, r.name, r.platform)}" class="flex items-center gap-1.5 flex-1 min-w-0">
             <span class="text-accent font-semibold shrink-0">${GAME_LABELS[r.game] || r.game}</span>
-            <span class="text-gray-500 text-xs px-1.5 py-0.5 rounded bg-gray-700/50 shrink-0">${PLATFORM_LABELS[r.platform?.toLowerCase()] || r.platform || '—'}</span>
+            <span class="text-gray-500 text-xs px-1.5 py-0.5 rounded bg-gray-700/50 shrink-0">${formatPlatform(r.platform)}</span>
             <span class="text-gray-300 truncate">${r.name}</span>
           </a>
           <button data-game="${r.game}" data-platform="${r.platform}" data-name="${r.name}"
