@@ -101,7 +101,8 @@
         </div>
         <div class="flex gap-3">
           <button onclick="window.closeShareModal()" class="flex-1 border border-gray-600 text-gray-400 hover:text-white rounded-lg py-2.5 text-sm transition-colors">取消</button>
-          <button onclick="window.doShare()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">生成并分享</button>
+          <button onclick="window.doShareLink()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">🔗 分享链接</button>
+          <button onclick="window.doSharePoster()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">🖼️ 海报</button>
         </div>
       </div>
     </div>
@@ -224,19 +225,22 @@
       container.innerHTML = `
         <!-- 玩家总览 -->
         <div class="bg-card rounded-2xl p-5 mb-8 fade-up">
-          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">玩家概览 <button onclick="window.openShareModal()" class="ml-2 text-xs text-accent hover:text-white transition-colors">📤 分享</button></h2>
+          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">玩家概览</h2>
           <!-- 玩家信息 -->
           <div class="flex items-center gap-3 mb-4">
             ${stats.avatar && !stats.avatar.includes('default-avatar') ? `<img src="${stats.avatar}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 object-cover" alt="">` : ''}
             <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2">
-                <h1 class="text-2xl sm:text-4xl font-black gradient-text tracking-tight">${stats.userName || name}</h1>
+              <div class="flex items-center justify-between gap-2">
+                <h1 class="text-2xl sm:text-4xl font-black gradient-text tracking-tight truncate">${stats.userName || name}</h1>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button onclick="window.openShareModal()" class="text-xs text-accent hover:text-white transition-colors border border-accent/30 hover:border-accent rounded-lg px-3 py-1.5">📤 分享</button>
+                  <span id="banStatus"></span>
+                </div>
               </div>
               <div class="flex items-center justify-between mt-0.5">
                 <span class="text-gray-400 text-xs sm:text-sm">${formatSeconds(stats.secondsPlayed)} 游戏时长</span>
                 <div class="flex items-center gap-2">
                   <span class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-accent/10">${GAME_LABELS[game] || game}</span>
-                  <span id="banStatus"></span>
                 </div>
               </div>
             </div>
@@ -853,7 +857,7 @@
     };
     window.closeShareModal = () => document.getElementById('shareModal')?.classList.add('hidden');
 
-    window.doShare = async () => {
+    window.doShareLink = async () => {
       const checks = document.querySelectorAll('#shareSections input[type=checkbox]:checked');
       const sections = [...checks].map(c => c.value);
       const d = window.__shareData || {};
@@ -865,25 +869,25 @@
       
       if (sections.includes('weapons') && ops.weapons?.length) {
         text += `━━━ 武器Top5 ━━━\n`;
-        ops.weapons.forEach(w => { text += `  ${w.name}: ${w.kills}杀\n`; });
+        ops.weapons.slice(0, 3).forEach(w => { text += `  ${w.name}: ${w.kills}杀\n`; });
       }
       if (sections.includes('vehicles') && ops.vehicles?.length) {
         text += `━━━ 载具Top5 ━━━\n`;
-        ops.vehicles.forEach(v => { text += `  ${v.name}: ${v.kills}杀\n`; });
+        ops.vehicles.slice(0, 3).forEach(v => { text += `  ${v.name}: ${v.kills}杀\n`; });
       }
       if (sections.includes('maps') && ops.maps?.length) {
         text += `━━━ 地图胜率 ━━━\n`;
-        ops.maps.forEach(m => { text += `  ${m.name}: ${m.wr}%\n`; });
+        ops.maps.slice(0, 3).forEach(m => { text += `  ${m.name}: ${m.wr}%\n`; });
       }
       if (sections.includes('classes') && ops.classes?.length) {
         text += `━━━ 兵种分布 ━━━\n`;
         ops.classes.forEach(c => { text += `  ${c.name}: ${c.kills}杀\n`; });
       }
-      text += `\n📊 查看完整数据 → ${location.href}`;
+      text += `\n📊 查看完整数据 → ${d.url || location.href}`;
 
       try {
         if (navigator.share) {
-          await navigator.share({ title: `${d.name} 的 ${d.game} 战绩`, text, url: location.href });
+          await navigator.share({ title: `${d.name} 的 ${d.game} 战绩`, text, url: d.url || location.href });
         } else {
           await navigator.clipboard.writeText(text);
           alert('已复制到剪贴板！');
@@ -896,6 +900,83 @@
           } catch {}
         }
       }
+      window.closeShareModal();
+    };
+
+    window.doSharePoster = async () => {
+      const checks = document.querySelectorAll('#shareSections input[type=checkbox]:checked');
+      const sections = [...checks].map(c => c.value);
+      const d = window.__shareData || {};
+      const ops = window.__shareOps || {};
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const W = 600; const P = 28;
+      let y = P;
+
+      // 计算高度
+      let H = P + 36 + 8 + 40 + 12 + 80 + 8; // title + name + KD row
+      if (sections.includes('weapons') && ops.weapons?.length) H += 24 + ops.weapons.slice(0,5).length * 20 + 8;
+      if (sections.includes('vehicles') && ops.vehicles?.length) H += 24 + ops.vehicles.slice(0,5).length * 20 + 8;
+      if (sections.includes('maps') && ops.maps?.length) H += 24 + ops.maps.slice(0,5).length * 20 + 8;
+      if (sections.includes('classes') && ops.classes?.length) H += 24 + ops.classes.length * 20 + 8;
+      H += P + 20;
+
+      canvas.width = W; canvas.height = H;
+      ctx.fillStyle = '#1a1e26'; ctx.fillRect(0, 0, W, H);
+
+      // Title
+      const g = ctx.createLinearGradient(P, 0, P + 260, 0);
+      g.addColorStop(0, '#ff4655'); g.addColorStop(1, '#fb923c');
+      ctx.fillStyle = g; ctx.font = 'bold 26px system-ui';
+      ctx.fillText('BF Tracker 战绩报告', P, y + 26); y += 42;
+      ctx.strokeStyle = '#374151'; ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke(); y += 14;
+
+      // Player name + KD
+      ctx.fillStyle = '#f3f4f6'; ctx.font = 'bold 22px system-ui'; ctx.fillText(d.name || '—', P, y + 22); y += 34;
+      ctx.fillStyle = '#9ca3af'; ctx.font = '14px system-ui'; ctx.fillText(d.game + ' · ' + d.time, P, y + 16); y += 30;
+
+      ctx.fillStyle = '#ff4655'; ctx.font = 'bold 52px system-ui'; ctx.fillText(d.kd, P, y + 42);
+      ctx.fillStyle = '#6b7280'; ctx.font = '13px system-ui'; ctx.fillText('K/D', P, y + 58);
+      ctx.fillStyle = '#ff4655'; ctx.font = 'bold 52px system-ui'; ctx.fillText(d.wr, W / 2 + 16, y + 42);
+      ctx.fillStyle = '#6b7280'; ctx.font = '13px system-ui'; ctx.fillText('胜率', W / 2 + 16, y + 58);
+      y += 86;
+
+      ctx.strokeStyle = '#374151'; ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke(); y += 14;
+
+      // 板块
+      const drawSection = (title, items, formatter) => {
+        if (!items?.length) return;
+        ctx.fillStyle = '#d1d5db'; ctx.font = 'bold 13px system-ui'; ctx.fillText(title, P, y + 14); y += 22;
+        ctx.fillStyle = '#9ca3af'; ctx.font = '12px system-ui';
+        items.slice(0, 5).forEach(item => {
+          ctx.fillText(formatter(item), P, y + 14); y += 20;
+        });
+        y += 6;
+      };
+
+      if (sections.includes('weapons')) drawSection('武器击杀排行', ops.weapons, w => `${w.name}: ${w.kills}杀`);
+      if (sections.includes('vehicles')) drawSection('载具击杀排行', ops.vehicles, v => `${v.name}: ${v.kills}杀`);
+      if (sections.includes('maps')) drawSection('地图胜率', ops.maps, m => `${m.name}: ${m.wr}%`);
+      if (sections.includes('classes')) drawSection('兵种分布', ops.classes, c => `${c.name}: ${c.kills}杀`);
+
+      ctx.fillStyle = '#4b5563'; ctx.font = '11px system-ui';
+      ctx.fillText('via BF Tracker · mineonstudio.github.io/BFTracker', P, H - 16);
+
+      canvas.toBlob(async blob => {
+        const file = new File([blob], `bf-tracker-${d.name}.png`, { type: 'image/png' });
+        try {
+          if (navigator.canShare?.({ files: [file] })) {
+            await navigator.share({ files: [file], title: `${d.name} 的 ${d.game} 战绩` });
+          } else {
+            const a = document.createElement('a'); a.download = `bf-tracker-${d.name}.png`; a.href = canvas.toDataURL(); a.click();
+          }
+        } catch (err) {
+          if (err?.name !== 'AbortError') {
+            const a = document.createElement('a'); a.download = `bf-tracker-${d.name}.png`; a.href = canvas.toDataURL(); a.click();
+          }
+        }
+      }, 'image/png');
       window.closeShareModal();
     };
   </script>
