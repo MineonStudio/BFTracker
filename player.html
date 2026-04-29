@@ -626,7 +626,15 @@
 
       // 获取平台分类下的细分平台（默认 Xbox）
       const urlParams = new URLSearchParams(window.location.search);
-      const platformCategory = urlParams.get('platform') || 'Xbox';
+      const platformCategory = (() => {
+        const raw = urlParams.get('platform') || 'Xbox';
+        // 兼容旧搜索：将小写子平台（如 xbox/xboxone）映射到分类（Xbox）
+        const lower = raw.toLowerCase();
+        if (lower === 'xbox' || lower === 'xboxone' || lower === 'xboxseries') return 'Xbox';
+        if (lower === 'psn' || lower === 'ps4' || lower === 'ps5' || lower === 'playstation') return 'PlayStation';
+        if (lower === 'pc') return 'PC';
+        return raw;
+      })();
       const gameCatPlatforms = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['pc'] };
       let platforms = gameCatPlatforms[platformCategory] || ['pc'];
 

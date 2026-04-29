@@ -57,12 +57,12 @@ export function getUrlParams() {
   return {
     game: p.get('game') || 'bf6',
     name: p.get('name') || '',
-    platform: p.get('platform') || 'xbox',
+    platform: p.get('platform') || 'Xbox',
   };
 }
 
 // 构建跳转 URL
-export function buildPlayerUrl(game, name, platform = 'xbox') {
+export function buildPlayerUrl(game, name, platform = 'Xbox') {
   return `player.html?game=${encodeURIComponent(game)}&platform=${encodeURIComponent(platform)}&name=${encodeURIComponent(name)}`;
 }
 
