@@ -279,7 +279,7 @@
               <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">地图胜率</h2>
               <a href="${detailBase}&type=maps" class="text-xs text-accent hover:underline">详情 →</a>
             </div>
-            <div id="mapChart-${platform}" style="height:320px"></div>
+            <div id="mapList-${platform}" class="space-y-2"></div>
           </div>
           <div class="bg-card rounded-xl p-5" id="modeSection-${platform}" style="display:none">
             <div class="flex items-center justify-between mb-4">
@@ -340,34 +340,34 @@
         </div>
       `;
 
-      // ── 武器 ──
+      // ── 武器 Top10 列表（带图标） ──
       if (allData?.weapons?.length) {
-        const top10 = [...allData.weapons].filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 10).reverse();
+        const top10 = [...allData.weapons].filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 10);
         if (top10.length) {
           document.getElementById(`killsSection-${platform}`).style.display = '';
           document.getElementById(`weaponPanel-${platform}`).style.display = '';
-          renderBarChart(document.getElementById(`weaponChart-${platform}`), top10.map(w => w.weaponName), top10.map(w => w.kills));
+          document.getElementById(`weaponList-${platform}`).innerHTML = top10.map((w, i) => `
+            <div class="flex items-center gap-3 bg-dark rounded-lg px-3 py-2">
+              ${w.image ? `<img src="${w.image}" class="w-8 h-8 object-contain" alt="">` : `<span class="w-8 h-8"></span>`}
+              <span class="text-sm text-gray-200 flex-1 truncate">${w.weaponName}</span>
+              <span class="text-sm font-bold text-accent shrink-0">${formatNum(w.kills)}</span>
+            </div>`).join('');
         }
       }
 
-      // ── 载具 ──
+      // ── 载具 Top10 列表（带图标） ──
       if (allData?.vehicles?.length) {
-        const topV = [...allData.vehicles].filter(v => v.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 10).reverse();
+        const topV = [...allData.vehicles].filter(v => v.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 10);
         if (topV.length) {
           document.getElementById(`killsSection-${platform}`).style.display = '';
           document.getElementById(`vehiclePanel-${platform}`).style.display = '';
-          renderBarChart(document.getElementById(`vehicleChart-${platform}`), topV.map(v => v.vehicleName), topV.map(v => v.kills), '#3b82f6');
+          document.getElementById(`vehicleList-${platform}`).innerHTML = topV.map((v, i) => `
+            <div class="flex items-center gap-3 bg-dark rounded-lg px-3 py-2">
+              ${v.image ? `<img src="${v.image}" class="w-8 h-8 object-contain" alt="">` : `<span class="w-8 h-8"></span>`}
+              <span class="text-sm text-gray-200 flex-1 truncate">${v.vehicleName}</span>
+              <span class="text-sm font-bold text-accent shrink-0">${formatNum(v.kills)}</span>
+            </div>`).join('');
         }
-      }
-
-      // ── 配备 ──
-      const gadgetItems = [
-        ...(allData?.gadgets || []), ...(allData?.melee || []), ...(allData?.battlePickups || []),
-      ].filter(g => g.kills > 0).sort((a, b) => b.kills - a.kills);
-      if (gadgetItems.length) {
-        document.getElementById(`killsSection-${platform}`).style.display = '';
-        document.getElementById(`gadgetPanel-${platform}`).style.display = '';
-        renderBarChart(document.getElementById(`gadgetChart-${platform}`), gadgetItems.slice(0, 10).reverse().map(g => g.gadgetName || g.meleeName || g.weaponName), gadgetItems.slice(0, 10).reverse().map(g => g.kills), '#22c55e');
       }
 
       // ── 击杀类型饼图 ──
@@ -524,41 +524,17 @@
 
       // ── 地图（按胜率降序）──
       const maps = (allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0)
-        .sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0));
+        .sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0)).slice(0, 15);
       if (maps.length) {
         document.getElementById(`winRateSection-${platform}`).style.display = '';
         document.getElementById(`mapSection-${platform}`).style.display = '';
-        const el = document.getElementById(`mapChart-${platform}`);
-        el.style.height = Math.max(280, maps.length * 36 + 60) + 'px';
-        // 图表从下到上渲染，反转数组让胜率最高的显示在顶部
-        const mapsAsc = [...maps].reverse();
-        requestAnimationFrame(() => {
-          const chart = echarts.init(el, 'dark');
-          chart.setOption({
-            backgroundColor: 'transparent',
-            grid: { left: 10, right: 80, top: 10, bottom: 30, containLabel: true },
-            xAxis: { type: 'value', max: 100, axisLabel: { color: '#9ca3af', fontSize: 11, formatter: '{value}%' }, splitLine: { lineStyle: { color: '#374151' } } },
-            yAxis: { type: 'category', data: mapsAsc.map(m => MAP_CN[m.mapName] || m.mapName), axisLabel: { color: '#d1d5db', fontSize: 11 }, axisTick: { show: false } },
-            series: [{
-              type: 'bar', barMaxWidth: 22,
-              data: mapsAsc.map(m => parseFloat(m.winPercent) || 0),
-              itemStyle: {
-                color: params => params.value >= 50 ? '#22c55e' : params.value >= 40 ? '#facc15' : '#f87171',
-                borderRadius: [0, 4, 4, 0],
-              },
-              label: { show: true, position: 'right', color: '#9ca3af', fontSize: 11, formatter: p => `${p.value.toFixed(1)}%  ${mapsAsc[p.dataIndex]?.matches}场` },
-            }],
-            tooltip: {
-              trigger: 'axis', backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' },
-              formatter: p => {
-                const m = mapsAsc[p[0].dataIndex];
-                const displayName = MAP_CN[m.mapName] || m.mapName;
-                return `${displayName}<br/>胜率: ${m.winPercent}<br/>场次: ${m.matches} (${m.wins}胜/${m.losses}负)<br/>时长: ${formatSeconds(m.secondsPlayed)}`;
-              },
-            },
-          });
-          window.addEventListener('resize', () => chart.resize());
-        });
+        document.getElementById(`mapList-${platform}`).innerHTML = maps.map(m => `
+          <div class="flex items-center gap-3 bg-dark rounded-lg px-3 py-2">
+            ${m.image ? `<img src="${m.image}" class="w-8 h-8 object-cover rounded" alt="">` : `<span class="w-8 h-8"></span>`}
+            <span class="text-sm text-gray-200 flex-1 truncate">${MAP_CN[m.mapName] || m.mapName}</span>
+            <span class="text-sm font-bold shrink-0" style="color:${parseFloat(m.winPercent) >= 50 ? '#22c55e' : parseFloat(m.winPercent) >= 40 ? '#facc15' : '#f87171'}">${parseFloat(m.winPercent).toFixed(1)}%</span>
+            <span class="text-xs text-gray-500 shrink-0 w-10 text-right">${m.matches}场</span>
+          </div>`).join('');
       }
 
       // ── 支援与目标 ──
