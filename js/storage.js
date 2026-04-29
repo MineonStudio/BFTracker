@@ -100,9 +100,9 @@ export function clearHistory(game, platform, name) {
 }
 
 // 删除单条最近搜索
-export function removeRecentSearch(game, name) {
+export function removeRecentSearch(game, platform, name) {
   const list = getRecentSearches().filter(
-    r => !(r.game === game && r.name.toLowerCase() === name.toLowerCase())
+    r => !(r.game === game && r.platform === platform && r.name.toLowerCase() === name.toLowerCase())
   );
   localStorage.setItem(RECENT_KEY, JSON.stringify(list));
 }
