@@ -32,23 +32,20 @@ export function formatDate(ts) {
   return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
-// KD 颜色分级
+// KD 颜色分级（红 = 高 = 危险）
 export function kdColor(kd) {
   const v = parseFloat(kd);
-  if (v >= 3)   return '#22c55e';  // 绿
-  if (v >= 2)   return '#86efac';  // 浅绿
+  if (v >= 2)   return '#ff4655';  // 红
   if (v >= 1)   return '#facc15';  // 黄
-  if (v >= 0.5) return '#fb923c';  // 橙
-  return '#f87171';                // 红
+  return '#22c55e';                // 绿
 }
 
-// 胜率颜色分级
+// 胜率颜色分级（红 = 高胜率 = 强）
 export function winColor(pct) {
   const v = parseFloat(pct);
-  if (v >= 60) return '#22c55e';
-  if (v >= 50) return '#86efac';
-  if (v >= 40) return '#facc15';
-  return '#fb923c';
+  if (v >= 60) return '#ff4655';
+  if (v >= 30) return '#facc15';
+  return '#22c55e';
 }
 
 // 从 URL 参数获取查询参数
