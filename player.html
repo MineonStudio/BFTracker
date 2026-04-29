@@ -22,15 +22,17 @@
 
   <!-- 顶部搜索栏 -->
   <div class="bg-card border-b border-gray-700">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap gap-2 items-center">
+    <div class="max-w-5xl mx-auto px-3 sm:px-4 pt-3 flex flex-wrap gap-2 items-center">
       <select id="gameSelect" aria-label="选择游戏" class="bg-dark border border-gray-600 rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-accent"></select>
       <select id="platformSelect" aria-label="选择平台分类"
         class="bg-dark border border-gray-600 rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-accent">
       </select>
-      <input id="nameInput" type="text" placeholder="玩家用户名" aria-label="玩家用户名搜索"
-        class="search-input bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm flex-1 min-w-[100px] focus:outline-none focus:border-accent" />
-      <button id="searchBtn" aria-label="搜索" class="bg-accent hover:bg-red-500 text-white px-3 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors">查询</button>
-      <a id="compareBtn" href="#" class="border border-gray-600 hover:border-accent text-gray-400 hover:text-accent px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors">加入对比</a>
+    </div>
+    <div class="max-w-5xl mx-auto px-3 sm:px-4 py-2 flex gap-3">
+      <input id="nameInput" type="text" placeholder="输入玩家用户名..." aria-label="玩家用户名搜索"
+        class="search-input bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm flex-1 focus:outline-none focus:border-accent" />
+      <button id="searchBtn" aria-label="搜索" class="bg-accent hover:bg-red-500 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">查询</button>
+    </div>
     </div>
   </div>
 
@@ -140,12 +142,6 @@
     }
     searchBtn.addEventListener('click', doSearch);
     nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
-
-    // 对比按钮（使用第一个找到平台）
-    document.getElementById('compareBtn').addEventListener('click', e => {
-      e.preventDefault();
-      window.location.href = `compare.html?p1game=${encodeURIComponent(game)}&p1name=${encodeURIComponent(name)}&p1platform=${encodeURIComponent(document.getElementById('platformSelect')?.value || 'Xbox')}`;
-    });
 
     // ─── 图表渲染 ───────────────────────────────────────────
     function renderBarChart(el, labels, values, color = '#ff4655') {
