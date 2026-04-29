@@ -659,15 +659,6 @@
 
       // 填充玩家头部（用第一个结果）
       const first = results[0];
-      // 设置头像（有头像时显示，无头像时隐藏 img 标签）
-      const avatarEl = document.getElementById('playerAvatar');
-      if (first.stats.avatar && !first.stats.avatar.includes('default-avatar')) {
-        avatarEl.src = first.stats.avatar;
-        avatarEl.style.display = '';
-      } else {
-        avatarEl.style.display = 'none';
-      }
-      document.getElementById('playerName').textContent = first.stats.userName || name;
 
       // ── 封禁检测 ──
       (async () => {
