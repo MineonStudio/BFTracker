@@ -20,10 +20,10 @@
     </div>
   </nav>
 
-  <div class="max-w-6xl mx-auto px-4 py-8">
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">多玩家对比</h1>
-      <span class="text-gray-500 text-sm">最多同时对比 4 名玩家</span>
+  <div class="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+    <div class="flex items-center justify-between mb-4 sm:mb-6">
+      <h1 class="text-xl sm:text-2xl font-bold">多玩家对比</h1>
+      <span class="text-gray-500 text-xs sm:text-sm">最多同时对比 4 名玩家</span>
     </div>
 
     <!-- 游戏选择 -->
@@ -38,7 +38,7 @@
     <!-- 查询按钮 -->
     <div class="flex justify-center mb-8">
       <button id="compareBtn" aria-label="开始对比"
-        class="bg-accent hover:bg-red-500 text-white font-semibold px-10 py-3 rounded-xl text-sm transition-colors">
+        class="bg-accent hover:bg-red-500 text-white font-semibold px-6 sm:px-10 py-3 rounded-xl text-sm transition-colors">
         开始对比
       </button>
     </div>
@@ -57,13 +57,13 @@
     <!-- 结果区 -->
     <div id="results" class="hidden">
       <!-- 雷达图 -->
-      <div class="bg-card rounded-xl p-5 mb-6">
+      <div class="bg-card rounded-xl p-3 sm:p-5 mb-4 sm:mb-6">
         <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">六维能力雷达图</h2>
         <div id="radarChart" class="radar-box"></div>
       </div>
 
       <!-- 对比表格 -->
-      <div class="bg-card rounded-xl p-5 overflow-x-auto">
+      <div class="bg-card rounded-xl p-3 sm:p-5 overflow-x-auto table-responsive">
         <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">数据对比</h2>
         <table class="w-full text-sm" id="compareTable">
           <thead></thead>
