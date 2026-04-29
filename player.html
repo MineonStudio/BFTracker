@@ -81,7 +81,7 @@
           <div class="flex items-center justify-between mt-0.5">
             <span id="playerPlayTime" class="text-gray-400 text-xs sm:text-sm"></span>
             <div class="flex items-center gap-2">
-              <span id="gameLabel" class="text-accent text-xs sm:text-sm font-medium"></span>
+              <span id="gameLabel" class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-accent/10"></span>
               <span id="banStatus"></span>
             </div>
           </div>
@@ -721,9 +721,9 @@
           const el = document.getElementById('banStatus');
           if (el) {
             if (banData?.isBanned || eacData?.isBanned) {
-              el.innerHTML = '<span class="text-red-400 text-xs font-semibold px-2 py-0.5 rounded-full bg-red-900/50">🔴 封禁玩家</span>';
+              el.innerHTML = '<span class="text-red-400 text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-red-900/50">封禁玩家</span>';
             } else {
-              el.innerHTML = '<span class="text-green-400 text-xs font-semibold px-2 py-0.5 rounded-full bg-green-900/50">🟢 绿色玩家</span>';
+              el.innerHTML = '<span class="text-green-400 text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-green-900/50">绿色玩家</span>';
             }
           }
         } catch {}
