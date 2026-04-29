@@ -87,6 +87,25 @@
       <div id="errorTips" class="text-left inline-block bg-card rounded-xl p-5 text-sm text-gray-400 space-y-2 max-w-sm"></div>
     </div>
 
+    <!-- 分享弹窗 -->
+    <div id="shareModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.6)">
+      <div class="bg-card rounded-2xl p-5 sm:p-6 max-w-sm w-full mx-4 max-h-[80vh] overflow-y-auto">
+        <h3 class="text-lg font-bold mb-2">📤 分享战绩</h3>
+        <p class="text-sm text-gray-400 mb-4">玩家概览必选，以下可多选</p>
+        <div class="space-y-2 mb-6" id="shareSections">
+          <label class="flex items-center gap-3 bg-dark rounded-lg px-4 py-3 cursor-pointer"><input type="checkbox" value="overview" checked disabled data-panel="overview"><span class="text-sm">玩家概览</span><span class="text-xs text-gray-500 ml-auto">必选</span></label>
+          <label class="flex items-center gap-3 bg-dark rounded-lg px-4 py-3 cursor-pointer"><input type="checkbox" value="weapons" data-panel="killsSection"><span class="text-sm">武器击杀排行</span></label>
+          <label class="flex items-center gap-3 bg-dark rounded-lg px-4 py-3 cursor-pointer"><input type="checkbox" value="vehicles" data-panel="killsSection"><span class="text-sm">载具击杀排行</span></label>
+          <label class="flex items-center gap-3 bg-dark rounded-lg px-4 py-3 cursor-pointer"><input type="checkbox" value="maps" data-panel="winRateSection"><span class="text-sm">地图胜率</span></label>
+          <label class="flex items-center gap-3 bg-dark rounded-lg px-4 py-3 cursor-pointer"><input type="checkbox" value="classes" data-panel="classSection"><span class="text-sm">兵种数据</span></label>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="window.closeShareModal()" class="flex-1 border border-gray-600 text-gray-400 hover:text-white rounded-lg py-2.5 text-sm transition-colors">取消</button>
+          <button onclick="window.doShare()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">生成并分享</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 内容 -->
     <div id="content" class="hidden">
 
@@ -205,7 +224,7 @@
       container.innerHTML = `
         <!-- 玩家总览 -->
         <div class="bg-card rounded-2xl p-5 mb-8 fade-up">
-          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">玩家概览</h2>
+          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">玩家概览 <button onclick="openShareModal()" class="ml-2 text-xs text-accent hover:text-white transition-colors">📤 分享</button></h2>
           <!-- 玩家信息 -->
           <div class="flex items-center gap-3 mb-4">
             ${stats.avatar && !stats.avatar.includes('default-avatar') ? `<img src="${stats.avatar}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 object-cover" alt="">` : ''}
@@ -674,6 +693,25 @@
       saveSnapshot(game, results[0].platform, name, results[0].stats);
       saveRecentSearch(game, results[0].platform, name);
 
+      // 缓存分享数据
+      const stats = first.stats;
+      window.__shareData = {
+        name: stats.userName || name,
+        game: GAME_LABELS[game] || game,
+        time: formatSeconds(stats.secondsPlayed),
+        kd: formatDecimal(stats.killDeath),
+        kdColor: kdColor(stats.killDeath),
+        wr: formatPct(stats.winPercent),
+        wrColor: winColor(parseFloat(stats.winPercent)),
+      };
+      // 缓存板块数据供分享文本使用
+      window.__shareOps = {
+        weapons: (allData?.weapons || []).filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 5).map(w => ({ name: w.weaponName, kills: formatNum(w.kills) })),
+        vehicles: (allData?.vehicles || []).filter(v => v.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 5).map(v => ({ name: v.vehicleName, kills: formatNum(v.kills) })),
+        maps: (allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0).sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0)).slice(0, 5).map(m => ({ name: MAP_CN[m.mapName] || m.mapName, wr: parseFloat(m.winPercent).toFixed(1) })),
+        classes: (allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 4).map(c => ({ name: CLASS_CN[c.className] || c.className, kills: formatNum(c.kills) })),
+      };
+
       // 填充玩家头部（用第一个结果）
       const first = results[0];
 
@@ -783,6 +821,75 @@
           <p>· 游戏服务器暂时不可用，稍后再试</p>`;
       document.getElementById('errorTips').style.display = '';
     }
+
+    // ─── 分享功能 ──────────────────────────────────────────
+    window.openShareModal = () => {
+      const modal = document.getElementById('shareModal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      // 勾选有数据的板块
+      const ops = window.__shareOps;
+      document.querySelectorAll('#shareSections input[type=checkbox]').forEach(cb => {
+        if (cb.value === 'overview' || cb.value === 'weapons' || cb.value === 'vehicles') {
+          const panel = document.getElementById('killsSection');
+          cb.checked = panel && panel.style.display !== 'none';
+        } else if (cb.value === 'maps') {
+          const panel = document.getElementById('winRateSection');
+          cb.checked = panel && panel.style.display !== 'none';
+        } else if (cb.value === 'classes') {
+          const panel = document.getElementById('classSection');
+          cb.checked = panel && panel.style.display !== 'none';
+        }
+        if (cb.value === 'overview') cb.disabled = true;
+      });
+    };
+    window.closeShareModal = () => document.getElementById('shareModal')?.classList.add('hidden');
+
+    window.doShare = async () => {
+      const checks = document.querySelectorAll('#shareSections input[type=checkbox]:checked');
+      const sections = [...checks].map(c => c.value);
+      const d = window.__shareData || {};
+      const ops = window.__shareOps || {};
+
+      let text = `🎮 ${d.name} 的 ${d.game} 战绩\n`;
+      text += `━━━━━━━━━━━━━━\n`;
+      text += `⚔️ KD: ${d.kd} · 🏆 胜率: ${d.wr} · ⏱ ${d.time}\n`;
+      
+      if (sections.includes('weapons') && ops.weapons?.length) {
+        text += `━━━ 武器Top5 ━━━\n`;
+        ops.weapons.forEach(w => { text += `  ${w.name}: ${w.kills}杀\n`; });
+      }
+      if (sections.includes('vehicles') && ops.vehicles?.length) {
+        text += `━━━ 载具Top5 ━━━\n`;
+        ops.vehicles.forEach(v => { text += `  ${v.name}: ${v.kills}杀\n`; });
+      }
+      if (sections.includes('maps') && ops.maps?.length) {
+        text += `━━━ 地图胜率 ━━━\n`;
+        ops.maps.forEach(m => { text += `  ${m.name}: ${m.wr}%\n`; });
+      }
+      if (sections.includes('classes') && ops.classes?.length) {
+        text += `━━━ 兵种分布 ━━━\n`;
+        ops.classes.forEach(c => { text += `  ${c.name}: ${c.kills}杀\n`; });
+      }
+      text += `\n📊 查看完整数据 → ${location.href}`;
+
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: `${d.name} 的 ${d.game} 战绩`, text, url: location.href });
+        } else {
+          await navigator.clipboard.writeText(text);
+          alert('已复制到剪贴板！');
+        }
+      } catch (err) {
+        if (err?.name !== 'AbortError') {
+          try {
+            await navigator.clipboard.writeText(text);
+            alert('已复制到剪贴板！');
+          } catch {}
+        }
+      }
+      window.closeShareModal();
+    };
 
     load().catch(err => {
       const loadingState = document.getElementById('loadingState');
