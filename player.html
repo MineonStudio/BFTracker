@@ -261,7 +261,7 @@
         <!-- 兵种总览 -->
         <div class="bg-card rounded-2xl p-5 mb-8" id="classSection-${platform}" style="display:none">
           <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">兵种数据</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="classCards-${platform}"></div>
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3" id="classCards-${platform}"></div>
         </div>
 
         <!-- 武器 / 载具 / 配备 三列排行 -->
@@ -419,7 +419,7 @@
                   <p class="text-xs text-gray-500">${formatSeconds(c.secondsPlayed)} · ${pct}% 时长</p>
                 </div>
               </div>
-              <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <div class="grid grid-cols-2 gap-x-2 sm:gap-x-4 gap-y-2 text-sm">
                 <div><p class="font-bold" style="color:${kdColor(c.killDeath)}">${formatDecimal(c.killDeath)}</p><p class="text-xs text-gray-500">K/D</p></div>
                 <div><p class="font-bold text-white">${formatDecimal(c.kpm)}</p><p class="text-xs text-gray-500">KPM</p></div>
                 <div><p class="font-bold text-white">${formatNum(c.kills)}</p><p class="text-xs text-gray-500">击杀</p></div>
