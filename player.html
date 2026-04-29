@@ -77,9 +77,12 @@
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2">
             <h1 id="playerName" class="text-xl sm:text-2xl font-bold"></h1>
+            <span id="gameLabel" class="text-accent text-xs sm:text-sm font-medium px-2 py-0.5 rounded-full bg-accent/10"></span>
+          </div>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span id="playerPlayTime" class="text-gray-400 text-xs sm:text-sm"></span>
             <span id="banStatus"></span>
           </div>
-          <p id="playerMeta" class="text-gray-400 text-xs sm:text-sm mt-0.5"></p><p id="platformCatLabel" class="text-accent text-xs mt-0.5"></p>
         </div>
         <!-- 平台 Tabs -->
         <div id="tabsBar" class="hidden w-full sm:w-auto ml-auto flex gap-2 flex-wrap justify-end"></div>
@@ -762,8 +765,8 @@
         })();
       }
 
-      document.getElementById('playerMeta').textContent =
-        `${GAME_LABELS[game] || game} · ${formatSeconds(first.stats.secondsPlayed)} 游戏时长`;
+      document.getElementById('gameLabel').textContent = GAME_LABELS[game] || game;
+      document.getElementById('playerPlayTime').textContent = formatSeconds(first.stats.secondsPlayed) + ' 游戏时长';
 
       // 构建 Tabs
       const tabsBar   = document.getElementById('tabsBar');
