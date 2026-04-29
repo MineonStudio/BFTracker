@@ -711,10 +711,10 @@
       };
       // 缓存板块数据供分享文本使用
       window.__shareOps = {
-        weapons: (allData?.weapons || []).filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 5).map(w => ({ name: w.weaponName, kills: formatNum(w.kills) })),
-        vehicles: (allData?.vehicles || []).filter(v => v.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 5).map(v => ({ name: v.vehicleName, kills: formatNum(v.kills) })),
-        maps: (allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0).sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0)).slice(0, 5).map(m => ({ name: MAP_CN[m.mapName] || m.mapName, wr: parseFloat(m.winPercent).toFixed(1) })),
-        classes: (allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 4).map(c => ({ name: CLASS_CN[c.className] || c.className, kills: formatNum(c.kills) })),
+        weapons: (first.allData?.weapons || []).filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 5).map(w => ({ name: w.weaponName, kills: formatNum(w.kills) })),
+        vehicles: (first.allData?.vehicles || []).filter(v => v.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 5).map(v => ({ name: v.vehicleName, kills: formatNum(v.kills) })),
+        maps: (first.allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0).sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0)).slice(0, 5).map(m => ({ name: MAP_CN[m.mapName] || m.mapName, wr: parseFloat(m.winPercent).toFixed(1) })),
+        classes: (first.allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 4).map(c => ({ name: CLASS_CN[c.className] || c.className, kills: formatNum(c.kills) })),
       };
 
       // ── 封禁检测 ──
