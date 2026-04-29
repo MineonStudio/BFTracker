@@ -98,6 +98,9 @@
     // 渲染玩家输入槽
     function renderSlots() {
       const game = gameSelect.value;
+      const catPlatforms = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['pc'], 'Xbox': ['xbox'], 'PlayStation': ['psn'] };
+      // 收集该游戏所有支持的细分平台
+      const platforms = [...new Set(Object.values(catPlatforms).flat())];
       const slotsEl = document.getElementById('playerSlots');
       slotsEl.innerHTML = '';
       for (let i = 0; i < MAX; i++) {
