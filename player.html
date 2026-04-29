@@ -406,17 +406,15 @@
       const classes = (allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0);
       if (classes.length) {
         document.getElementById(`classSection-${platform}`).style.display = '';
-        const allClassData = allData.classes.find(c => c.className === 'All') || {};
         document.getElementById(`classCards-${platform}`).innerHTML = classes.map(c => {
           const spmVal = c.score && c.secondsPlayed ? (c.score / (c.secondsPlayed / 60)).toFixed(0) : '—';
-          const pct = allClassData.secondsPlayed ? Math.round(c.secondsPlayed / allClassData.secondsPlayed * 100) : 0;
           return `
             <div class="bg-dark rounded-xl p-4">
               <div class="flex items-center gap-3 mb-3">
                 ${c.image ? `<img src="${c.image}" class="w-8 h-8 opacity-80" alt="${c.className}">` : ''}
                 <div>
                   <p class="text-sm font-semibold text-white">${CLASS_CN[c.className] || c.className}</p>
-                  <p class="text-xs text-gray-500">${formatSeconds(c.secondsPlayed)} · ${pct}% 时长</p>
+                  <p class="text-xs text-gray-500">${formatSeconds(c.secondsPlayed)}</p>
                 </div>
               </div>
               <div class="grid grid-cols-2 gap-x-2 sm:gap-x-4 gap-y-2 text-sm">
