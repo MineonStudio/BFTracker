@@ -24,6 +24,9 @@
   <div class="bg-card border-b border-gray-700">
     <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap gap-2 items-center">
       <select id="gameSelect" aria-label="选择游戏" class="bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"></select>
+      <select id="platformSelect" aria-label="选择平台分类"
+        class="bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent">
+      </select>
       <input id="nameInput" type="text" placeholder="玩家用户名" aria-label="玩家用户名搜索"
         class="search-input bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm flex-1 min-w-[140px] focus:outline-none focus:border-accent" />
       <button id="searchBtn" aria-label="搜索" class="bg-accent hover:bg-red-500 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors">查询</button>
@@ -94,7 +97,7 @@
   </div>
 
   <script type="module">
-    import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS, searchPlayer, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
+    import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS, PLATFORM_CATEGORIES, searchPlayer, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
     import { saveSnapshot, saveRecentSearch, saveApiCache } from './js/storage.js';
     import * as echarts from 'echarts';
     import { checkBan, checkEacBan, getInventory } from './js/api.js';
@@ -111,12 +114,22 @@
       gameSelect.innerHTML += `<option value="${val}">${label}</option>`;
     });
 
+    // 填充平台下拉
+    const platformCatEl = document.getElementById('platformSelect');
+    if (platformCatEl) {
+      PLATFORM_CATEGORIES.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        platformCatEl.appendChild(opt);
+      });
+    }
+
     // 从 URL 初始化
     const { game, name, platform: urlPlatform } = getUrlParams();
     gameSelect.value = game;
     nameInput.value  = name;
     // 设置平台分类（默认为 Xbox）
-    const platformCatEl = document.getElementById('platformSelect');
     if (platformCatEl) platformCatEl.value = urlPlatform || 'Xbox';
 
     // 搜索

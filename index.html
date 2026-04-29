@@ -39,9 +39,16 @@
         <select id="gameSelect" aria-label="选择游戏"
           class="bg-dark border border-gray-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent">
         </select>
+        <!-- 平台分类选择 -->
+        <select id="platformSelect" aria-label="选择平台"
+          class="bg-dark border border-gray-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent">
+          <option value="Xbox">Xbox</option>
+          <option value="PlayStation">PlayStation</option>
+          <option value="PC">PC</option>
+        </select>
       </div>
       <div class="flex gap-3">
-        <input id="nameInput" type="text" placeholder="输入玩家用户名，自动匹配全平台..." aria-label="玩家用户名搜索"
+        <input id="nameInput" type="text" placeholder="输入玩家用户名..." aria-label="玩家用户名搜索"
           class="search-input flex-1 bg-dark border border-gray-600 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent"
         />
         <button id="searchBtn" aria-label="搜索"
@@ -65,11 +72,12 @@
 
   <script type="module">
     import * as echarts from 'echarts';
-    import { GAME_LABELS } from './js/api.js';
+    import { GAME_LABELS, PLATFORM_CATEGORIES } from './js/api.js';
     import { getRecentSearches, saveRecentSearch, removeRecentSearch, clearRecentSearches } from './js/storage.js';
     import { buildPlayerUrl, formatNum } from './js/utils.js';
 
     const gameSelect = document.getElementById('gameSelect');
+    const platformSelect = document.getElementById('platformSelect');
     const nameInput  = document.getElementById('nameInput');
     const searchBtn  = document.getElementById('searchBtn');
 
@@ -78,13 +86,22 @@
       gameSelect.innerHTML += `<option value="${val}">${label}</option>`;
     });
 
+    // 填充平台下拉
+    PLATFORM_CATEGORIES.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
+      platformSelect.appendChild(opt);
+    })
+
     // 搜索跳转
     function doSearch() {
       const name = nameInput.value.trim();
       if (!name) { nameInput.focus(); return; }
       const game = gameSelect.value;
-      saveRecentSearch(game, '', name);
-      window.location.href = buildPlayerUrl(game, name);
+      const platform = platformSelect.value;
+      saveRecentSearch(game, platform, name);
+      window.location.href = buildPlayerUrl(game, name, platform);
     }
     searchBtn.addEventListener('click', doSearch);
     nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
@@ -109,7 +126,7 @@
       section.style.display = '';
       document.getElementById('recentList').innerHTML = list.map(r => `
         <div class="group relative flex items-center bg-card border border-gray-700 hover:border-accent rounded-full pl-4 pr-2 py-1.5 text-sm transition-colors">
-          <a href="${buildPlayerUrl(r.game, r.name)}" class="flex items-center gap-2 flex-1">
+          <a href="${buildPlayerUrl(r.game, r.name, r.platform)}" class="flex items-center gap-2 flex-1">
             <span class="text-accent font-semibold">${GAME_LABELS[r.game] || r.game}</span>
             <span class="text-gray-300">${r.name}</span>
           </a>
