@@ -83,9 +83,6 @@
             <span id="playerPlayTime" class="text-gray-400 text-xs sm:text-sm"></span>
             <span id="banStatus"></span>
           </div>
-        </div>
-        <!-- 平台 Tabs -->
-        <div id="tabsBar" class="hidden w-full sm:w-auto ml-auto flex gap-2 flex-wrap justify-end"></div>
       </div>
 
       <!-- Tab 内容区 -->
@@ -768,29 +765,9 @@
       document.getElementById('gameLabel').textContent = GAME_LABELS[game] || game;
       document.getElementById('playerPlayTime').textContent = formatSeconds(first.stats.secondsPlayed) + ' 游戏时长';
 
-      // 构建 Tabs
-      const tabsBar   = document.getElementById('tabsBar');
       const tabPanel  = document.getElementById('tabPanel');
 
-      tabsBar.classList.remove('hidden');
-      tabsBar.innerHTML = results.map((r, i) => `
-          <button data-idx="${i}"
-            class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors ${i === 0 ? 'bg-accent text-white' : 'bg-card border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400'}">
-            ${PLATFORM_LABELS[r.platform] || r.platform}
-          </button>`).join('');
-
-      tabsBar.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          tabsBar.querySelectorAll('.tab-btn').forEach(b => {
-            b.className = 'tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-card border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400';
-          });
-          btn.className = 'tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-accent text-white';
-          const idx = parseInt(btn.dataset.idx);
-          renderPlatformContent(tabPanel, results[idx]);
-        });
-      });
-
-      // 渲染第一个 tab 内容
+      // 直接渲染第一个结果（已移除平台切换功能）
       renderPlatformContent(tabPanel, first);
 
       document.getElementById('loadingState').classList.add('hidden');
