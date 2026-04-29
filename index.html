@@ -26,22 +26,22 @@
   </nav>
 
   <!-- Hero -->
-  <div class="max-w-5xl mx-auto px-4 pt-16 pb-10 text-center">
-    <h1 class="text-4xl font-bold mb-3">
+  <div class="max-w-5xl mx-auto px-4 pt-8 sm:pt-16 pb-6 sm:pb-10 text-center">
+    <h1 class="text-2xl sm:text-4xl font-bold mb-3">
       <span class="gradient-text">战地战绩查询</span>
     </h1>
     <p class="text-gray-400 mb-10">支持 BF6 / BF2042 / BFV / BF1 / BF4 · 全平台查询 · 数据分析</p>
 
     <!-- 搜索卡片 -->
-    <div class="bg-card rounded-2xl p-6 shadow-xl max-w-2xl mx-auto">
-      <div class="flex gap-3 mb-3">
+    <div class="bg-card rounded-2xl p-4 sm:p-6 shadow-xl max-w-2xl mx-auto">
+      <div class="flex flex-wrap gap-3 mb-3">
         <!-- 游戏选择 -->
         <select id="gameSelect" aria-label="选择游戏"
-          class="bg-dark border border-gray-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent">
+          class="bg-dark border border-gray-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent flex-1 sm:flex-none">
         </select>
         <!-- 平台分类选择 -->
         <select id="platformSelect" aria-label="选择平台"
-          class="bg-dark border border-gray-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent">
+          class="bg-dark border border-gray-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent flex-1 sm:flex-none">
           <option value="Xbox">Xbox</option>
           <option value="PlayStation">PlayStation</option>
           <option value="PC">PC</option>
@@ -64,7 +64,7 @@
   <!-- 最近搜索 -->
   <div class="max-w-5xl mx-auto px-4 pb-16" id="recentSection" style="display:none">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">最近搜索</h2>
+      <h2 class="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider">最近搜索</h2>
       <button id="clearAllBtn" class="text-xs text-gray-500 hover:text-red-400 transition-colors">清除全部</button>
     </div>
     <div id="recentList" class="flex flex-wrap gap-2"></div>

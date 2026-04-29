@@ -15,11 +15,19 @@
 .stat-card { transition: transform .2s, box-shadow .2s; }
 
 /* 武器条形图容器 */
-.chart-box { width: 100%; height: 320px; }
-.chart-box-lg { width: 100%; height: 420px; }
+.chart-box { width: 100%; height: 250px; }
+.chart-box-lg { width: 100%; height: 300px; }
+
+@media (min-width: 640px) {
+  .chart-box { height: 320px; }
+  .chart-box-lg { height: 420px; }
+}
 
 /* 雷达图容器 */
-.radar-box { width: 100%; height: 400px; }
+.radar-box { width: 100%; height: 300px; }
+@media (min-width: 640px) {
+  .radar-box { height: 400px; }
+}
 
 /* 徽章 */
 .badge {
@@ -59,6 +67,23 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 .fade-up { animation: fadeUp .3s ease both; }
+
+/* ── 移动端表格横向滚动 ── */
+.table-responsive {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── 触摸友好的最小触控尺寸 ── */
+@media (max-width: 639px) {
+  .tab-btn, button, select, input {
+    min-height: 40px;
+  }
+  .tab-btn {
+    font-size: 0.8125rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
 
 /* 减少动画偏好 */
 @media (prefers-reduced-motion: reduce) {

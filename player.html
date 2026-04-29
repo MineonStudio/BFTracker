@@ -23,19 +23,19 @@
   <!-- 顶部搜索栏 -->
   <div class="bg-card border-b border-gray-700">
     <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap gap-2 items-center">
-      <select id="gameSelect" aria-label="选择游戏" class="bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"></select>
+      <select id="gameSelect" aria-label="选择游戏" class="bg-dark border border-gray-600 rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-accent"></select>
       <select id="platformSelect" aria-label="选择平台分类"
-        class="bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent">
+        class="bg-dark border border-gray-600 rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:outline-none focus:border-accent">
       </select>
       <input id="nameInput" type="text" placeholder="玩家用户名" aria-label="玩家用户名搜索"
-        class="search-input bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm flex-1 min-w-[140px] focus:outline-none focus:border-accent" />
-      <button id="searchBtn" aria-label="搜索" class="bg-accent hover:bg-red-500 text-white px-5 py-2 rounded-lg text-sm font-semibold transition-colors">查询</button>
-      <a id="compareBtn" href="#" class="border border-gray-600 hover:border-accent text-gray-400 hover:text-accent px-4 py-2 rounded-lg text-sm transition-colors">加入对比</a>
+        class="search-input bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm flex-1 min-w-[100px] focus:outline-none focus:border-accent" />
+      <button id="searchBtn" aria-label="搜索" class="bg-accent hover:bg-red-500 text-white px-3 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors">查询</button>
+      <a id="compareBtn" href="#" class="border border-gray-600 hover:border-accent text-gray-400 hover:text-accent px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors">加入对比</a>
     </div>
   </div>
 
   <!-- 主体 -->
-  <div class="max-w-5xl mx-auto px-4 py-8" id="main">
+  <div class="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-8" id="main">
 
     <!-- 加载中：骨架屏 -->
     <div id="loadingState" class="px-4 py-8">
@@ -72,24 +72,21 @@
     <div id="content" class="hidden">
 
       <!-- 玩家头部 + Tabs 同行 -->
-      <div class="flex items-center gap-4 mb-6 fade-up">
-        <img id="playerAvatar" src="" alt="avatar" class="w-16 h-16 rounded-full bg-gray-700 object-cover">
-        <div>
+      <div class="flex flex-wrap items-center gap-3 sm:gap-4 mb-4 sm:mb-6 fade-up">
+        <img id="playerAvatar" src="" alt="avatar" class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-700 object-cover">
+        <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2">
-            <h1 id="playerName" class="text-2xl font-bold"></h1>
+            <h1 id="playerName" class="text-xl sm:text-2xl font-bold"></h1>
             <span id="banStatus"></span>
           </div>
-          <p id="playerMeta" class="text-gray-400 text-sm mt-0.5"></p><p id="platformCatLabel" class="text-accent text-xs mt-0.5"></p>
+          <p id="playerMeta" class="text-gray-400 text-xs sm:text-sm mt-0.5"></p><p id="platformCatLabel" class="text-accent text-xs mt-0.5"></p>
         </div>
         <!-- 平台 Tabs -->
-        <div id="tabsBar" class="hidden ml-auto flex gap-2 flex-wrap justify-end">
-        <button id="portraitTabBtn" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-card border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400">🧠 画像</button>
-      </div>
+        <div id="tabsBar" class="hidden w-full sm:w-auto ml-auto flex gap-2 flex-wrap justify-end"></div>
       </div>
 
       <!-- Tab 内容区 -->
       <div id="tabPanel"></div>
-      <div id="portraitPanel" class="hidden mt-2"></div>
 
 
 
@@ -102,7 +99,6 @@
     import * as echarts from 'echarts';
     import { checkBan, checkEacBan, getInventory } from './js/api.js';
     import { MAP_CN, getModeName, CLASS_CN } from './js/constants.js';
-    import { renderPortrait } from './js/portrait.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, getUrlParams, buildPlayerUrl } from './js/utils.js';
 
     const gameSelect = document.getElementById('gameSelect');
@@ -213,7 +209,7 @@
           <!-- 第一行：KD + 胜率 等宽 -->
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="bg-dark rounded-xl p-4">
-              <p class="text-4xl font-black" style="color:${kdColor(humanKd)}">${formatDecimal(humanKd)}</p>
+              <p class="text-2xl sm:text-4xl font-black" style="color:${kdColor(humanKd)}">${formatDecimal(humanKd)}</p>
               <p class="text-xs text-gray-500 mt-1">K/D</p>
               <div class="flex gap-4 mt-3 text-sm">
                 <div><p class="text-white font-semibold">${formatNum(humanKills)}</p><p class="text-xs text-gray-500">击杀</p></div>
@@ -222,7 +218,7 @@
             </div>
             <div class="bg-dark rounded-xl p-4 flex flex-col justify-between">
               <div>
-                <p class="text-4xl font-black" style="color:${winColor(parseFloat(stats.winPercent))}">${formatPct(stats.winPercent)}</p>
+                <p class="text-2xl sm:text-4xl font-black" style="color:${winColor(parseFloat(stats.winPercent))}">${formatPct(stats.winPercent)}</p>
                 <p class="text-xs text-gray-500 mt-1">胜率</p>
               </div>
               <div class="flex gap-4 mt-3 text-sm">
@@ -233,28 +229,28 @@
           </div>
           <!-- 第二行：4 个指标 -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-            <div class="bg-dark rounded-xl p-4"><p class="text-2xl font-bold text-white">${spm ?? '—'}</p><p class="text-xs text-gray-500 mt-1">每分钟得分</p></div>
-            <div class="bg-dark rounded-xl p-4"><p class="text-2xl font-bold text-white">${formatPct(stats.headshots)}</p><p class="text-xs text-gray-500 mt-1">爆头率</p></div>
-            <div class="bg-dark rounded-xl p-4"><p class="text-2xl font-bold text-white">${formatPct(stats.accuracy)}</p><p class="text-xs text-gray-500 mt-1">命中率</p></div>
-            <div class="bg-dark rounded-xl p-4"><p class="text-2xl font-bold text-white">${formatDecimal(stats.killsPerMinute)}</p><p class="text-xs text-gray-500 mt-1">KPM</p></div>
+            <div class="bg-dark rounded-xl p-3 sm:p-4"><p class="text-lg sm:text-2xl font-bold text-white">${spm ?? '—'}</p><p class="text-xs text-gray-500 mt-1">每分钟得分</p></div>
+            <div class="bg-dark rounded-xl p-3 sm:p-4"><p class="text-lg sm:text-2xl font-bold text-white">${formatPct(stats.headshots)}</p><p class="text-xs text-gray-500 mt-1">爆头率</p></div>
+            <div class="bg-dark rounded-xl p-3 sm:p-4"><p class="text-lg sm:text-2xl font-bold text-white">${formatPct(stats.accuracy)}</p><p class="text-xs text-gray-500 mt-1">命中率</p></div>
+            <div class="bg-dark rounded-xl p-3 sm:p-4"><p class="text-lg sm:text-2xl font-bold text-white">${formatDecimal(stats.killsPerMinute)}</p><p class="text-xs text-gray-500 mt-1">KPM</p></div>
           </div>
           <!-- 第三行：8 个小数据 -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-0 divide-y divide-gray-700/40 sm:divide-y-0">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-3 sm:gap-x-4 gap-y-0 divide-y divide-gray-700/40 sm:divide-y-0">
             <div class="py-3 sm:border-r border-gray-700/40 flex flex-col gap-3">
-              <div><p class="text-lg font-bold text-white">${formatDecimal(humanKillsPerMatch)}</p><p class="text-xs text-gray-500">场均击杀</p></div>
-              <div><p class="text-lg font-bold text-white">${formatNum(stats.kills)}</p><p class="text-xs text-gray-500">击杀数</p></div>
+              <div><p class="text-base sm:text-lg font-bold text-white">${formatDecimal(humanKillsPerMatch)}</p><p class="text-xs text-gray-500">场均击杀</p></div>
+              <div><p class="text-base sm:text-lg font-bold text-white">${formatNum(stats.kills)}</p><p class="text-xs text-gray-500">击杀数</p></div>
             </div>
             <div class="py-3 sm:border-r border-gray-700/40 flex flex-col gap-3">
-              <div><p class="text-lg font-bold text-white">${deathsPerMatch ?? '—'}</p><p class="text-xs text-gray-500">场均死亡</p></div>
-              <div><p class="text-lg font-bold text-white">${formatNum(stats.headShots)}</p><p class="text-xs text-gray-500">爆头数</p></div>
+              <div><p class="text-base sm:text-lg font-bold text-white">${deathsPerMatch ?? '—'}</p><p class="text-xs text-gray-500">场均死亡</p></div>
+              <div><p class="text-base sm:text-lg font-bold text-white">${formatNum(stats.headShots)}</p><p class="text-xs text-gray-500">爆头数</p></div>
             </div>
             <div class="py-3 sm:border-r border-gray-700/40 flex flex-col gap-3">
-              <div><p class="text-lg font-bold text-white">${formatNum(matchesPlayed)}</p><p class="text-xs text-gray-500">总场次</p></div>
-              <div><p class="text-lg font-bold text-white">${formatNum(assists)}</p><p class="text-xs text-gray-500">助攻数</p></div>
+              <div><p class="text-base sm:text-lg font-bold text-white">${formatNum(matchesPlayed)}</p><p class="text-xs text-gray-500">总场次</p></div>
+              <div><p class="text-base sm:text-lg font-bold text-white">${formatNum(assists)}</p><p class="text-xs text-gray-500">助攻数</p></div>
             </div>
             <div class="py-3 flex flex-col gap-3">
-              <div><p class="text-lg font-bold text-white">${formatNum(stats.wins)}</p><p class="text-xs text-gray-500">胜场数</p></div>
-              <div><p class="text-lg font-bold text-white">${formatNum(stats.revives)}</p><p class="text-xs text-gray-500">急救数</p></div>
+              <div><p class="text-base sm:text-lg font-bold text-white">${formatNum(stats.wins)}</p><p class="text-xs text-gray-500">胜场数</p></div>
+              <div><p class="text-base sm:text-lg font-bold text-white">${formatNum(stats.revives)}</p><p class="text-xs text-gray-500">急救数</p></div>
             </div>
           </div>
         </div>
@@ -774,39 +770,11 @@
       const tabPanel  = document.getElementById('tabPanel');
 
       tabsBar.classList.remove('hidden');
-      tabsBar.innerHTML = `
-          <button id="portraitTabBtn"
-            class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-card border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400">🧠 画像</button>
-          ${results.map((r, i) => `
-            <button data-idx="${i}"
-              class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors ${i === 0 ? 'bg-accent text-white' : 'bg-card border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400'}">
-              ${PLATFORM_LABELS[r.platform] || r.platform}
-            </button>`).join('')}`;
-
-      // ── 画像 Tab 点击 ──
-      document.getElementById('portraitTabBtn').addEventListener('click', () => {
-        const panel = document.getElementById('portraitPanel');
-        const tabPanel = document.getElementById('tabPanel');
-
-        // Toggle
-        if (panel.style.display !== 'none') {
-          panel.style.display = 'none';
-          tabPanel.style.display = '';
-          document.getElementById('portraitTabBtn').classList.remove('bg-accent', 'text-white');
-          document.getElementById('portraitTabBtn').classList.add('bg-card', 'border', 'border-gray-600', 'text-gray-400');
-          return;
-        }
-        // Hide platform tabs content, show portrait
-        tabPanel.style.display = 'none';
-        panel.style.display = '';
-        document.getElementById('portraitTabBtn').classList.add('bg-accent', 'text-white');
-        document.getElementById('portraitTabBtn').classList.remove('bg-card', 'border', 'border-gray-600', 'text-gray-400');
-
-        // Render with first platform data
-        if (results[0]) {
-          renderPortrait(panel, results[0].stats, results[0].allData);
-        }
-      });
+      tabsBar.innerHTML = results.map((r, i) => `
+          <button data-idx="${i}"
+            class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors ${i === 0 ? 'bg-accent text-white' : 'bg-card border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400'}">
+            ${PLATFORM_LABELS[r.platform] || r.platform}
+          </button>`).join('');
 
       tabsBar.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {

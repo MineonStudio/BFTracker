@@ -20,9 +20,9 @@
     </div>
   </nav>
 
-  <div class="max-w-5xl mx-auto px-4 py-8">
+  <div class="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
     <!-- 面包屑 -->
-    <div class="flex items-center gap-2 text-sm text-gray-500 mb-6">
+    <div class="flex items-center gap-2 text-xs sm:text-sm text-gray-500 mb-4 sm:mb-6">
       <a id="backLink" href="#" class="hover:text-accent transition-colors">← 返回玩家页面</a>
     </div>
 
@@ -43,21 +43,21 @@
 
     <!-- 内容 -->
     <div id="content" class="hidden">
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h1 id="pageTitle" class="text-2xl font-bold"></h1>
+          <h1 id="pageTitle" class="text-xl sm:text-2xl font-bold"></h1>
           <p id="pageMeta" class="text-gray-400 text-sm mt-1"></p>
         </div>
         <span id="totalCount" class="text-gray-500 text-sm"></span>
       </div>
 
       <!-- 图表 -->
-      <div class="bg-card rounded-2xl p-5 mb-6">
+      <div class="bg-card rounded-2xl p-3 sm:p-5 mb-4 sm:mb-6">
         <div id="mainChart" style="height: 600px;"></div>
       </div>
 
       <!-- 表格 -->
-      <div class="bg-card rounded-2xl p-5 overflow-x-auto">
+      <div class="bg-card rounded-2xl p-3 sm:p-5 overflow-x-auto table-responsive">
         <table class="w-full text-sm" id="dataTable">
           <thead id="tableHead"></thead>
           <tbody id="tableBody"></tbody>
@@ -166,8 +166,10 @@
       // 最多展示 40 条，超出的折叠进图表滚动
       const display = items.slice(0, 40).reverse();
       const el = document.getElementById('mainChart');
-      // 动态高度：每条 28px，最小 400px
-      const h = Math.max(400, display.length * 28 + 60);
+      // 动态高度：每条 24px，最小 280px（移动端），桌面 400px
+      const isMobile = window.innerWidth < 640;
+      const minH = isMobile ? 280 : 400;
+      const h = Math.max(minH, display.length * 28 + 60);
       el.style.height = h + 'px';
 
       // 地图/模式用胜率，其他用击杀
