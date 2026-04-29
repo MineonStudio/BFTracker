@@ -246,6 +246,7 @@
 
     function renderTable(items) {
       const weaponAllCols = [
+        { label: '',  get: w => w.image ? `<img src="${w.image}" class="w-10 h-10 object-contain rounded" loading="lazy" alt="">` : `<span class="w-10 h-10 block"></span>` },
         { label: '武器',     get: w => w.weaponName },
         { label: '击杀',     get: w => formatNum(w.kills) },
         { label: 'KPM',      get: w => formatDecimal(w.killsPerMinute ?? w.kpm) },
@@ -260,6 +261,7 @@
         { label: '使用时长', get: w => w.secondsPlayed ? formatMins(w.secondsPlayed) : (w.timeEquipped ? formatMins(w.timeEquipped) : '—') },
       ];
       const vehicleAllCols = [
+        { label: '',  get: v => v.image ? `<img src="${v.image}" class="w-10 h-10 object-contain rounded" loading="lazy" alt="">` : `<span class="w-10 h-10 block"></span>` },
         { label: '载具',     get: v => v.vehicleName },
         { label: '击杀',     get: v => formatNum(v.kills) },
         { label: 'KPM',      get: v => formatDecimal(v.killsPerMinute ?? v.kpm) },
@@ -272,6 +274,7 @@
         { label: '使用时长', get: v => v.secondsPlayed ? formatMins(v.secondsPlayed) : (v.timeIn ? formatMins(v.timeIn) : '—') },
       ];
       const gadgetAllCols = [
+        { label: '',  get: g => g.image ? `<img src="${g.image}" class="w-10 h-10 object-contain rounded" loading="lazy" alt="">` : `<span class="w-10 h-10 block"></span>` },
         { label: '配备',     get: g => getItemName(g) },
         { label: '类型',     get: g => g.type || '—' },
         { label: '击杀',     get: g => formatNum(g.kills) },
@@ -282,6 +285,7 @@
         { label: '摧毁载具', get: g => formatNum(g.vehiclesDestroyedWith) },
       ];
       const mapAllCols = [
+        { label: '',  get: m => m.image ? `<img src="${m.image}" class="w-10 h-10 object-contain rounded" loading="lazy" alt="">` : `<span class="w-10 h-10 block"></span>` },
         { label: '地图',     get: m => MAP_CN[m.mapName] || m.mapName },
         { label: '胜率',     get: m => m.winPercent },
         { label: '场次',     get: m => formatNum(m.matches) },
@@ -309,7 +313,8 @@
       // Filter out columns that have no data across all items
       const allColDefs = isWeapon ? weaponAllCols : isGadget ? gadgetAllCols : isMap ? mapAllCols : isMode ? modeAllCols : vehicleAllCols;
       const firstColLabel = allColDefs[0].label;
-      const cols = allColDefs.filter((c, i) => i === 0 || hasAny(items, c.get));
+      // 始终保留图片列（idx 0）和名称列（idx 1）
+      const cols = allColDefs.filter((c, i) => i === 0 || i === 1 || hasAny(items, c.get));
 
       document.getElementById('tableHead').innerHTML = `
         <tr class="border-b border-gray-700">
@@ -319,8 +324,8 @@
       document.getElementById('tableBody').innerHTML = items.map((item, idx) => `
         <tr class="border-b border-gray-700/40 hover:bg-gray-800/30">
           ${cols.map((c, ci) => `
-            <td class="py-2 pr-4 ${ci === 0 ? 'text-gray-200 font-medium' : ci === 1 ? 'text-white font-semibold' : 'text-gray-400'}">
-              ${ci === 0 ? `<span class="text-gray-600 text-xs mr-2">${idx + 1}</span>` : ''}${c.get(item)}
+            <td class="py-2 pr-4 ${ci === 0 ? 'w-12' : ci === 1 ? 'text-gray-200 font-medium' : ci === 2 ? 'text-white font-semibold' : 'text-gray-400'}">
+              ${ci === 0 ? c.get(item) : ci === 1 ? `<span class="text-gray-600 text-xs mr-2">${idx + 1}</span>${c.get(item)}` : c.get(item)}
             </td>`).join('')}
         </tr>`).join('');
     }
