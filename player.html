@@ -294,7 +294,7 @@
           <!-- 第一行：KD + 胜率 等宽 -->
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="bg-dark rounded-xl p-4">
-              <p class="text-2xl sm:text-4xl font-black" style="color:${kdColor(humanKd)}">${formatDecimal(humanKd)}</p>
+              <p class="text-2xl sm:text-4xl font-black count-animate" style="color:${kdColor(humanKd)}">${formatDecimal(humanKd)}</p>
               <p class="text-xs text-gray-500 mt-1">K/D</p>
               <div class="flex gap-4 mt-3 text-sm">
                 <div><p class="text-white font-semibold">${formatNum(humanKills)}</p><p class="text-xs text-gray-500">击杀</p></div>
@@ -303,7 +303,7 @@
             </div>
             <div class="bg-dark rounded-xl p-4 flex flex-col justify-between">
               <div>
-                <p class="text-2xl sm:text-4xl font-black" style="color:${winColor(parseFloat(stats.winPercent))}">${formatPct(stats.winPercent)}</p>
+                <p class="text-2xl sm:text-4xl font-black count-animate" style="color:${winColor(parseFloat(stats.winPercent))}">${formatPct(stats.winPercent)}</p>
                 <p class="text-xs text-gray-500 mt-1">胜率</p>
               </div>
               <div class="flex gap-4 mt-3 text-sm">
@@ -354,14 +354,14 @@
                 <div class="flex items-center justify-between mb-4">
                   <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">武器击杀排行</h2>
                 </div>
-                <div id="weaponChart-${platform}" class="block"></div>
+                <div id="weaponChart-${platform}" class="block bar-animate"></div>
                 <div id="weaponList-${platform}" class="hidden"></div>
               </div>
               <div class="bg-card rounded-xl p-5" id="vehiclePanel-${platform}" style="display:none">
                 <div class="flex items-center justify-between mb-4">
                   <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">载具击杀排行</h2>
                 </div>
-                <div id="vehicleChart-${platform}" class="block"></div>
+                <div id="vehicleChart-${platform}" class="block bar-animate"></div>
                 <div id="vehicleList-${platform}" class="hidden"></div>
               </div>
             </div>
@@ -383,14 +383,14 @@
                 <div class="flex items-center justify-between mb-4">
                   <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">地图胜率</h2>
                 </div>
-                <div id="mapChart-${platform}" class="block"></div>
+                <div id="mapChart-${platform}" class="block bar-animate"></div>
                 <div id="mapList-${platform}" class="hidden"></div>
               </div>
               <div class="bg-card rounded-xl p-5" id="modeSection-${platform}" style="display:none">
                 <div class="flex items-center justify-between mb-4">
                   <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">游戏模式胜率</h2>
                 </div>
-                <div id="modeChart-${platform}" class="block"></div>
+                <div id="modeChart-${platform}" class="block bar-animate"></div>
                 <div id="modeList-${platform}" class="hidden"></div>
               </div>
             </div>
