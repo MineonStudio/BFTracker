@@ -186,8 +186,8 @@ function t(key) {
 function toggleLang() {
   currentLang = currentLang === 'zh' ? 'en' : 'zh';
   localStorage.setItem('bf-lang', currentLang);
-  applyLang();
-  window.dispatchEvent(new CustomEvent('langchange', { detail: { lang: currentLang } }));
+  var b = document.getElementById('langToggle');
+  if (b) b.textContent = currentLang === 'zh' ? 'EN' : '中文';
 }
 function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -203,19 +203,11 @@ function applyLang() {
   });
 }
 
-// 初始化 - 立即执行（不依赖DOMContentLoaded，因为script在body前加载）
-(function init() {
+// 初始化
+setTimeout(() => {
   const btn = document.getElementById('langToggle');
-  if (!btn) { setTimeout(init, 50); return; } // 等待DOM渲染
-  btn.textContent = currentLang === 'zh' ? 'EN' : '中文';
-  // 应用当前语言到所有data-i18n元素
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    el.textContent = t(el.getAttribute('data-i18n'));
-  });
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
-  });
-})();
+  if (btn) btn.textContent = currentLang === 'zh' ? 'EN' : '中文';
+}, 100);
 
 window.t = t;
 window.toggleLang = toggleLang;
