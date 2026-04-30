@@ -121,7 +121,7 @@
       const section = document.getElementById('recentSection');
       if (!list.length) { section.style.display = 'none'; return; }
       section.style.display = '';
-      const PLATFORM_CATEGORY_MAP = { xbox: 'Xbox', xboxone: 'Xbox', xboxseries: 'Xbox', pc: 'PC', psn: 'PlayStation', ps4: 'PlayStation', ps5: 'PlayStation', playstation: 'PlayStation' };
+      const PLATFORM_CATEGORY_MAP = { xbox: 'Xbox', xboxone: 'Xbox', xboxseries: 'Xbox', pc: 'PC', steam: 'PC', ea: 'PC', epic: 'PC', psn: 'PlayStation', ps4: 'PlayStation', ps5: 'PlayStation', playstation: 'PlayStation' };
       const formatPlatform = p => PLATFORM_CATEGORY_MAP[p?.toLowerCase()] || p?.charAt(0)?.toUpperCase() + p?.slice(1) || '—';
       document.getElementById('recentList').innerHTML = list.map(r => `
         <div class="group relative flex items-center bg-card border border-gray-700 hover:border-accent rounded-full pl-4 pr-2 py-1.5 text-sm transition-colors">

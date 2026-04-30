@@ -2,16 +2,18 @@ const BASE = 'https://api.gametools.network';
 
 // 各游戏支持的平台
 export const GAME_PLATFORMS = {
-  bf6:    ['xbox', 'pc', 'xboxone', 'xboxseries', 'psn', 'ps4', 'ps5'],
-  bf2042: ['xbox', 'pc', 'xboxone', 'xboxseries', 'psn', 'ps4', 'ps5'],
-  bfv:    ['xboxone', 'pc', 'ps4'],
-  bf1:    ['xboxone', 'pc', 'ps4'],
-  bf4:    ['pc', 'ps4'],
-  bf3:    ['pc', 'ps4'],
+  bf6:    ['xbox', 'steam', 'ea', 'epic', 'xboxone', 'xboxseries', 'psn', 'ps4', 'ps5'],
+  bf2042: ['xbox', 'steam', 'ea', 'epic', 'xboxone', 'xboxseries', 'psn', 'ps4', 'ps5'],
+  bfv:    ['xboxone', 'steam', 'ea', 'epic', 'ps4'],
+  bf1:    ['xboxone', 'steam', 'ea', 'epic', 'ps4'],
+  bf4:    ['steam', 'ea', 'epic', 'ps4'],
+  bf3:    ['steam', 'ea', 'epic', 'ps4'],
 };
 
 export const PLATFORM_LABELS = {
-  pc:         'PC',
+  steam:      'Steam',
+  ea:         'EA App',
+  epic:       'Epic',
   xbox:       'Xbox（通用）',
   xboxone:    'Xbox One',
   xboxseries: 'Xbox Series',
@@ -26,19 +28,19 @@ export const PLATFORM_CATEGORIES = ['Xbox', 'PlayStation', 'PC'];
 
 // 三大平台 → 细分平台的映射
 export const CATEGORY_PLATFORMS = {
-  'PC': ['pc'],
+  'PC': ['steam', 'ea', 'epic'],
   'Xbox': ['xbox', 'xboxone', 'xboxseries'],
   'PlayStation': ['psn', 'ps4', 'ps5'],
 };
 
 // 各游戏在三大分类下支持的细分平台
 export const GAME_CATEGORY_PLATFORMS = {
-  bf6:    { 'PC': ['pc'], 'Xbox': ['xbox', 'xboxone', 'xboxseries'], 'PlayStation': ['psn', 'ps4', 'ps5'] },
-  bf2042: { 'PC': ['pc'], 'Xbox': ['xbox', 'xboxone', 'xboxseries'], 'PlayStation': ['psn', 'ps4', 'ps5'] },
-  bfv:    { 'PC': ['pc'], 'Xbox': ['xboxone'],                      'PlayStation': ['ps4'] },
-  bf1:    { 'PC': ['pc'], 'Xbox': ['xboxone'],                      'PlayStation': ['ps4'] },
-  bf4:    { 'PC': ['pc'],                                             'PlayStation': ['ps4'] },
-  bf3:    { 'PC': ['pc'],                                             'PlayStation': ['ps4'] },
+  bf6:    { 'PC': ['steam', 'ea', 'epic'], 'Xbox': ['xbox', 'xboxone', 'xboxseries'], 'PlayStation': ['psn', 'ps4', 'ps5'] },
+  bf2042: { 'PC': ['steam', 'ea', 'epic'], 'Xbox': ['xbox', 'xboxone', 'xboxseries'], 'PlayStation': ['psn', 'ps4', 'ps5'] },
+  bfv:    { 'PC': ['steam', 'ea', 'epic'], 'Xbox': ['xboxone'],                      'PlayStation': ['ps4'] },
+  bf1:    { 'PC': ['steam', 'ea', 'epic'], 'Xbox': ['xboxone'],                      'PlayStation': ['ps4'] },
+  bf4:    { 'PC': ['steam', 'ea', 'epic'],                                             'PlayStation': ['ps4'] },
+  bf3:    { 'PC': ['steam', 'ea', 'epic'],                                             'PlayStation': ['ps4'] },
 };
 
 export const GAME_LABELS = {

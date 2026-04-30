@@ -644,11 +644,11 @@
         const lower = raw.toLowerCase();
         if (lower === 'xbox' || lower === 'xboxone' || lower === 'xboxseries') return 'Xbox';
         if (lower === 'psn' || lower === 'ps4' || lower === 'ps5' || lower === 'playstation') return 'PlayStation';
-        if (lower === 'pc') return 'PC';
+        if (lower === 'pc' || lower === 'steam' || lower === 'ea' || lower === 'epic') return 'PC';
         return raw;
       })();
-      const gameCatPlatforms = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['pc'] };
-      let platforms = gameCatPlatforms[platformCategory] || ['pc'];
+      const gameCatPlatforms = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['steam'] };
+      let platforms = gameCatPlatforms[platformCategory] || ['steam'];
 
       // 智能检测：找出该玩家实际活跃的子平台，配合通用平台作为兜底
       let detectedPlatforms = null;
