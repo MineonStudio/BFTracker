@@ -12,7 +12,7 @@
 
 /* 卡片 - xAI微表面 */
 .bg-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 0; }
-.bg-dark { background: transparent; }
+/* bg-dark uses Tailwind theme */
 .bg-card.rounded-2xl, .bg-card.rounded-xl, .bg-card.rounded-lg { border-radius: 0 !important; }
 
 /* 导航 - 毛玻璃 */
