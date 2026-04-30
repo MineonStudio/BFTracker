@@ -45,7 +45,7 @@
         </select>
       </div>
       <div class="flex gap-3">
-        <input id="nameInput" type="text" placeholder="输入玩家用户名..." aria-label="玩家用户名搜索"
+        <input id="nameInput" type="text" placeholder="输入玩家用户名..." list="recentPlayers" autocomplete="off" aria-label="玩家用户名搜索"
           class="search-input flex-1 bg-dark border border-gray-600 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent"
         />
         <button id="searchBtn" aria-label="搜索"
@@ -54,6 +54,7 @@
         </button>
       </div>
     </div>
+    <datalist id="recentPlayers"></datalist>
   </div>
 
 
@@ -116,6 +117,10 @@
 
     // 最近搜索
     function renderRecent() {
+      const dl = document.getElementById('recentPlayers');
+      if (dl && list.length) {
+        dl.innerHTML = list.map(r => `<option value="${r.name}">`).join('');
+      }
       const list = getRecentSearches();
       const section = document.getElementById('recentSection');
       if (!list.length) { section.style.display = 'none'; return; }
