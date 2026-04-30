@@ -942,12 +942,21 @@
       window.closeShareModal();
     };
 
-    window.doSharePoster = async () => {
-      const checks = document.querySelectorAll('#shareSections input[type=checkbox]:checked');
-      const sections = [...checks].map(c => c.value);
+    // 海报生成中状态
+    window.__posterLoading = false;
 
-      const SCALE = 2;
-      const BG = '#12151c';
+    window.doSharePoster = async () => {
+      if (window.__posterLoading) return;
+      window.__posterLoading = true;
+      try {
+        const checks = document.querySelectorAll('#shareSections input[type=checkbox]:checked');
+        const sections = [...checks].map(c => c.value);
+
+        // 先关闭分享弹窗，给个反馈
+        window.closeShareModal();
+
+        const SCALE = 1;
+        const BG = '#12151c';
 
       // 捕获可见元素
       async function capture(selector) {
@@ -1014,14 +1023,19 @@
 
       // 预览
       const d = window.__shareData || {};
-      finalCanvas.toBlob(async blob => {
-        const file = new File([blob], `bf-tracker-${d.name}.png`, { type: 'image/png' });
-        window.__posterFile = file;
+      const dataUrl = finalCanvas.toDataURL('image/png');
+      finalCanvas.toBlob(blob => {
+        window.__posterFile = new File([blob], `bf-tracker-${d.name}.png`, { type: 'image/png' });
         window.__posterCanvas = finalCanvas;
-        document.getElementById('posterPreviewImg').src = finalCanvas.toDataURL();
+        document.getElementById('posterPreviewImg').src = dataUrl;
         document.getElementById('posterPreviewModal').classList.remove('hidden');
       }, 'image/png');
-      window.closeShareModal();
+      } catch (err) {
+        console.error('海报生成失败:', err);
+        alert('海报生成失败，可能是图片跨域限制。请尝试用「分享链接」代替。');
+      } finally {
+        window.__posterLoading = false;
+      }
     };
 
     window.closePosterPreview = () => {
