@@ -67,8 +67,8 @@ export const GAMEMODE_CN = {
   'Hazard Zone': '危险区域',
   // 已过滤但保留映射
   'Official': '全部', 'Gauntlet': '试炼场',
-  'REDSEC': '试炼场单人', 'Redsec': '试炼场单人',
-  'Redsec Duo': '试炼场（双人）', 'Redsec Solo': '试炼场（单人）', 'Redsec Squad': '试炼场（小队）',
+  'REDSEC': '大逃杀（单人）', 'Redsec': '大逃杀（单人）',
+  'Redsec Duo': '大逃杀（双人）', 'Redsec Solo': '大逃杀（单人）', 'Redsec Squad': '大逃杀（小队）',
   'Duos': '双人大逃杀', 'Quads': '四人大逃杀', 'Battle Royale': '大逃杀',
   // 历史/经典模式
   'Deathmatch': '死斗', 'Battlefield Conflict': '禁区冲突',
