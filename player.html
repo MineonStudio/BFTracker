@@ -253,12 +253,12 @@
           <div class="flex items-end gap-3 mb-4">
             ${(() => { const p = platform?.toLowerCase() || ''; const key = p.includes('steam')?'steam':p.includes('ea')?'ea':p.includes('epic')?'epic':p.includes('xbox')?'xbox':p.includes('ps')||p.includes('playstation')?'playstation':null; const map = {steam:'steam',ea:'ea',epic:'epic',xbox:'xbox',playstation:'playstation'}; return key ? `<div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gray-700/50 flex items-center justify-center shrink-0"><img src="icons/${map[key]}.svg" class="w-8 h-8 sm:w-9 sm:h-9" alt=""></div>` : (stats.avatar && !stats.avatar.includes('default-avatar') ? `<img src="${stats.avatar}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 object-cover" alt="">` : ''); })()}
             <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between gap-2">
+              <div class="flex justify-end">
                 <span class="text-gray-400 text-xs sm:text-sm">${formatSeconds(stats.secondsPlayed)}</span>
-                <span class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-accent/10 h-6 flex items-center shrink-0">${(GAME_LABELS[game] || game).replace('Battlefield ','BF')}</span>
               </div>
               <div class="flex items-center gap-2 mt-1">
                 <h1 class="text-2xl sm:text-4xl font-black gradient-text tracking-tight truncate">${stats.userName || name}</h1>
+                <span class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-accent/10 h-6 flex items-center shrink-0">${(GAME_LABELS[game] || game).replace('Battlefield ','BF')}</span>
                 <span id="banStatus" class="shrink-0"></span>
                 <button onclick="window.doSharePoster()" class="text-gray-400 hover:text-white transition-colors ml-auto shrink-0" title="分享"><svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
               </div>
