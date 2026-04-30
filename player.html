@@ -982,13 +982,15 @@
             img.src = dataUrl;
             img.removeAttribute('srcset');
           } else {
-            // 彩色占位
-            const w = img.width || img.offsetWidth || 32;
-            const h = img.height || img.offsetHeight || 32;
+            // 可见的占位：用 img 实际显示尺寸，颜色偏亮
+            const w = img.naturalWidth || img.width || img.offsetWidth || 32;
+            const h = img.naturalHeight || img.height || img.offsetHeight || 32;
             img.src = 'data:image/svg+xml,' + encodeURIComponent(
-              `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="#2a3040" rx="4"/></svg>`
+              `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="#374151" rx="4"/><text x="${w/2}" y="${h/2+5}" text-anchor="middle" fill="#6b7280" font-size="${Math.min(w,h)*0.4}" font-family="system-ui">?</text></svg>`
             );
             img.removeAttribute('srcset');
+            img.style.width = w + 'px';
+            img.style.height = h + 'px';
           }
         }
 
