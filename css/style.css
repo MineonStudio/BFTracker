@@ -164,20 +164,7 @@
 /* 5. 展开更多过渡 */
 .show-more-btn { transition: all 0.3s ease; }
 
-/* xAI 风格覆盖 */
-.bg-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
-.bg-dark { background: rgba(255,255,255,0.02); }
-.border-gray-700 { border-color: rgba(255,255,255,0.08); }
-.border-gray-700\/40 { border-color: rgba(255,255,255,0.05); }
-.text-gray-200 { color: rgba(255,255,255,0.90); }
-.text-gray-300 { color: rgba(255,255,255,0.80); }
-.text-gray-400 { color: rgba(255,255,255,0.60); }
-.text-gray-500 { color: rgba(255,255,255,0.40); }
-.text-gray-600 { color: rgba(255,255,255,0.30); }
-.text-white { color: #fff; }
+/* xAI 风格微调：毛玻璃导航 + 卡片微表面 */
 nav { background: rgba(31,34,40,0.92); backdrop-filter: blur(12px); }
+.bg-card { border: 1px solid rgba(255,255,255,0.06); }
 .search-input:focus { box-shadow: 0 0 0 2px rgba(255,70,85,0.2); }
-.bg-gray-700 { background: rgba(255,255,255,0.06); }
-.bg-gray-700\/50 { background: rgba(255,255,255,0.04); }
-.bg-gray-700\/30 { background: rgba(255,255,255,0.03); }
-.bg-accent\/10 { background: rgba(255,70,85,0.1); }
