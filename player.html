@@ -573,6 +573,21 @@
           });
           window.addEventListener('resize', () => chart.resize());
         });
+        // 赛季汇总卡片
+        const seasonCards = document.createElement('div');
+        seasonCards.className = 'grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4';
+        seasonCards.innerHTML = seasonSummary.map(s => `
+          <div class="bg-dark rounded-xl p-4">
+            <p class="text-xs text-gray-500 mb-1">${s.season}</p>
+            <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+              <div><p class="font-bold text-white">${s.kills}</p><p class="text-xs text-gray-500">击杀</p></div>
+              <div><p class="font-bold text-white">${formatDecimal(s.kd)}</p><p class="text-xs text-gray-500">K/D</p></div>
+              <div><p class="font-bold text-white">${s.wins}</p><p class="text-xs text-gray-500">胜场</p></div>
+              <div><p class="font-bold text-white">${s.winRate.toFixed(1)}%</p><p class="text-xs text-gray-500">胜率</p></div>
+            </div>
+          </div>
+        `).join('');
+        document.getElementById(`seasonChart-${platform}`).parentElement.appendChild(seasonCards);
       }
 
       // ── 游戏模式（按胜率降序）──
@@ -649,13 +664,16 @@
         ['助攻',     formatNum(stats.killAssists)],
         ['侦察',     formatNum(stats.enemiesSpotted)],
         ['复活',     formatNum(stats.revives)],
+        ['队友复活', formatNum(stats.squadmateRevive)],
         ['治疗',     formatNum(stats.heals)],
         ['补给',     formatNum(stats.resupplies)],
         ['修理',     formatNum(stats.repairs)],
+        ['摧毁载具', formatNum(stats.vehiclesDestroyed)],
         ['摧毁配备', formatNum(stats.gadgetsDestroyed ?? stats.gadgetsDestoyed)],
       ].filter(([, v]) => v !== '-' && v !== '0' && v !== formatNum(0));
       const objectiveItems = [
         ['占点数',   formatNum(obj.captured)],
+        ['中立化',   formatNum(obj.neutralized)],
         ['防守次数', formatNum(obj.defended ?? obj.time?.defended)],
         ['安弹次数', formatNum(obj.armed)],
         ['拆弹次数', formatNum(obj.defused)],
