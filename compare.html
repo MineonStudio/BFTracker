@@ -10,8 +10,10 @@
 <body class="bg-dark text-gray-200 min-h-screen">
   <script>(function(){if(localStorage.theme==='light')document.body.classList.add('light')})()</script>
 
+  <!-- 顶部装饰条 --><div style="height:3px;background:linear-gradient(90deg,#ff4655,#fb923c)"></div>
+
   <!-- 导航 -->
-  <nav class="border-b border-gray-700 bg-card sticky top-0 z-10">
+  <nav class="border-b border-gray-700 bg-card relative sticky top-0 z-10">
     <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
       <a href="index.html" class="text-xl font-bold gradient-text">BF Tracker</a>
       <div class="flex gap-6 text-sm text-gray-400">
@@ -299,5 +301,24 @@
       if (searchInput) searchInput.focus();
     }
   });</script>
+
+  <!-- 页脚 -->
+  <footer class="border-t border-gray-700 mt-12">
+    <div class="max-w-5xl mx-auto px-4 py-8">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-center sm:text-left">
+          <a href="index.html" class="text-lg font-bold gradient-text">BF Tracker</a>
+          <p class="text-xs text-gray-500 mt-1">战地系列战绩查询 · 全平台数据 · 免费开源</p>
+        </div>
+        <div class="flex items-center gap-6 text-xs text-gray-500">
+          <a href="index.html" class="hover:text-gray-300 transition-colors">首页</a>
+          <a href="compare.html" class="hover:text-gray-300 transition-colors">多人对比</a>
+          <a href="https://github.com/MineonStudio/BFTracker" target="_blank" class="hover:text-gray-300 transition-colors">GitHub</a>
+        </div>
+      </div>
+      <p class="text-center text-xs text-gray-600 mt-6">&copy; 2026 BF Tracker · Powered by GameTools Network</p>
+    </div>
+  </footer>
+
 </body>
 </html>
