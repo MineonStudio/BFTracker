@@ -119,11 +119,11 @@
 
     // 最近搜索
     function renderRecent() {
+      const list = getRecentSearches();
       const dl = document.getElementById('recentPlayers');
       if (dl && list.length) {
         dl.innerHTML = list.map(r => `<option value="${r.name}">`).join('');
       }
-      const list = getRecentSearches();
       const section = document.getElementById('recentSection');
       if (!list.length) { section.style.display = 'none'; return; }
       section.style.display = '';
