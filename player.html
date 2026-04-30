@@ -383,7 +383,7 @@
           document.getElementById(`weaponChart-${platform}`).innerHTML = top10.map((w, i) => {
             const pct = Math.round((w.kills / top10[0].kills) * 100);
             const img = w.image ? `<img src="${w.image}" class="w-8 h-8 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(w.weaponName||'?')[0]}</span>`;
-            const sub = `命中 ${formatPct(w.accuracy)} · 爆头 ${formatPct(w.headshots)} · ${formatNum(Math.round(w.damage))}伤害 · ${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}`;
+            const sub = `总伤害 ${formatNum(Math.round(w.damage))} · 命中率 ${formatPct(w.accuracy)} · 爆头率 ${formatPct(w.headshots)} · 时长 ${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}`;
             return `<div class="mb-3"><div class="flex items-center gap-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span>${img}<span class="text-xs text-gray-300 truncate">${w.weaponName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#ff4655,#fb923c)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(w.kills)}</span></div><div style="font-size:10px;color:#9ca3af;margin-top:2px;padding-left:48px">${sub}</div></div>`;
           }).join('');
           // 移动端：列表
@@ -394,7 +394,7 @@
                 <span class="text-sm text-gray-200 flex-1 truncate">${w.weaponName}</span>
                 <span class="text-sm font-bold text-accent shrink-0">${formatNum(w.kills)}</span>
               </div>
-              <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding-left:44px">命中 ${formatPct(w.accuracy)} · 爆头 ${formatPct(w.headshots)} · ${formatNum(Math.round(w.damage))}伤害 · ${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}</div>
+              <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding-left:44px">总伤害 ${formatNum(Math.round(w.damage))} · 命中率 ${formatPct(w.accuracy)} · 爆头率 ${formatPct(w.headshots)} · 时长 ${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}</div>
             </div>`).join('');
         }
       }
@@ -409,7 +409,7 @@
           document.getElementById(`vehicleChart-${platform}`).innerHTML = topV.map((v, i) => {
             const pct = Math.round((v.kills / topV[0].kills) * 100);
             const img = v.image ? `<img src="${v.image}" class="w-8 h-8 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(v.vehicleName||'?')[0]}</span>`;
-            const sub = `摧毁 ${formatNum(v.destroyed)} · 路杀 ${formatNum(v.roadKills||0)} · ${formatNum(Math.round(v.damage||0))}伤害 · ${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}`;
+            const sub = `总伤害 ${formatNum(Math.round(v.damage||0))} · 摧毁载具 ${formatNum(v.destroyed)} · 路杀 ${formatNum(v.roadKills||0)} · 时长 ${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}`;
             return `<div class="mb-3"><div class="flex items-center gap-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span>${img}<span class="text-xs text-gray-300 truncate">${v.vehicleName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(v.kills)}</span></div><div style="font-size:10px;color:#9ca3af;margin-top:2px;padding-left:48px">${sub}</div></div>`;
           }).join('');
           // 移动端：列表
@@ -420,7 +420,7 @@
                 <span class="text-sm text-gray-200 flex-1 truncate">${v.vehicleName}</span>
                 <span class="text-sm font-bold text-accent shrink-0">${formatNum(v.kills)}</span>
               </div>
-              <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding-left:44px">摧毁 ${formatNum(v.destroyed)} · 路杀 ${formatNum(v.roadKills||0)} · ${formatNum(Math.round(v.damage||0))}伤害 · ${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}</div>
+              <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding-left:44px">总伤害 ${formatNum(Math.round(v.damage||0))} · 摧毁载具 ${formatNum(v.destroyed)} · 路杀 ${formatNum(v.roadKills||0)} · 时长 ${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}</div>
             </div>`).join('');
         }
       }
@@ -550,7 +550,7 @@
           const pct = Math.max(0, parseFloat(m.winPercent) || 0);
           const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
           const img = m.image ? `<img src="${m.image}" class="w-8 h-8 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">M</span>`;
-          const sub = `KD ${parseFloat(m.killDeath).toFixed(2)} · ${formatNum(m.wins)}胜 · ${formatNum(m.losses)}负 · ${formatSeconds(m.secondsPlayed)}`;
+          const sub = `总场次 ${m.matches} · 胜场 ${formatNum(m.wins)} · 负场 ${formatNum(m.losses)} · 时长 ${formatSeconds(m.secondsPlayed)}`;
           return `<div class="mb-3"><div class="flex items-center gap-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span>${img}<span class="text-xs text-gray-300 truncate">${getModeName(m.gamemodeName)}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-12 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div><div style="font-size:10px;color:#9ca3af;margin-top:2px;padding-left:48px">${sub}</div></div>`;
         }).join('');
         // 移动端：列表
@@ -564,7 +564,7 @@
               <span class="text-sm text-gray-200 flex-1 truncate">${getModeName(m.gamemodeName)}</span>
               <span class="text-sm font-bold shrink-0" style="color:${color}">${pct.toFixed(1)}%</span>
             </div>
-            <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding-left:44px">KD ${parseFloat(m.killDeath).toFixed(2)} · ${formatNum(m.wins)}胜 · ${formatNum(m.losses)}负 · ${formatSeconds(m.secondsPlayed)}</div>
+            <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding-left:44px">总场次 ${m.matches} · 胜场 ${formatNum(m.wins)} · 负场 ${formatNum(m.losses)} · 时长 ${formatSeconds(m.secondsPlayed)}</div>
           </div>`;
         }).join('');
       }
@@ -580,7 +580,7 @@
           const pct = Math.max(0, parseFloat(m.winPercent) || 0);
           const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
           const img = m.image ? `<img src="${m.image}" class="w-8 h-8 object-cover rounded shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(MAP_CN[m.mapName]||m.mapName||'?')[0]}</span>`;
-          const sub = `${formatNum(m.wins)}胜 · ${formatNum(m.losses)}负 · ${m.matches}场 · ${formatSeconds(m.secondsPlayed)}`;
+          const sub = `总场次 ${m.matches} · 胜场 ${formatNum(m.wins)} · 负场 ${formatNum(m.losses)} · 时长 ${formatSeconds(m.secondsPlayed)}`;
           return `<div class="mb-3"><div class="flex items-center gap-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span>${img}<span class="text-xs text-gray-300 truncate">${MAP_CN[m.mapName] || m.mapName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-12 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div><div style="font-size:10px;color:#9ca3af;margin-top:2px;padding-left:48px">${sub}</div></div>`;
         }).join('');
         // 移动端：列表
@@ -594,7 +594,7 @@
               <span class="text-sm text-gray-200 flex-1 truncate">${MAP_CN[m.mapName] || m.mapName}</span>
               <span class="text-sm font-bold shrink-0" style="color:${color2}">${pct2.toFixed(1)}%</span>
             </div>
-            <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding-left:44px">${formatNum(m.wins)}胜 · ${formatNum(m.losses)}负 · ${m.matches}场 · ${formatSeconds(m.secondsPlayed)}</div>
+            <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding-left:44px">总场次 ${m.matches} · 胜场 ${formatNum(m.wins)} · 负场 ${formatNum(m.losses)} · 时长 ${formatSeconds(m.secondsPlayed)}</div>
           </div>`;
         }).join('');
       }
