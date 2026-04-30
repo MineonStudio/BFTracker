@@ -25,6 +25,17 @@ export function saveApiCache(game, platform, name, data) {
 // 获取 API 缓存数据
 
 // 保存一次战绩快照
+
+export function getHistory(game, platform, name) {
+  try {
+    const key = `bf-history-${game}-${platform}-${name}`;
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function saveSnapshot(game, platform, name, stats) {
   const key = HISTORY_KEY(game, platform, name);
   const history = getHistory(game, platform, name);
