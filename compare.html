@@ -42,6 +42,7 @@
           <span class="text-gray-400 text-xs self-center">玩家对比数据均基于同一游戏版本</span>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" id="playerSlots"></div>
+        <div class="flex justify-center mb-3"><button id="addSlotBtn" class="border border-gray-600 text-gray-400 hover:text-white hover:border-gray-500 px-4 py-2 rounded-lg text-xs transition-colors">+ 添加对比</button></div>
         <button id="compareBtn" aria-label="开始对比"
           class="bg-accent hover:bg-red-500 text-white font-semibold px-8 py-3 rounded-lg text-sm transition-colors w-full sm:w-auto">
           开始对比
@@ -132,8 +133,7 @@
         `;
         slotsEl.appendChild(div);
       }
-      checkAddBtn(); if (MAX < 4 && !document.getElementById('addSlotBtn').style.display) document.getElementById('addSlotBtn').style.display = '';
-    }
+          }
     renderSlots();
     gameSelect.addEventListener('change', renderSlots);
     // 添加对比按钮
@@ -143,10 +143,9 @@
     // 检查是否需要显示添加按钮
     function checkAddBtn() {
       const btn = document.getElementById('addSlotBtn');
-      if (btn) btn.style.display = MAX < 4 ? '' : 'none';
+      if (btn) btn.style.display = MAX < 4 ? 'inline-block' : 'none';
     }
-    checkAddBtn(); if (MAX < 4 && !document.getElementById('addSlotBtn').style.display) document.getElementById('addSlotBtn').style.display = '';
-
+    
     function getSlotValues() {
       const game = gameSelect.value;
       const catMap = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['steam'], 'Xbox': ['xbox'], 'PlayStation': ['psn'] };
