@@ -270,94 +270,101 @@
           </div>
         </div>
 
-        <!-- 兵种总览 -->
-        <div class="bg-card rounded-2xl p-5 mb-8" id="classSection-${platform}" style="display:none">
-          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">兵种数据</h2>
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3" id="classCards-${platform}"></div>
+        <!-- 查看更多 -->
+        <div class="text-center mb-4" id="showMoreWrap-${platform}">
+          <button onclick="window._showDetailTabs('${platform}')" class="bg-accent hover:bg-red-500 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">查看更多 ▼</button>
         </div>
 
-        <!-- 武器 / 载具 / 配备 三列排行 -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="killsSection-${platform}" style="display:none">
-          <div class="bg-card rounded-xl p-5" id="weaponPanel-${platform}" style="display:none">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">武器击杀排行</h2>
-              
-            </div>
-            <div id="weaponChart-${platform}" class="desktop-chart"></div>
-            <div id="weaponList-${platform}" class="space-y-2 mobile-list"></div>
+        <!-- Tab容器 -->
+        <div id="detailTabs-${platform}" style="display:none" class="mb-8">
+          <div class="flex gap-1 mb-4 border-b border-gray-700" id="tabNav-${platform}">
+            <button class="tab-btn active" data-tab="class" onclick="window._switchTab('class','${platform}')">兵种</button>
+            <button class="tab-btn" data-tab="kills" onclick="window._switchTab('kills','${platform}')">击杀</button>
+            <button class="tab-btn" data-tab="wins" onclick="window._switchTab('wins','${platform}')">胜率</button>
+            <button class="tab-btn" data-tab="support" onclick="window._switchTab('support','${platform}')">贡献</button>
+            <button class="tab-btn" data-tab="season" onclick="window._switchTab('season','${platform}')">赛季</button>
           </div>
-          <div class="bg-card rounded-xl p-5" id="vehiclePanel-${platform}" style="display:none">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">载具击杀排行</h2>
-              
+          <!-- 兵种 -->
+          <div id="tab-class-${platform}" class="tab-panel">
+            <div class="bg-card rounded-2xl p-5 mb-8" id="classSection-${platform}" style="display:none">
+              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">兵种数据</h2>
+              <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3" id="classCards-${platform}"></div>
             </div>
-            <div id="vehicleChart-${platform}" class="desktop-chart"></div>
-            <div id="vehicleList-${platform}" class="space-y-2 mobile-list"></div>
           </div>
-          <div class="bg-card rounded-xl p-5" id="gadgetPanel-${platform}" style="display:none">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">配备击杀排行</h2>
-              
+          <!-- 击杀 -->
+          <div id="tab-kills-${platform}" class="tab-panel hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="killsSection-${platform}">
+              <div class="bg-card rounded-xl p-5" id="weaponPanel-${platform}" style="display:none">
+                <div class="flex items-center justify-between mb-4">
+                  <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">武器击杀排行</h2>
+                </div>
+                <div id="weaponChart-${platform}" class="desktop-chart"></div>
+                <div id="weaponList-${platform}" class="space-y-2 mobile-list"></div>
+              </div>
+              <div class="bg-card rounded-xl p-5" id="vehiclePanel-${platform}" style="display:none">
+                <div class="flex items-center justify-between mb-4">
+                  <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">载具击杀排行</h2>
+                </div>
+                <div id="vehicleChart-${platform}" class="desktop-chart"></div>
+                <div id="vehicleList-${platform}" class="space-y-2 mobile-list"></div>
+              </div>
             </div>
-            <div id="gadgetChart-${platform}" class="chart-box-lg"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <div class="bg-card rounded-xl p-5">
+                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">击杀类型分布</h2>
+                <div id="killTypeChart-${platform}" class="chart-box"></div>
+              </div>
+              <div class="bg-card rounded-xl p-5">
+                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">兵种击杀分布</h2>
+                <div id="classChart-${platform}" class="chart-box"></div>
+              </div>
+            </div>
+          </div>
+          <!-- 胜率 -->
+          <div id="tab-wins-${platform}" class="tab-panel hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="winRateSection-${platform}">
+              <div class="bg-card rounded-xl p-5" id="mapSection-${platform}" style="display:none">
+                <div class="flex items-center justify-between mb-4">
+                  <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">地图胜率</h2>
+                </div>
+                <div id="mapChart-${platform}" class="desktop-chart"></div>
+                <div id="mapList-${platform}" class="space-y-2 mobile-list"></div>
+              </div>
+              <div class="bg-card rounded-xl p-5" id="modeSection-${platform}" style="display:none">
+                <div class="flex items-center justify-between mb-4">
+                  <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">游戏模式胜率</h2>
+                </div>
+                <div id="modeChart-${platform}" class="desktop-chart"></div>
+                <div id="modeList-${platform}" class="space-y-2 mobile-list"></div>
+              </div>
+            </div>
+          </div>
+          <!-- 贡献 -->
+          <div id="tab-support-${platform}" class="tab-panel hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="supportSection-${platform}">
+              <div class="bg-card rounded-xl p-5">
+                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">团队贡献</h2>
+                <div id="supportStats-${platform}" class="grid grid-cols-2 gap-3 text-sm"></div>
+              </div>
+              <div class="bg-card rounded-xl p-5">
+                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">目标数据</h2>
+                <div id="objectiveStats-${platform}" class="grid grid-cols-2 gap-3 text-sm"></div>
+              </div>
+            </div>
+          </div>
+          <!-- 赛季 -->
+          <div id="tab-season-${platform}" class="tab-panel hidden">
+            <div class="bg-card rounded-xl p-5 mb-8" id="seasonSection-${platform}" style="display:none">
+              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">赛季历史</h2>
+              <div id="seasonChart-${platform}" class="chart-box-lg"></div>
+            </div>
           </div>
         </div>
-
-        <!-- 地图胜率 & 游戏模式胜率 左右排列 -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="winRateSection-${platform}" style="display:none">
-          <div class="bg-card rounded-xl p-5" id="mapSection-${platform}" style="display:none">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">地图胜率</h2>
-              
-            </div>
-            <div id="mapChart-${platform}" class="desktop-chart"></div>
-            <div id="mapList-${platform}" class="space-y-2 mobile-list"></div>
-          </div>
-          <div class="bg-card rounded-xl p-5" id="modeSection-${platform}" style="display:none">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">游戏模式胜率</h2>
-              
-            </div>
-            <div id="modeChart-${platform}" class="desktop-chart"></div>
-            <div id="modeList-${platform}" class="space-y-2 mobile-list"></div>
-          </div>
-        </div>
-
-        <!-- 击杀类型分布 & 兵种分布 -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div class="bg-card rounded-xl p-5">
-            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">击杀类型分布</h2>
-            <div id="killTypeChart-${platform}" class="chart-box"></div>
-          </div>
-          <div class="bg-card rounded-xl p-5">
-            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">兵种击杀分布</h2>
-            <div id="classChart-${platform}" class="chart-box"></div>
-          </div>
-        </div>
-
 
         <!-- 个人记录 -->
         <div class="bg-card rounded-xl p-5 mb-8" id="recordSection-${platform}" style="display:none">
           <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">个人记录</h2>
           <div id="recordCards-${platform}" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
-        </div>
-
-        <!-- 赛季历史 -->
-        <div class="bg-card rounded-xl p-5 mb-8" id="seasonSection-${platform}" style="display:none">
-          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">赛季历史</h2>
-          <div id="seasonChart-${platform}" class="chart-box-lg"></div>
-        </div>
-
-        <!-- 支援与目标 -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" id="supportSection-${platform}" style="display:none">
-          <div class="bg-card rounded-xl p-5">
-            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">团队贡献</h2>
-            <div id="supportStats-${platform}" class="grid grid-cols-2 gap-3 text-sm"></div>
-          </div>
-          <div class="bg-card rounded-xl p-5">
-            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">目标数据</h2>
-            <div id="objectiveStats-${platform}" class="grid grid-cols-2 gap-3 text-sm"></div>
-          </div>
         </div>
 
         <!-- BF6 赛季数据 -->
@@ -888,6 +895,27 @@
         if (tips) tips.style.display = 'none';
       }
     });
+
+    // ─── Tab切换功能 ───
+    window._showDetailTabs = (platform) => {
+      const wrap = document.getElementById('showMoreWrap-' + platform);
+      const tabs = document.getElementById('detailTabs-' + platform);
+      if (wrap) wrap.style.display = 'none';
+      if (tabs) tabs.style.display = '';
+    };
+
+    window._switchTab = (tab, platform) => {
+      const nav = document.getElementById('tabNav-' + platform);
+      if (nav) {
+        nav.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        const btn = nav.querySelector('[data-tab="' + tab + '"]');
+        if (btn) btn.classList.add('active');
+      }
+      const panels = document.querySelectorAll('#detailTabs-' + platform + ' .tab-panel');
+      panels.forEach(p => p.classList.add('hidden'));
+      const panel = document.getElementById('tab-' + tab + '-' + platform);
+      if (panel) panel.classList.remove('hidden');
+    };
 
     // ─── 分享功能（放在最后避免初始化顺序问题） ───
 

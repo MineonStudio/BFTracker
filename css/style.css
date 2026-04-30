@@ -114,3 +114,18 @@
   .desktop-chart { display: none; }
   .mobile-list   { display: block; }
 }
+
+/* Tab切换样式 */
+.tab-btn {
+  padding: 6px 16px;
+  font-size: 13px;
+  color: #9ca3af;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.tab-btn:hover { color: #d1d5db; }
+.tab-btn.active { color: #ff4655; border-bottom-color: #ff4655; }
+.tab-panel.hidden { display: none; }
