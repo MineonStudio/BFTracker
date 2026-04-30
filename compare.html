@@ -132,7 +132,7 @@
         `;
         slotsEl.appendChild(div);
       }
-      checkAddBtn();
+      checkAddBtn(); if (MAX < 4 && !document.getElementById('addSlotBtn').style.display) document.getElementById('addSlotBtn').style.display = '';
     }
     renderSlots();
     gameSelect.addEventListener('change', renderSlots);
@@ -145,7 +145,7 @@
       const btn = document.getElementById('addSlotBtn');
       if (btn) btn.style.display = MAX < 4 ? '' : 'none';
     }
-    checkAddBtn();
+    checkAddBtn(); if (MAX < 4 && !document.getElementById('addSlotBtn').style.display) document.getElementById('addSlotBtn').style.display = '';
 
     function getSlotValues() {
       const game = gameSelect.value;
@@ -277,18 +277,23 @@
       loadingEl.classList.add('flex');
 
       try {
-        // 查询所有玩家（直接用选定的子平台查询）
+        // 查询所有玩家（尝试分类下所有子平台）
         const statsArr = await Promise.all(
           players.map(async p => {
-            try {
-              const s = await getStats(p.game, p.name, p.platform);
-              saveSnapshot(p.game, p.platform, p.name, s);
-              saveRecentSearch(p.game, p.platform, p.name);
-              compareData.push({ name: p.name, platform: p.platform, ...s });
-              return s;
-            } catch {
-              throw new Error(`${p.name} 无可用数据`);
+            const catMap = GAME_CATEGORY_PLATFORMS[p.game] || { 'PC': ['steam','ea','epic'], 'Xbox': ['xbox','xboxone','xboxseries'], 'PlayStation': ['psn','ps4','ps5'] };
+            const category = document.querySelector(`[data-slot]`)?.closest('#playerSlots') ? 
+              Object.entries(catMap).find(([cat, subs]) => subs.includes(p.platform))?.[0] : null;
+            const subPlatforms = category ? (catMap[category] || [p.platform]) : [p.platform];
+            let lastErr;
+            for (const plat of subPlatforms) {
+              try {
+                const s = await getStats(p.game, p.name, plat);
+                saveSnapshot(p.game, plat, p.name, s);
+                saveRecentSearch(p.game, plat, p.name);
+                return s;
+              } catch (e) { lastErr = e; }
             }
+            throw new Error(`${p.name} 无可用数据`);
           })
         );
 
