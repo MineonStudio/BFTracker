@@ -120,3 +120,12 @@
 .tab-btn:hover { color: #d1d5db; }
 .tab-btn.active { color: #ff4655; border-bottom-color: #ff4655; }
 .tab-panel.hidden { display: none; }
+
+/* 输入框抖动 */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
