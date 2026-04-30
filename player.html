@@ -137,7 +137,7 @@
     import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS, PLATFORM_CATEGORIES, searchPlayer, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
     import { saveSnapshot, saveRecentSearch, saveApiCache } from './js/storage.js';
     import * as echarts from 'echarts';
-    import html2canvas from 'html2canvas';
+    import { toPng } from 'html-to-image';
     import { checkBan, checkEacBan, getInventory } from './js/api.js';
     import { MAP_CN, getModeName, CLASS_CN } from './js/constants.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, getUrlParams, buildPlayerUrl } from './js/utils.js';
@@ -948,117 +948,126 @@
     window.doSharePoster = async () => {
       if (window.__posterLoading) return;
       window.__posterLoading = true;
-
-      const checks = document.querySelectorAll('#shareSections input[type=checkbox]:checked');
-      const sections = [...checks].map(c => c.value);
       window.closeShareModal();
 
       try {
-        const SCALE = 1;
+        const checks = document.querySelectorAll('#shareSections input[type=checkbox]:checked');
+        const sections = [...checks].map(c => c.value);
         const BG = '#12151c';
 
-        // 克隆元素并替换跨域图片为占位符，避免 canvas 污染
-        function prepareElement(el) {
-          const clone = el.cloneNode(true);
-          // 移除 echarts canvas（图表在截图中会变空白，不如去掉）
-          clone.querySelectorAll('canvas').forEach(c => c.remove());
-          // 替换 img 为占位符
-          clone.querySelectorAll('img').forEach(img => {
-            const w = img.width || img.offsetWidth || 32;
-            const h = img.height || img.offsetHeight || 32;
-            const div = document.createElement('div');
-            div.style.cssText = `width:${w}px;height:${h}px;background:linear-gradient(135deg,#2a3040,#1a1e26);border-radius:6px;display:inline-block;flex-shrink:0;`;
-            img.replaceWith(div);
-          });
-          // 移除详情链接
-          clone.querySelectorAll('a[href*="detail.html"]').forEach(a => a.remove());
-          return clone;
-        }
+        // 替换所有图片为占位符，避免跨域污染
+        const imgBackups = [];
+        document.querySelectorAll('#tabPanel img').forEach(img => {
+          imgBackups.push({ el: img, src: img.src, srcset: img.srcset });
+          img.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg"/>');
+          img.removeAttribute('srcset');
+        });
 
+        // 移除 echarts canvas 元素（截图无意义）
+        const canvasParents = [];
+        document.querySelectorAll('#tabPanel canvas').forEach(c => {
+          const p = c.parentElement;
+          canvasParents.push({ parent: p, canvas: c, next: c.nextSibling });
+          c.remove();
+        });
+
+        const opts = { backgroundColor: BG, pixelRatio: 1 };
         const captures = [];
-
-        async function captureIfVisible(selector) {
-          const el = document.querySelector(selector);
-          if (el && el.offsetParent !== null) {
-            const clone = prepareElement(el);
-            // 将 clone 挂到 body 上让 html2canvas 正确计算布局
-            clone.style.position = 'fixed';
-            clone.style.left = '-9999px';
-            clone.style.top = '0';
-            document.body.appendChild(clone);
-            const c = await html2canvas(clone, { backgroundColor: BG, scale: SCALE });
-            clone.remove();
-            return c;
-          }
-          return null;
-        }
 
         // 玩家概览
         if (sections.includes('overview')) {
           const card = document.querySelector('#tabPanel .bg-card.rounded-2xl');
           if (card) {
-            const clone = prepareElement(card);
-            clone.style.position = 'fixed';
-            clone.style.left = '-9999px';
-            clone.style.top = '0';
-            document.body.appendChild(clone);
-            const c = await html2canvas(clone, { backgroundColor: BG, scale: SCALE });
-            clone.remove();
-            if (c) captures.push(c);
+            const url = await toPng(card, opts);
+            if (url) captures.push(url);
           }
         }
 
+        // 武器
         if (sections.includes('weapons')) {
-          const c = await captureIfVisible('[id^="weaponPanel-"]');
-          if (c) captures.push(c);
+          const el = document.querySelector('[id^="weaponPanel-"]');
+          if (el && el.offsetParent) {
+            const url = await toPng(el, opts);
+            if (url) captures.push(url);
+          }
         }
 
+        // 载具
         if (sections.includes('vehicles')) {
-          const c = await captureIfVisible('[id^="vehiclePanel-"]');
-          if (c) captures.push(c);
+          const el = document.querySelector('[id^="vehiclePanel-"]');
+          if (el && el.offsetParent) {
+            const url = await toPng(el, opts);
+            if (url) captures.push(url);
+          }
         }
 
+        // 地图
         if (sections.includes('maps')) {
-          const c = await captureIfVisible('[id^="mapSection-"]');
-          if (c) captures.push(c);
+          const el = document.querySelector('[id^="mapSection-"]');
+          if (el && el.offsetParent) {
+            const url = await toPng(el, opts);
+            if (url) captures.push(url);
+          }
         }
 
+        // 兵种
         if (sections.includes('classes')) {
-          const c = await captureIfVisible('[id^="classSection-"]');
-          if (c) captures.push(c);
+          const el = document.querySelector('[id^="classSection-"]');
+          if (el && el.offsetParent) {
+            const url = await toPng(el, opts);
+            if (url) captures.push(url);
+          }
         }
+
+        // 恢复图片和 canvas
+        imgBackups.forEach(b => {
+          b.el.src = b.src;
+          if (b.srcset) b.el.srcset = b.srcset;
+        });
+        canvasParents.forEach(({ parent, canvas, next }) => {
+          if (next) parent.insertBefore(canvas, next);
+          else parent.appendChild(canvas);
+        });
 
         if (!captures.length) {
           alert('未找到可分享的内容板块');
           return;
         }
 
-      // 纵向拼接
-      const GAP = 16;
-      const totalH = captures.reduce((h, c) => h + c.height + GAP, GAP);
-      const maxW = Math.max(...captures.map(c => c.width));
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = maxW;
-      finalCanvas.height = totalH;
-      const fCtx = finalCanvas.getContext('2d');
-      fCtx.fillStyle = BG;
-      fCtx.fillRect(0, 0, maxW, totalH);
+        // 加载所有图片到 Image 对象
+        const images = await Promise.all(captures.map(url => new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = url;
+        })));
 
-      let posY = GAP;
-      for (const c of captures) {
-        fCtx.drawImage(c, (maxW - c.width) / 2, posY);
-        posY += c.height + GAP;
-      }
+        // 纵向拼接
+        const GAP = 16;
+        const totalH = images.reduce((h, img) => h + img.height + GAP, GAP);
+        const maxW = Math.max(...images.map(img => img.width));
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = maxW;
+        finalCanvas.height = totalH;
+        const ctx = finalCanvas.getContext('2d');
+        ctx.fillStyle = BG;
+        ctx.fillRect(0, 0, maxW, totalH);
 
-      // 预览
-      const d = window.__shareData || {};
-      const dataUrl = finalCanvas.toDataURL('image/png');
-      finalCanvas.toBlob(blob => {
-        window.__posterFile = new File([blob], `bf-tracker-${d.name}.png`, { type: 'image/png' });
-        window.__posterCanvas = finalCanvas;
-        document.getElementById('posterPreviewImg').src = dataUrl;
-        document.getElementById('posterPreviewModal').classList.remove('hidden');
-      }, 'image/png');
+        let posY = GAP;
+        for (const img of images) {
+          ctx.drawImage(img, (maxW - img.width) / 2, posY);
+          posY += img.height + GAP;
+        }
+
+        // 预览
+        const d = window.__shareData || {};
+        const previewUrl = finalCanvas.toDataURL('image/png');
+        finalCanvas.toBlob(blob => {
+          window.__posterFile = new File([blob], `bf-tracker-${d.name}.png`, { type: 'image/png' });
+          window.__posterCanvas = finalCanvas;
+          document.getElementById('posterPreviewImg').src = previewUrl;
+          document.getElementById('posterPreviewModal').classList.remove('hidden');
+        }, 'image/png');
       } catch (err) {
         console.error('海报生成失败:', err);
         alert('海报生成失败，请重试');
