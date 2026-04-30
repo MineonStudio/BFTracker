@@ -265,6 +265,7 @@
               const s = await getStats(p.game, p.name, p.platform);
               saveSnapshot(p.game, p.platform, p.name, s);
               saveRecentSearch(p.game, p.platform, p.name);
+              compareData.push({ name: p.name, platform: p.platform, ...s });
               return s;
             } catch {
               throw new Error(`${p.name} 无可用数据`);
