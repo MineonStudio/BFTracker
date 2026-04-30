@@ -137,6 +137,7 @@
     import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS, PLATFORM_CATEGORIES, searchPlayer, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
     import { saveSnapshot, saveRecentSearch, saveApiCache } from './js/storage.js';
     import * as echarts from 'echarts';
+    import html2canvas from 'html2canvas';
     import { checkBan, checkEacBan, getInventory } from './js/api.js';
     import { MAP_CN, getModeName, CLASS_CN } from './js/constants.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, getUrlParams, buildPlayerUrl } from './js/utils.js';
@@ -944,174 +945,80 @@
     window.doSharePoster = async () => {
       const checks = document.querySelectorAll('#shareSections input[type=checkbox]:checked');
       const sections = [...checks].map(c => c.value);
-      const d = window.__shareData || {};
-      const ops = window.__shareOps || {};
 
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const W = 640; const P = 32;
-      let y = P;
+      const SCALE = 2;
+      const BG = '#12151c';
 
-      // ── 计算高度 ──
-      let H = P; // top padding
-      H += 32 + 16; // title + gap
-      H += 40;     // player name
-      H += 24;     // game/time/badge row
-      H += 24;     // gap
-      H += 100;    // KD + WinRate cards
-      H += 24;     // gap
-      H += 88;     // 3x3 stats grid (3 rows × ~29px)
-      H += 24;     // gap
+      // 捕获可见元素
+      async function capture(selector) {
+        const el = document.querySelector(selector);
+        if (el && el.offsetParent !== null) {
+          return await html2canvas(el, { backgroundColor: BG, scale: SCALE, useCORS: true });
+        }
+        return null;
+      }
 
-      // sections
-      if (sections.includes('weapons') && ops.weapons?.length) H += 28 + ops.weapons.slice(0,5).length * 24 + 8;
-      if (sections.includes('vehicles') && ops.vehicles?.length) H += 28 + ops.vehicles.slice(0,5).length * 24 + 8;
-      if (sections.includes('maps') && ops.maps?.length) H += 28 + ops.maps.slice(0,5).length * 24 + 8;
-      if (sections.includes('classes') && ops.classes?.length) H += 28 + ops.classes.length * 24 + 8;
+      const captures = [];
 
-      H += P + 24; // footer + bottom
-
-      canvas.width = W; canvas.height = H;
-
-      // ── 背景 ──
-      ctx.fillStyle = '#12151c'; ctx.fillRect(0, 0, W, H);
-
-      // ── 顶部装饰线 ──
-      const topGrad = ctx.createLinearGradient(0, 0, W, 0);
-      topGrad.addColorStop(0, '#ff4655'); topGrad.addColorStop(1, '#fb923c');
-      ctx.fillStyle = topGrad; ctx.fillRect(0, 0, W, 4);
-      y += 4;
-
-      // ── 标题 ──
-      const titleGrad = ctx.createLinearGradient(P, 0, P + 240, 0);
-      titleGrad.addColorStop(0, '#ff4655'); titleGrad.addColorStop(1, '#fb923c');
-      ctx.fillStyle = titleGrad;
-      ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
-      ctx.fillText('BF Tracker 战绩报告', P, y + 24);
-      y += 40;
-
-      // ── 分隔线 ──
-      ctx.strokeStyle = '#2a3040'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke();
-      y += 16;
-
-      // ── 玩家名 ──
-      ctx.fillStyle = '#f3f4f6'; ctx.font = 'bold 28px system-ui, -apple-system, sans-serif';
-      ctx.fillText(d.name || '—', P, y + 30); y += 44;
-
-      // ── 游戏名 + 时长 + 封禁状态 ──
-      ctx.font = '14px system-ui, -apple-system, sans-serif';
-      ctx.fillStyle = '#9ca3af';
-      const metaText = `${d.game} · ${d.time}`;
-      ctx.fillText(metaText, P, y + 16);
-      const metaW = ctx.measureText(metaText).width;
-
-      // 封禁状态 badge
-      const banText = d.isBanned ? '封禁玩家' : '绿色玩家';
-      const banColor = d.isBanned ? '#f87171' : '#4ade80';
-      const banBg = d.isBanned ? 'rgba(239,68,68,0.15)' : 'rgba(74,222,128,0.15)';
-      ctx.font = 'bold 12px system-ui, -apple-system, sans-serif';
-      const banW = ctx.measureText(banText).width + 16;
-      const banX = P + metaW + 16;
-      ctx.fillStyle = banBg;
-      ctx.beginPath(); ctx.roundRect(banX, y + 2, banW, 20, 10); ctx.fill();
-      ctx.fillStyle = banColor;
-      ctx.fillText(banText, banX + 8, y + 16);
-      y += 30;
-
-      // ── KD + 胜率 卡片 ──
-      const cardY = y; const cardH = 88;
-      const cardW = (W - P * 2 - 12) / 2;
-
-      const drawCard = (x, value, label, color, sub1, sub1Label, sub2, sub2Label) => {
-        ctx.fillStyle = '#1a1e26';
-        ctx.beginPath(); ctx.roundRect(x, cardY, cardW, cardH, 12); ctx.fill();
-        ctx.fillStyle = color;
-        ctx.font = 'bold 42px system-ui, -apple-system, sans-serif';
-        ctx.fillText(value, x + 16, cardY + 38);
-        ctx.fillStyle = '#6b7280'; ctx.font = '12px system-ui, -apple-system, sans-serif';
-        ctx.fillText(label, x + 16, cardY + 56);
-        // sub stats
-        ctx.font = '13px system-ui, -apple-system, sans-serif';
-        ctx.fillStyle = '#f3f4f6'; ctx.fillText(sub1, x + 16, cardY + 80);
-        ctx.fillStyle = '#6b7280'; ctx.font = '11px system-ui, -apple-system, sans-serif';
-        ctx.fillText(sub1Label, x + 20 + ctx.measureText(sub1).width, cardY + 80);
-        ctx.fillStyle = '#f3f4f6'; ctx.font = '13px system-ui, -apple-system, sans-serif';
-        const sub2X = x + cardW / 2 + 8;
-        ctx.fillText(sub2, sub2X, cardY + 80);
-        ctx.fillStyle = '#6b7280'; ctx.font = '11px system-ui, -apple-system, sans-serif';
-        ctx.fillText(sub2Label, sub2X + ctx.measureText(sub2).width + 4, cardY + 80);
-      };
-
-      drawCard(P, d.kd, 'K/D', d.kdColor,
-        d.kills, '击杀', d.deaths, '死亡');
-      drawCard(P + cardW + 12, d.wr, '胜率', d.wrColor,
-        d.matches, '总场次', d.wins, '胜场');
-      y += cardH + 20;
-
-      // ── 9 指标网格 (3x3) ──
-      const statDefs = [
-        ['每分钟得分', d.spm],       ['爆头率', d.headshots],     ['命中率', d.accuracy],
-        ['KPM', d.kpm],               ['场均击杀', d.killsPerMatch], ['场均死亡', d.deathsPerMatch],
-        ['爆头数', d.headShots],      ['助攻数', d.assists],       ['急救数', d.revives],
-      ].filter(s => s[1] != null && s[1] !== '—');
-
-      const gridCols = Math.min(statDefs.length, 3);
-      const gridRows = Math.ceil(statDefs.length / 3);
-      const cellW = (W - P * 2 - 12) / 3;
-      const cellH = 26;
-      const gridY = y;
-
-      for (let row = 0; row < 3; row++) {
-        for (let col = 0; col < 3; col++) {
-          const idx = row * 3 + col;
-          if (idx >= statDefs.length) break;
-          const [label, value] = statDefs[idx];
-          const cx = P + col * (cellW + 6);
-          const cy = gridY + row * (cellH + 4);
-          ctx.fillStyle = '#1a1e26';
-          ctx.beginPath(); ctx.roundRect(cx, cy, cellW, cellH, 8); ctx.fill();
-          ctx.fillStyle = '#f3f4f6'; ctx.font = 'bold 14px system-ui, -apple-system, sans-serif';
-          ctx.fillText(value, cx + 8, cy + 17);
-          ctx.fillStyle = '#6b7280'; ctx.font = '11px system-ui, -apple-system, sans-serif';
-          ctx.fillText(label, cx + ctx.measureText(value).width + 12, cy + 17);
+      // 玩家概览
+      if (sections.includes('overview')) {
+        const card = document.querySelector('#tabPanel .bg-card.rounded-2xl');
+        if (card) {
+          const c = await html2canvas(card, { backgroundColor: BG, scale: SCALE, useCORS: true });
+          if (c) captures.push(c);
         }
       }
-      y = gridY + 3 * (cellH + 4) + 12;
 
-      // ── 分隔线 ──
-      ctx.strokeStyle = '#2a3040';
-      ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke();
-      y += 16;
+      // 武器
+      if (sections.includes('weapons')) {
+        const c = await capture('[id^="weaponPanel-"]');
+        if (c) captures.push(c);
+      }
 
-      // ── 板块 ──
-      const drawSection = (title, items, formatter, color = '#e5e7eb') => {
-        if (!items?.length) return;
-        ctx.fillStyle = '#d1d5db'; ctx.font = 'bold 13px system-ui, -apple-system, sans-serif';
-        ctx.fillText(title, P, y + 14); y += 26;
-        ctx.font = '12px system-ui, -apple-system, sans-serif';
-        items.slice(0, 5).forEach((item, i) => {
-          ctx.fillStyle = i === 0 ? color : '#9ca3af';
-          ctx.fillText(formatter(item), P + 8, y + 14); y += 24;
-        });
-        y += 6;
-      };
+      // 载具
+      if (sections.includes('vehicles')) {
+        const c = await capture('[id^="vehiclePanel-"]');
+        if (c) captures.push(c);
+      }
 
-      if (sections.includes('weapons')) drawSection('▸ 武器击杀排行', ops.weapons, w => `${w.name}: ${w.kills}杀`);
-      if (sections.includes('vehicles')) drawSection('▸ 载具击杀排行', ops.vehicles, v => `${v.name}: ${v.kills}杀`);
-      if (sections.includes('maps')) drawSection('▸ 地图胜率', ops.maps, m => `${m.name}: ${m.wr}%`);
-      if (sections.includes('classes')) drawSection('▸ 兵种分布', ops.classes, c => `${c.name}: ${c.kills}杀`);
+      // 地图
+      if (sections.includes('maps')) {
+        const c = await capture('[id^="mapSection-"]');
+        if (c) captures.push(c);
+      }
 
-      // ── 底部 ──
-      ctx.fillStyle = '#374151'; ctx.font = '11px system-ui, -apple-system, sans-serif';
-      ctx.fillText('via BF Tracker · mineonstudio.github.io/BFTracker', P, H - 20);
+      // 兵种
+      if (sections.includes('classes')) {
+        const c = await capture('[id^="classSection-"]');
+        if (c) captures.push(c);
+      }
 
-      // ── 预览 ──
-      canvas.toBlob(async blob => {
+      if (!captures.length) return;
+
+      // 纵向拼接
+      const GAP = 16;
+      const totalH = captures.reduce((h, c) => h + c.height + GAP, GAP);
+      const maxW = Math.max(...captures.map(c => c.width));
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = maxW;
+      finalCanvas.height = totalH;
+      const fCtx = finalCanvas.getContext('2d');
+      fCtx.fillStyle = BG;
+      fCtx.fillRect(0, 0, maxW, totalH);
+
+      let posY = GAP;
+      for (const c of captures) {
+        fCtx.drawImage(c, (maxW - c.width) / 2, posY);
+        posY += c.height + GAP;
+      }
+
+      // 预览
+      const d = window.__shareData || {};
+      finalCanvas.toBlob(async blob => {
         const file = new File([blob], `bf-tracker-${d.name}.png`, { type: 'image/png' });
         window.__posterFile = file;
-        window.__posterCanvas = canvas;
-        document.getElementById('posterPreviewImg').src = canvas.toDataURL();
+        window.__posterCanvas = finalCanvas;
+        document.getElementById('posterPreviewImg').src = finalCanvas.toDataURL();
         document.getElementById('posterPreviewModal').classList.remove('hidden');
       }, 'image/png');
       window.closeShareModal();
