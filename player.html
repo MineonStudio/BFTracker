@@ -118,7 +118,6 @@
     import { saveSnapshot, saveRecentSearch, saveApiCache } from './js/storage.js';
     import * as echarts from 'echarts';
     import { checkBan, checkEacBan, getInventory } from './js/api.js';
-    import html2canvas from 'html2canvas';
     import { MAP_CN, getModeName, CLASS_CN } from './js/constants.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, getUrlParams, buildPlayerUrl } from './js/utils.js';
 
@@ -915,84 +914,159 @@
       if (window.__posterLoading) return;
       window.__posterLoading = true;
       try {
-        // 隐藏分享按钮
-        const shareBtn = document.querySelector('#tabPanel button[onclick*="doSharePoster"]');
-        const sd = shareBtn?.style.display;
-        if (shareBtn) shareBtn.style.display = 'none';
+        const d = window.__shareData || {};
+        const W = 420, P = 24, BG = '#12151c', CARD = '#1a1e26';
 
-        const BG = '#12151c', SCALE = 2;
-        const captures = [];
+        // 准备指标数据
+        const stats = [
+          ['每分钟得分', d.spm], ['爆头率', d.headshots], ['命中率', d.accuracy],
+          ['KPM', d.kpm], ['场均击杀', d.killsPerMatch], ['场均死亡', d.deathsPerMatch],
+          ['爆头数', d.headShots], ['助攻数', d.assists], ['急救数', d.revives],
+        ].filter(s => s[1] != null && s[1] !== '—');
 
-        // 只截取玩家概览
-        const card = document.querySelector('#tabPanel .bg-card.rounded-2xl');
-        if (card) {
-          try { const c = await html2canvas(card, { backgroundColor: BG, scale: SCALE, allowTaint: true, logging: false }); captures.push(c); } catch(e) { console.error('截图失败:', e); }
-        }
+        const rows = Math.ceil(stats.length / 3);
+        const FOOTER_H = 110;
+        const H = 8 + P + 40 + 36 + 28 + 16 + 100 + 16 + rows * 60 + 12 + 16 + FOOTER_H + P;
 
-        // 恢复
-        if (shareBtn) shareBtn.style.display = sd;
-        if (!captures.length) { alert('未找到内容'); return; }
+        const canvas = document.createElement('canvas');
+        canvas.width = W; canvas.height = H;
+        const ctx = canvas.getContext('2d');
 
-        // 纵向拼接
-        const GAP = 16, FOOTER_H = 130;
-        const totalH = captures.reduce((h, c) => h + c.height + GAP, GAP) + FOOTER_H;
-        const maxW = Math.max(...captures.map(c => c.width));
-        const final = document.createElement('canvas');
-        final.width = maxW; final.height = totalH;
-        const ctx = final.getContext('2d');
-        ctx.fillStyle = BG; ctx.fillRect(0, 0, maxW, totalH);
-        let posY = GAP;
-        for (const c of captures) {
-          ctx.drawImage(c, (maxW - c.width) / 2, posY);
-          posY += c.height + GAP;
-        }
+        // 背景
+        ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
 
-        // 底部：网站信息 + 二维码（放大、底部对齐）
-        const fY = totalH - FOOTER_H;
+        // 顶部渐变条
+        const bar = ctx.createLinearGradient(0, 0, W, 0);
+        bar.addColorStop(0, '#ff4655'); bar.addColorStop(1, '#fb923c');
+        ctx.fillStyle = bar; ctx.fillRect(0, 0, W, 8);
+
+        let y = 8 + P;
+
+        // 标题
+        const tg = ctx.createLinearGradient(P, 0, P + 180, 0);
+        tg.addColorStop(0, '#ff4655'); tg.addColorStop(1, '#fb923c');
+        ctx.fillStyle = tg;
+        ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
+        ctx.fillText('BF Tracker 战绩', P, y + 22);
+        y += 36;
         ctx.strokeStyle = '#2a3040'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(40, fY); ctx.lineTo(maxW - 40, fY); ctx.stroke();
-        const fGrad = ctx.createLinearGradient(40, 0, 40 + 220, 0);
-        fGrad.addColorStop(0, '#ff4655'); fGrad.addColorStop(1, '#fb923c');
-        ctx.fillStyle = fGrad;
-        ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
-        ctx.fillText('BF Tracker', 40, fY + 38);
-        ctx.fillStyle = '#9ca3af';
-        ctx.font = '14px system-ui, -apple-system, sans-serif';
-        ctx.fillText('战地系列战绩查询 · 全平台数据 · 免费开源', 40, fY + 64);
-        ctx.fillStyle = '#6b7280';
-        ctx.font = '12px system-ui, -apple-system, sans-serif';
-        ctx.fillText('mineonstudio.github.io/BFTracker', 40, fY + 86);
+        ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke();
+        y += 20;
 
-        // QR（放大到96px，底部对齐）
-        const qrS = 96;
-        try {
-          const qr = await new Promise((res, rej) => {
-            const i = new Image(); i.crossOrigin = 'anonymous';
-            i.onload = () => res(i); i.onerror = rej;
-            i.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + qrS + 'x' + qrS + '&data=' + encodeURIComponent('https://mineonstudio.github.io/BFTracker/') + '&margin=2';
-          });
-          const qrX = maxW - 40 - qrS;
-          const qrY = fY + FOOTER_H - qrS - 14;
-          ctx.fillStyle = '#1a1e26';
-          ctx.beginPath(); ctx.roundRect(qrX - 6, qrY - 6, qrS + 12, qrS + 12, 10); ctx.fill();
-          ctx.drawImage(qr, qrX, qrY, qrS, qrS);
-          ctx.fillStyle = '#9ca3af';
+        // 玩家名
+        ctx.fillStyle = '#f3f4f6';
+        ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
+        ctx.fillText(d.name || '—', P, y + 26);
+        y += 40;
+
+        // 游戏名 · 时长 · 封禁
+        const meta = `${d.game} · ${d.time}`;
+        ctx.font = '13px system-ui, -apple-system, sans-serif';
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillText(meta, P, y + 14);
+        const mw = ctx.measureText(meta).width;
+        const ban = d.isBanned ? '封禁玩家' : '绿色玩家';
+        ctx.font = 'bold 11px system-ui, -apple-system, sans-serif';
+        const bw = ctx.measureText(ban).width + 14;
+        const bx = P + mw + 12;
+        ctx.fillStyle = d.isBanned ? 'rgba(239,68,68,0.18)' : 'rgba(74,222,128,0.18)';
+        ctx.beginPath(); ctx.roundRect(bx, y + 2, bw, 18, 9); ctx.fill();
+        ctx.fillStyle = d.isBanned ? '#f87171' : '#4ade80';
+        ctx.fillText(ban, bx + 7, y + 15);
+        y += 30;
+
+        // KD + 胜率 双卡片
+        const gap = 10, ch = 96, cw = (W - P * 2 - gap) / 2;
+        const drawCard = (x, val, lb, color, s1, s1l, s2, s2l) => {
+          ctx.fillStyle = CARD;
+          ctx.beginPath(); ctx.roundRect(x, y, cw, ch, 10); ctx.fill();
+          ctx.fillStyle = color;
+          ctx.font = 'bold 40px system-ui, -apple-system, sans-serif';
+          ctx.fillText(val, x + 14, y + 40);
+          ctx.fillStyle = '#6b7280';
           ctx.font = '11px system-ui, -apple-system, sans-serif';
-          ctx.fillText('扫码访问', qrX + qrS / 2 - 22, qrY + qrS + 18);
+          ctx.fillText(lb, x + 14, y + 56);
+          ctx.font = 'bold 12px system-ui, -apple-system, sans-serif';
+          ctx.fillStyle = '#f3f4f6';
+          ctx.fillText(s1, x + 14, y + 82);
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '10px system-ui, -apple-system, sans-serif';
+          ctx.fillText(s1l, x + 18 + ctx.measureText(s1).width, y + 82);
+          ctx.fillStyle = '#f3f4f6';
+          ctx.font = 'bold 12px system-ui, -apple-system, sans-serif';
+          const s2x = x + cw / 2 + 6;
+          ctx.fillText(s2, s2x, y + 82);
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '10px system-ui, -apple-system, sans-serif';
+          ctx.fillText(s2l, s2x + ctx.measureText(s2).width + 4, y + 82);
+        };
+        drawCard(P, d.kd, 'K/D', d.kdColor, d.kills, '击杀', d.deaths, '死亡');
+        drawCard(P + cw + gap, d.wr, '胜率', d.wrColor, d.matches, '总场次', d.wins, '胜场');
+        y += ch + 18;
+
+        // 指标网格（3列，值上标签下）
+        if (stats.length) {
+          const COLS = 3, cg = 8, scw = (W - P * 2 - (COLS - 1) * cg) / COLS, sch = 54;
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < COLS; c++) {
+              const i = r * COLS + c;
+              if (i >= stats.length) break;
+              const [lb, vl] = stats[i];
+              const cx = P + c * (scw + cg), cy = y + r * (sch + 6);
+              ctx.fillStyle = CARD;
+              ctx.beginPath(); ctx.roundRect(cx, cy, scw, sch, 8); ctx.fill();
+              ctx.fillStyle = '#f3f4f6';
+              ctx.font = 'bold 17px system-ui, -apple-system, sans-serif';
+              ctx.fillText(vl, cx + 10, cy + 26);
+              ctx.fillStyle = '#6b7280';
+              ctx.font = '10px system-ui, -apple-system, sans-serif';
+              ctx.fillText(lb, cx + 10, cy + 44);
+            }
+          }
+          y += rows * (sch + 6) + 14;
+        }
+
+        // 分隔线
+        ctx.strokeStyle = '#2a3040';
+        ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke();
+        y += 18;
+
+        // 底部
+        const ftg = ctx.createLinearGradient(P, 0, P + 150, 0);
+        ftg.addColorStop(0, '#ff4655'); ftg.addColorStop(1, '#fb923c');
+        ctx.fillStyle = ftg;
+        ctx.font = 'bold 18px system-ui, -apple-system, sans-serif';
+        ctx.fillText('BF Tracker', P, y + 24);
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '12px system-ui, -apple-system, sans-serif';
+        ctx.fillText('战地系列战绩查询 · 全平台 · 免费开源', P, y + 44);
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '10px system-ui, -apple-system, sans-serif';
+        ctx.fillText('mineonstudio.github.io/BFTracker', P, y + 60);
+
+        // QR (右下)
+        const qr = 72;
+        try {
+          const qi = await new Promise((rs, rj) => {
+            const im = new Image(); im.crossOrigin = 'anonymous';
+            im.onload = () => rs(im); im.onerror = rj;
+            im.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + qr + 'x' + qr + '&data=' + encodeURIComponent('https://mineonstudio.github.io/BFTracker/') + '&margin=2';
+          });
+          const qx = W - P - qr;
+          ctx.fillStyle = CARD;
+          ctx.beginPath(); ctx.roundRect(qx - 5, y + 8, qr + 10, qr + 10, 8); ctx.fill();
+          ctx.drawImage(qi, qx, y + 13, qr, qr);
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '9px system-ui, -apple-system, sans-serif';
+          ctx.fillText('扫码访问', qx + qr / 2 - 18, y + qr + 24);
         } catch {}
 
         // 预览
-        const d = window.__shareData || {};
-        window.__posterCanvas = final;
-        try {
-          document.getElementById('posterPreviewImg').src = final.toDataURL('image/png');
-          final.toBlob(blob => {
-            window.__posterFile = new File([blob], `bf-tracker-${d.name}.png`, { type: 'image/png' });
-          }, 'image/png');
-        } catch {
-          const imgWrap = document.getElementById('posterPreviewModal').querySelector('.overflow-y-auto');
-          if (imgWrap) { imgWrap.innerHTML = ''; imgWrap.appendChild(final); final.style.maxWidth = '100%'; }
-        }
+        window.__posterCanvas = canvas;
+        document.getElementById('posterPreviewImg').src = canvas.toDataURL('image/png');
+        canvas.toBlob(blob => {
+          window.__posterFile = new File([blob], `bf-tracker-${d.name}.png`, { type: 'image/png' });
+        }, 'image/png');
         document.getElementById('posterPreviewModal').classList.remove('hidden');
       } catch (err) {
         console.error('海报生成失败:', err);
