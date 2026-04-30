@@ -23,27 +23,30 @@
     </div>
   </nav>
 
+<div class="flex-1">
   <div class="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
-    <div class="flex items-center justify-between mb-4 sm:mb-6">
-      <h1 class="text-xl sm:text-2xl font-bold">多玩家对比</h1>
-      <span class="text-gray-500 text-xs sm:text-sm">最多同时对比 4 名玩家</span>
-    </div>
 
-    <!-- 游戏选择 -->
-    <div class="bg-card rounded-xl p-4 mb-6 flex items-center gap-4">
-      <span class="text-sm text-gray-400">游戏:</span>
-      <select id="gameSelect" aria-label="选择游戏" class="bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent"></select>
-    </div>
+    <!-- Hero -->
+    <div class="max-w-5xl mx-auto px-4 pt-4 sm:pt-8 pb-4 sm:pb-6 text-center">
+      <h1 class="text-2xl sm:text-3xl font-bold mb-2">
+        <span class="gradient-text">多玩家对比</span>
+      </h1>
+      <p class="text-gray-400 mb-8">同时对比最多 4 名玩家 · 六维雷达图 + 详细数据表</p>
 
-    <!-- 玩家输入槽 -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="playerSlots"></div>
-
-    <!-- 查询按钮 -->
-    <div class="flex justify-center mb-8">
-      <button id="compareBtn" aria-label="开始对比"
-        class="bg-accent hover:bg-red-500 text-white font-semibold px-6 sm:px-10 py-3 rounded-xl text-sm transition-colors">
-        开始对比
-      </button>
+      <!-- 搜索卡片 -->
+      <div class="bg-card rounded-2xl p-4 sm:p-6 shadow-xl max-w-2xl mx-auto">
+        <div class="flex flex-wrap gap-3 mb-4">
+          <select id="gameSelect" aria-label="选择游戏"
+            class="bg-dark border border-gray-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent flex-1 sm:flex-none">
+          </select>
+          <span class="text-gray-400 text-xs self-center">玩家对比数据均基于同一游戏版本</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" id="playerSlots"></div>
+        <button id="compareBtn" aria-label="开始对比"
+          class="bg-accent hover:bg-red-500 text-white font-semibold px-8 py-3 rounded-lg text-sm transition-colors w-full sm:w-auto">
+          开始对比
+        </button>
+      </div>
     </div>
 
     <!-- 加载中：骨架屏 -->
@@ -103,29 +106,28 @@
     gameSelect.value = preGame;
 
     // 平台分类 → 该分类下第一个有效子平台
-    const CAT_FIRST_PLATFORM = { 'PC': 'steam', 'Xbox': 'xbox', 'PlayStation': 'psn' };
-    const defaultSubPlatform = CAT_FIRST_PLATFORM[prePlatform] || 'xbox';
+    
 
-    // 渲染玩家输入槽
+    // 渲染玩家输入槽（平台分类选择）
     function renderSlots() {
-      const game = gameSelect.value;
-      const catPlatforms = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['steam'], 'Xbox': ['xbox'], 'PlayStation': ['psn'] };
-      // 收集该游戏所有支持的细分平台
-      const platforms = [...new Set(Object.values(catPlatforms).flat())];
       const slotsEl = document.getElementById('playerSlots');
       slotsEl.innerHTML = '';
       for (let i = 0; i < MAX; i++) {
-        const isFirst = i === 0;
         const div = document.createElement('div');
-        div.className = 'bg-card border border-gray-700 rounded-xl p-4';
+        div.className = 'bg-dark rounded-lg p-3 border border-gray-700';
+        const preName = i === 0 ? urlParams.get('p1name') || '' : '';
+        const preCat = i === 0 ? (urlParams.get('p1platform') || 'Xbox') : 'Xbox';
         div.innerHTML = `
-          <p class="text-xs font-semibold mb-3" style="color:${COLORS[i]}">玩家 ${i + 1}${i > 1 ? ' <span class="text-gray-600 font-normal">（可选）</span>' : ''}</p>
-          <input type="text" placeholder="用户名" value="${isFirst ? preName : ''}"
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style="background:${COLORS[i]}">${i+1}</span>
+            <span class="text-xs text-gray-400">${i > 1 ? '可选' : '必填'}</span>
+          </div>
+          <input type="text" placeholder="用户名" value="${preName}"
             data-slot="${i}" data-field="name"
-            class="search-input w-full bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:border-accent" />
+            class="search-input w-full bg-card border border-gray-600 rounded-lg px-3 py-2 text-xs mb-2 focus:outline-none focus:border-accent" />
           <select data-slot="${i}" data-field="platform"
-            class="w-full bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent">
-            ${platforms.map(p => `<option value="${p}" ${p === (isFirst ? defaultSubPlatform : 'xbox') ? 'selected' : ''}>${PLATFORM_LABELS[p]}</option>`).join('')}
+            class="w-full bg-card border border-gray-600 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-accent">
+            ${PLATFORM_CATEGORIES.map(cat => `<option value="${cat}" ${cat === preCat ? 'selected' : ''}>${cat}</option>`).join('')}
           </select>
         `;
         slotsEl.appendChild(div);
@@ -136,11 +138,15 @@
 
     function getSlotValues() {
       const game = gameSelect.value;
+      const catMap = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['steam'], 'Xbox': ['xbox'], 'PlayStation': ['psn'] };
       const result = [];
       for (let i = 0; i < MAX; i++) {
         const name = document.querySelector(`[data-slot="${i}"][data-field="name"]`)?.value.trim();
-        const platform = document.querySelector(`[data-slot="${i}"][data-field="platform"]`)?.value;
-        if (name) result.push({ game, platform, name });
+        const platformCat = document.querySelector(`[data-slot="${i}"][data-field="platform"]`)?.value;
+        if (name && platformCat) {
+          const subPlatform = (catMap[platformCat] || ['xbox'])[0];
+          result.push({ game, platform: subPlatform, name });
+        }
       }
       return result;
     }
