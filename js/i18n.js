@@ -186,29 +186,36 @@ function t(key) {
 function toggleLang() {
   currentLang = currentLang === 'zh' ? 'en' : 'zh';
   localStorage.setItem('bf-lang', currentLang);
-  // 更新UI (静态文本通过data-i18n属性)
+  applyLang();
+  window.dispatchEvent(new CustomEvent('langchange', { detail: { lang: currentLang } }));
+}
+function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    el.textContent = t(key);
+    el.textContent = t(el.getAttribute('data-i18n'));
   });
-  // 更新placeholder
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
   });
-  // 更新按钮文本
   const btn = document.getElementById('langToggle');
   if (btn) btn.textContent = currentLang === 'zh' ? 'EN' : '中文';
-  // 动态重新渲染部分 (触发一个自定义事件)
-  window.dispatchEvent(new CustomEvent('langchange', { detail: { lang: currentLang } }));
+  document.querySelectorAll('[data-i18n-text]').forEach(el => {
+    el.textContent = t(el.getAttribute('data-i18n-text'));
+  });
 }
 
-// 初始化
-document.addEventListener('DOMContentLoaded', () => {
+// 初始化 - 立即执行（不依赖DOMContentLoaded，因为script在body前加载）
+(function init() {
   const btn = document.getElementById('langToggle');
-  if (btn) btn.textContent = currentLang === 'zh' ? 'EN' : '中文';
-  toggleLang();
-  toggleLang(); // 触发两次以确保默认语言应用
-});
+  if (!btn) { setTimeout(init, 50); return; } // 等待DOM渲染
+  btn.textContent = currentLang === 'zh' ? 'EN' : '中文';
+  // 应用当前语言到所有data-i18n元素
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+})();
 
 window.t = t;
 window.toggleLang = toggleLang;
