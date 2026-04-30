@@ -57,13 +57,22 @@ export const MAP_CN = {
 
 // 游戏模式中文名
 export const GAMEMODE_CN = {
+  // BF6 官方中文名 (来源: ea.com/zh-hans)
   'Conquest': '征服', 'Breakthrough': '突破', 'Rush': '突袭', 'Escalation': '升级',
-  'Team Deathmatch': '团队死斗', 'Squad Deathmatch': '小队死斗', 'Deathmatch': '死斗',
-  'Domination': '抢攻', 'King of the Hill': '山丘之王', 'Gauntlet': '试炼场',
-  'REDSEC': '试炼场', 'Redsec': '试炼场', 'Duos': '双人大逃杀', 'Quads': '四人小队大逃杀',
+  'Team Deathmatch': '团队死斗', 'Squad Deathmatch': '小队死斗',
+  'Domination': '抢攻', 'King of the Hill': '山丘之王',
   'Strikepoint': '打击点', 'Strike Point': '打击点', 'Sabotage': '破坏',
-  'Battle Royale': '大逃杀', 'Battlefield Conflict': '禁区冲突', 'Portal': '门户',
-  'Hazard Zone': '危险区域', 'All-Out Warfare': '全面战争', 'Sector Control': '区域控制',
+  'Portal': '门户',
+  // BF2042
+  'Hazard Zone': '危险区域',
+  // 已过滤但保留映射
+  'Official': '全部', 'Gauntlet': '试炼场',
+  'REDSEC': '试炼场', 'Redsec': '试炼场',
+  'Redsec Duo': '试炼场（双人）', 'Redsec Solo': '试炼场（单人）', 'Redsec Squad': '试炼场（小队）',
+  'Duos': '双人大逃杀', 'Quads': '四人大逃杀', 'Battle Royale': '大逃杀',
+  // 历史/经典模式
+  'Deathmatch': '死斗', 'Battlefield Conflict': '禁区冲突',
+  'All-Out Warfare': '全面战争', 'Sector Control': '区域控制',
   'Frontlines': '前线', 'Squad Conquest': '小队征服', 'Operations': '战役行动',
   'Grand Operations': '大型战役行动', 'Firestorm': '火线风暴', 'Airborne': '空降',
   'Outpost': '前哨战', 'Last Stand': '最后防线',
