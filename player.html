@@ -284,14 +284,16 @@
               <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">武器击杀排行</h2>
               <a href="${detailBase}&type=weapons" class="text-xs text-accent hover:underline">详情 →</a>
             </div>
-            <div id="weaponList-${platform}" class="space-y-2"></div>
+            <div id="weaponChart-${platform}" class="hidden lg:block"></div>
+            <div id="weaponList-${platform}" class="space-y-2 lg:hidden"></div>
           </div>
           <div class="bg-card rounded-xl p-5" id="vehiclePanel-${platform}" style="display:none">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">载具击杀排行</h2>
               <a href="${detailBase}&type=vehicles" class="text-xs text-accent hover:underline">详情 →</a>
             </div>
-            <div id="vehicleList-${platform}" class="space-y-2"></div>
+            <div id="vehicleChart-${platform}" class="hidden lg:block"></div>
+            <div id="vehicleList-${platform}" class="space-y-2 lg:hidden"></div>
           </div>
           <div class="bg-card rounded-xl p-5" id="gadgetPanel-${platform}" style="display:none">
             <div class="flex items-center justify-between mb-4">
@@ -309,7 +311,8 @@
               <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">地图胜率</h2>
               <a href="${detailBase}&type=maps" class="text-xs text-accent hover:underline">详情 →</a>
             </div>
-            <div id="mapList-${platform}" class="space-y-2"></div>
+            <div id="mapChart-${platform}" class="hidden lg:block"></div>
+            <div id="mapList-${platform}" class="space-y-2 lg:hidden"></div>
           </div>
           <div class="bg-card rounded-xl p-5" id="modeSection-${platform}" style="display:none">
             <div class="flex items-center justify-between mb-4">
@@ -376,6 +379,12 @@
         if (top10.length) {
           document.getElementById(`killsSection-${platform}`).style.display = '';
           document.getElementById(`weaponPanel-${platform}`).style.display = '';
+          // 桌面端：热力条
+          document.getElementById(`weaponChart-${platform}`).innerHTML = top10.map((w, i) => {
+            const pct = Math.round((w.kills / top10[0].kills) * 100);
+            return `<div class="flex items-center gap-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span><span class="text-xs text-gray-300 w-20 truncate shrink-0">${w.weaponName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-4 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#ff4655,#fb923c)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(w.kills)}</span></div>`;
+          }).join('');
+          // 移动端：列表
           document.getElementById(`weaponList-${platform}`).innerHTML = top10.map((w, i) => `
             <div class="flex items-center gap-3 bg-dark rounded-lg px-3 py-2">
               ${w.image ? `<img src="${w.image}" class="w-8 h-8 object-contain" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded">${(w.weaponName || '?')[0]}</span>`}
@@ -386,12 +395,18 @@
         }
       }
 
-      // ── 载具 Top10 列表（带图标） ──
+      // ── 载具 Top10 ──
       if (allData?.vehicles?.length) {
         const topV = [...allData.vehicles].filter(v => v.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 10);
         if (topV.length) {
           document.getElementById(`killsSection-${platform}`).style.display = '';
           document.getElementById(`vehiclePanel-${platform}`).style.display = '';
+          // 桌面端：热力条
+          document.getElementById(`vehicleChart-${platform}`).innerHTML = topV.map((v, i) => {
+            const pct = Math.round((v.kills / topV[0].kills) * 100);
+            return `<div class="flex items-center gap-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span><span class="text-xs text-gray-300 w-20 truncate shrink-0">${v.vehicleName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-4 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(v.kills)}</span></div>`;
+          }).join('');
+          // 移动端：列表
           document.getElementById(`vehicleList-${platform}`).innerHTML = topV.map((v, i) => `
             <div class="flex items-center gap-3 bg-dark rounded-lg px-3 py-2">
               ${v.image ? `<img src="${v.image}" class="w-8 h-8 object-contain" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded">${(v.vehicleName || '?')[0]}</span>`}
@@ -560,6 +575,13 @@
       if (maps.length) {
         document.getElementById(`winRateSection-${platform}`).style.display = '';
         document.getElementById(`mapSection-${platform}`).style.display = '';
+        // 桌面端：热力条
+        document.getElementById(`mapChart-${platform}`).innerHTML = maps.map((m, i) => {
+          const pct = Math.max(0, parseFloat(m.winPercent) || 0);
+          const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
+          return `<div class="flex items-center gap-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span><span class="text-xs text-gray-300 w-20 truncate shrink-0">${MAP_CN[m.mapName] || m.mapName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-4 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-14 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div>`;
+        }).join('');
+        // 移动端：列表
         document.getElementById(`mapList-${platform}`).innerHTML = maps.map(m => `
           <div class="flex items-center gap-3 bg-dark rounded-lg px-3 py-2">
             ${m.image ? `<img src="${m.image}" class="w-8 h-8 object-cover rounded" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded">${(MAP_CN[m.mapName] || m.mapName || '?')[0]}</span>`}
