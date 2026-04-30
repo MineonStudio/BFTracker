@@ -95,9 +95,7 @@ export function getRecentSearches() {
 }
 
 // 清空某玩家历史
-export function clearHistory(game, platform, name) {
-  localStorage.removeItem(HISTORY_KEY(game, platform, name));
-}
+
 
 // 删除单条最近搜索
 export function removeRecentSearch(game, platform, name) {

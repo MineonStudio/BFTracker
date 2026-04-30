@@ -80,22 +80,7 @@ export async function getStats(game, name, platform) {
   return request(`${BASE}/${game}/stats/?name=${encodeURIComponent(name)}&platform=${platform}&format_values=false`);
 }
 
-// 查询玩家档案
-export async function getProfile(game, name, platform) {
-  return request(`${BASE}/${game}/profile/?name=${encodeURIComponent(name)}&platform=${platform}`);
-}
 
-// 批量查询（多人对比，传 playerid 数组）
-export async function getMultiple(game, playerids) {
-  const res = await fetch(`${BASE}/${game}/multiple/`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ playerids }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message || '批量查询失败');
-  return data;
-}
 
 // BF6 全局在线人数
 // 搜索玩家（获取 playerid）
@@ -103,11 +88,6 @@ export async function searchPlayer(game, name, platform) {
   return request(`${BASE}/${game}/player/?name=${encodeURIComponent(name)}&platform=${platform}`);
 }
 
-
-// BF6 赛季/模式分离统计数据
-export async function getStatsSeparated(game, name, platform) {
-  return request(`${BASE}/${game}/stats/?name=${encodeURIComponent(name)}&platform=${platform}&format_values=false&seperation=true`);
-}
 
 // BFBan 封禁检测
 export async function checkBan(name) {

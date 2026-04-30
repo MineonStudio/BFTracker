@@ -26,11 +26,6 @@ export function formatDecimal(v, digits = 2) {
   return parseFloat(v).toFixed(digits);
 }
 
-// 时间戳转日期字符串
-export function formatDate(ts) {
-  const d = new Date(ts);
-  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
 
 // KD 颜色分级（红 = 高 = 危险）
 export function kdColor(kd) {
@@ -64,10 +59,4 @@ export function buildPlayerUrl(game, name, platform = 'Xbox') {
 }
 
 // 防抖函数
-export function debounce(fn, delay = 300) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delay);
-  };
-}
+

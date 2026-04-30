@@ -12,7 +12,6 @@ export default defineConfig({
         main:    resolve(__dirname, 'index.html'),
         player:  resolve(__dirname, 'player.html'),
         compare: resolve(__dirname, 'compare.html'),
-        detail:  resolve(__dirname, 'detail.html'),
       },
     },
   },

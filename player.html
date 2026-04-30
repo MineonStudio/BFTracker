@@ -114,7 +114,7 @@
   </div>
 
   <script type="module">
-    import { getStats, GAME_LABELS, GAME_PLATFORMS, PLATFORM_LABELS, PLATFORM_CATEGORIES, searchPlayer, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
+    import { getStats, GAME_LABELS, PLATFORM_LABELS, PLATFORM_CATEGORIES, searchPlayer, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
     import { saveSnapshot, saveRecentSearch, saveApiCache } from './js/storage.js';
     import * as echarts from 'echarts';
     import { checkBan, checkEacBan, getInventory } from './js/api.js';
@@ -200,7 +200,6 @@
 
     function renderPlatformContent(container, { stats, allData, platform }) {
       const BASE = 'https://api.gametools.network';
-      const detailBase = `detail.html?game=${encodeURIComponent(game)}&platform=${encodeURIComponent(platform)}&name=${encodeURIComponent(name)}`;
 
       // 计算衍生数据
       const allClass = allData?.classes?.find(c => c.id === 'kit') || allData?.classes?.[0];
