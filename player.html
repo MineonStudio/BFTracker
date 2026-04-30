@@ -31,7 +31,7 @@
     <div class="max-w-5xl mx-auto px-3 sm:px-4 py-2 flex gap-3">
       <input id="nameInput" type="text" placeholder="输入玩家用户名..." aria-label="玩家用户名搜索"
         class="search-input bg-dark border border-gray-600 rounded-lg px-3 py-2 text-sm flex-1 focus:outline-none focus:border-accent" />
-      <button id="searchBtn" aria-label="搜索" class="bg-accent hover:bg-red-500 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">查询</button>
+      <button id="searchBtn" aria-label="搜索" class="border border-gray-600 text-gray-400 hover:text-white hover:border-gray-500 px-6 py-2 rounded-lg text-sm transition-colors">查询</button>
     </div>
     </div>
   </div>
@@ -258,9 +258,11 @@
               </div>
               <div class="flex items-center gap-2 mt-1">
                 <h1 class="text-2xl sm:text-4xl font-black gradient-text tracking-tight truncate">${stats.userName || name}</h1>
-                <span class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-accent/10 h-6 flex items-center shrink-0">${(GAME_LABELS[game] || game).replace('Battlefield ','BF')}</span>
-                <span id="banStatus" class="shrink-0"></span>
-                <button onclick="window.doSharePoster()" class="text-gray-400 hover:text-white transition-colors ml-auto shrink-0" title="分享"><svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
+                <div class="flex items-center gap-2 ml-auto shrink-0">
+                  <span class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-accent/10 h-6 flex items-center">${(GAME_LABELS[game] || game).replace('Battlefield ','BF')}</span>
+                  <span id="banStatus"></span>
+                  <button onclick="window.doSharePoster()" class="text-gray-400 hover:text-white transition-colors" title="分享"><svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
+                </div>
               </div>
             </div>
           </div>
@@ -301,7 +303,7 @@
 
         <!-- 查看更多 -->
         <div class="text-center mb-4" id="showMoreWrap-${platform}">
-          <button id="showMoreBtn-${platform}" onclick="window._toggleDetailTabs('${platform}')" class="bg-accent hover:bg-red-500 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">查看更多 ▼</button>
+          <button id="showMoreBtn-${platform}" onclick="window._toggleDetailTabs('${platform}')" class="border border-gray-600 text-gray-400 hover:text-white hover:border-gray-500 px-6 py-2 rounded-lg text-sm transition-colors">查看更多 ▼</button>
         </div>
 
         <!-- Tab容器 -->
