@@ -272,12 +272,12 @@
 
         <!-- 查看更多 -->
         <div class="text-center mb-4" id="showMoreWrap-${platform}">
-          <button onclick="window._showDetailTabs('${platform}')" class="bg-accent hover:bg-red-500 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">查看更多 ▼</button>
+          <button id="showMoreBtn-${platform}" onclick="window._toggleDetailTabs('${platform}')" class="bg-accent hover:bg-red-500 text-white px-6 py-2 rounded-lg text-sm font-semibold transition-colors">查看更多 ▼</button>
         </div>
 
         <!-- Tab容器 -->
         <div id="detailTabs-${platform}" style="display:none" class="mb-8">
-          <div class="flex gap-1 mb-4 border-b border-gray-700" id="tabNav-${platform}">
+          <div class="flex gap-1 mb-4 border-b border-gray-700 justify-center" id="tabNav-${platform}">
             <button class="tab-btn active" data-tab="class" onclick="window._switchTab('class','${platform}')">兵种</button>
             <button class="tab-btn" data-tab="kills" onclick="window._switchTab('kills','${platform}')">击杀</button>
             <button class="tab-btn" data-tab="wins" onclick="window._switchTab('wins','${platform}')">胜率</button>
@@ -897,11 +897,17 @@
     });
 
     // ─── Tab切换功能 ───
-    window._showDetailTabs = (platform) => {
-      const wrap = document.getElementById('showMoreWrap-' + platform);
+    window._toggleDetailTabs = (platform) => {
       const tabs = document.getElementById('detailTabs-' + platform);
-      if (wrap) wrap.style.display = 'none';
-      if (tabs) tabs.style.display = '';
+      const btn = document.getElementById('showMoreBtn-' + platform);
+      if (!tabs) return;
+      if (tabs.style.display === 'none' || !tabs.style.display) {
+        tabs.style.display = '';
+        if (btn) btn.textContent = '收起更多 ▲';
+      } else {
+        tabs.style.display = 'none';
+        if (btn) btn.textContent = '查看更多 ▼';
+      }
     };
 
     window._switchTab = (tab, platform) => {
