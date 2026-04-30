@@ -2,5 +2,8 @@
 @theme {
   --color-accent: #ff4655;
   --color-dark: #1f2228;
-  --color-card: rgba(255,255,255,0.05);
+  --color-card: transparent;
+  --radius-2xl: 0;
+  --radius-xl: 0;
+  --radius-lg: 0;
 }
