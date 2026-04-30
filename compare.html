@@ -100,13 +100,13 @@
     gameSelect.value = preGame;
 
     // 平台分类 → 该分类下第一个有效子平台
-    const CAT_FIRST_PLATFORM = { 'PC': 'pc', 'Xbox': 'xbox', 'PlayStation': 'psn' };
+    const CAT_FIRST_PLATFORM = { 'PC': 'steam', 'Xbox': 'xbox', 'PlayStation': 'psn' };
     const defaultSubPlatform = CAT_FIRST_PLATFORM[prePlatform] || 'xbox';
 
     // 渲染玩家输入槽
     function renderSlots() {
       const game = gameSelect.value;
-      const catPlatforms = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['pc'], 'Xbox': ['xbox'], 'PlayStation': ['psn'] };
+      const catPlatforms = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['steam'], 'Xbox': ['xbox'], 'PlayStation': ['psn'] };
       // 收集该游戏所有支持的细分平台
       const platforms = [...new Set(Object.values(catPlatforms).flat())];
       const slotsEl = document.getElementById('playerSlots');
