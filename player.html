@@ -923,24 +923,10 @@
         const BG = '#12151c', SCALE = 2;
         const captures = [];
 
-        // 玩家概览
+        // 只截取玩家概览
         const card = document.querySelector('#tabPanel .bg-card.rounded-2xl');
         if (card) {
-          try { const c = await html2canvas(card, { backgroundColor: BG, scale: SCALE, allowTaint: true, logging: false }); captures.push(c); } catch(e) { console.error('概览截图失败:', e); }
-        }
-
-        // 自动捕获所有可见板块
-        const panelMap = {
-          weapons: '[id^="weaponPanel-"]',
-          vehicles: '[id^="vehiclePanel-"]',
-          maps: '[id^="mapSection-"]',
-          classes: '[id^="classSection-"]',
-        };
-        for (const sel of Object.values(panelMap)) {
-          const el = document.querySelector(sel);
-          if (el?.offsetParent) {
-            try { const c = await html2canvas(el, { backgroundColor: BG, scale: SCALE, allowTaint: true, logging: false }); captures.push(c); } catch(e) { console.error('板块截图失败:', e); }
-          }
+          try { const c = await html2canvas(card, { backgroundColor: BG, scale: SCALE, allowTaint: true, logging: false }); captures.push(c); } catch(e) { console.error('截图失败:', e); }
         }
 
         // 恢复
