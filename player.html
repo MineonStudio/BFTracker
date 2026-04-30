@@ -1087,7 +1087,7 @@
       window.__posterLoading = true;
       try {
         const d = window.__shareData || {};
-        const W = 840, P = 48, BG = '#12151c', CARD = '#1a1e26';
+        const W = 840, P = 48, BG = '#12151c', CARD = 'rgba(255,255,255,0.03)';
 
         const stats = [
           ['每分钟得分', d.spm], ['爆头率', d.headshots], ['命中率', d.accuracy],
@@ -1097,7 +1097,7 @@
 
         const rows = Math.ceil(stats.length / 3);
         const FOOTER_H = 196;
-        const H = 16 + P + 80 + 72 + 56 + 32 + 200 + 32 + rows * 120 + 24 + 32 + FOOTER_H + P;
+        const H = P + 80 + 72 + 56 + 32 + 200 + 32 + rows * 120 + 24 + 32 + FOOTER_H + P;
 
         const canvas = document.createElement('canvas');
         canvas.width = W; canvas.height = H;
@@ -1105,20 +1105,16 @@
         ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
 
         // 顶部渐变条
-        const bar = ctx.createLinearGradient(0, 0, W, 0);
-        bar.addColorStop(0, '#ff4655'); bar.addColorStop(1, '#fb923c');
-        ctx.fillStyle = bar; ctx.fillRect(0, 0, W, 16);
+        // xAI: no gradient bar
 
-        let y = 16 + P;
+        let y = P;
 
         // 标题
-        const tg = ctx.createLinearGradient(P, 0, P + 360, 0);
-        tg.addColorStop(0, '#ff4655'); tg.addColorStop(1, '#fb923c');
-        ctx.fillStyle = tg;
-        ctx.font = 'bold 44px system-ui, -apple-system, sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '400 44px system-ui, -apple-system, sans-serif';
         ctx.fillText('BF Tracker 战绩', P, y + 44);
         y += 80;
-        ctx.strokeStyle = '#2a3040'; ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke();
         y += 40;
 
@@ -1208,7 +1204,7 @@
         }
 
         // 分隔线
-        ctx.strokeStyle = '#2a3040'; ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke();
         y += 32;
 
@@ -1217,10 +1213,8 @@
         const ftBase = y + ftH; // footer区域底部基线
 
         // 左侧文字
-        const ftg = ctx.createLinearGradient(P, 0, P + 300, 0);
-        ftg.addColorStop(0, '#ff4655'); ftg.addColorStop(1, '#fb923c');
-        ctx.fillStyle = ftg;
-        ctx.font = 'bold 36px system-ui, -apple-system, sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '400 36px system-ui, -apple-system, sans-serif';
         ctx.fillText('BF Tracker', P, ftBase - 70);
         ctx.fillStyle = '#9ca3af';
         ctx.font = '24px system-ui, -apple-system, sans-serif';
