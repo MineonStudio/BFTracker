@@ -985,20 +985,18 @@
           ctx.fillStyle = '#6b7280';
           ctx.font = '22px system-ui, -apple-system, sans-serif';
           ctx.fillText(lb, x + 28, y + 112);
-          // 底部子数据 - 上下两行，不重叠
-          ctx.font = 'bold 26px system-ui, -apple-system, sans-serif';
-          ctx.fillStyle = '#f3f4f6';
-          ctx.fillText(s1, x + 28, y + 160);
-          ctx.fillStyle = '#6b7280';
-          ctx.font = '22px system-ui, -apple-system, sans-serif';
-          ctx.fillText(s1l, x + 32 + ctx.measureText(s1).width, y + 160);
-          // 第二行
-          ctx.fillStyle = '#f3f4f6';
-          ctx.font = 'bold 26px system-ui, -apple-system, sans-serif';
-          ctx.fillText(s2, x + 28, y + 190);
-          ctx.fillStyle = '#6b7280';
-          ctx.font = '22px system-ui, -apple-system, sans-serif';
-          ctx.fillText(s2l, x + 32 + ctx.measureText(s2).width, y + 190);
+          // 子数据 - 每个占一列，值上标签下，避免重叠
+          const subX1 = x + 28, subX2 = x + cw / 2 + 8;
+          const subText = (sx, v, l) => {
+            ctx.fillStyle = '#f3f4f6';
+            ctx.font = 'bold 26px system-ui, -apple-system, sans-serif';
+            ctx.fillText(v, sx, y + 160);
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '20px system-ui, -apple-system, sans-serif';
+            ctx.fillText(l, sx, y + 186);
+          };
+          subText(subX1, s1, s1l);
+          subText(subX2, s2, s2l);
         };
         drawCard(P, d.kd, 'K/D', d.kdColor, d.kills, '击杀', d.deaths, '死亡');
         drawCard(P + cw + gap, d.wr, '胜率', d.wrColor, d.matches, '总场次', d.wins, '胜场');
