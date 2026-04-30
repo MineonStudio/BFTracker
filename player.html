@@ -284,16 +284,16 @@
               <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">武器击杀排行</h2>
               
             </div>
-            <div id="weaponChart-${platform}" class="hidden lg:block"></div>
-            <div id="weaponList-${platform}" class="space-y-2 lg:hidden"></div>
+            <div id="weaponChart-${platform}" class="block"></div>
+            <div id="weaponList-${platform}" class="space-y-2 hidden"></div>
           </div>
           <div class="bg-card rounded-xl p-5" id="vehiclePanel-${platform}" style="display:none">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">载具击杀排行</h2>
               
             </div>
-            <div id="vehicleChart-${platform}" class="hidden lg:block"></div>
-            <div id="vehicleList-${platform}" class="space-y-2 lg:hidden"></div>
+            <div id="vehicleChart-${platform}" class="block"></div>
+            <div id="vehicleList-${platform}" class="space-y-2 hidden"></div>
           </div>
           <div class="bg-card rounded-xl p-5" id="gadgetPanel-${platform}" style="display:none">
             <div class="flex items-center justify-between mb-4">
@@ -311,16 +311,16 @@
               <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">地图胜率</h2>
               
             </div>
-            <div id="mapChart-${platform}" class="hidden lg:block"></div>
-            <div id="mapList-${platform}" class="space-y-2 lg:hidden"></div>
+            <div id="mapChart-${platform}" class="block"></div>
+            <div id="mapList-${platform}" class="space-y-2 hidden"></div>
           </div>
           <div class="bg-card rounded-xl p-5" id="modeSection-${platform}" style="display:none">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">游戏模式胜率</h2>
               
             </div>
-            <div id="modeChart-${platform}" class="hidden lg:block"></div>
-            <div id="modeList-${platform}" class="space-y-2 lg:hidden"></div>
+            <div id="modeChart-${platform}" class="block"></div>
+            <div id="modeList-${platform}" class="space-y-2 hidden"></div>
           </div>
         </div>
 
@@ -385,7 +385,7 @@
             const pct = Math.round((w.kills / top10[0].kills) * 100);
             const img = w.image ? `<img src="${w.image}" class="w-8 h-8 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(w.weaponName||'?')[0]}</span>`;
             const sub = `KPM ${formatDecimal(w.killsPerMinute)} · 命中 ${formatPct(w.accuracy)} · 爆头 ${formatPct(w.headshots)} · ${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}`;
-            return `<div class="flex items-start gap-2 mb-3"><span class="text-xs text-gray-500 w-4 text-right shrink-0 pt-1">${i+1}</span><div class="w-8 h-8 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden ">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 truncate">${w.weaponName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#ff4655,#fb923c)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(w.kills)}</span></div><div style="font-size:10px;color:#9ca3af;margin-top:2px">${sub}</div></div></div>`;
+            return `<div class="flex items-start gap-2 mb-3"><span class="text-xs text-gray-500 w-4 text-right shrink-0 pt-1">${i+1}</span><div class="w-8 h-8 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden ">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 truncate">${w.weaponName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#ff4655,#fb923c)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(w.kills)}</span></div><div style="font-size:12px;color:#ff4655;margin-top:4px;font-weight:bold">${sub}</div></div></div>`;
           }).join('');
           // 移动端：列表
           document.getElementById(`weaponList-${platform}`).innerHTML = top10.map((w, i) => `
@@ -409,7 +409,7 @@
             const pct = Math.round((v.kills / topV[0].kills) * 100);
             const img = v.image ? `<img src="${v.image}" class="w-8 h-8 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(v.vehicleName||'?')[0]}</span>`;
             const sub = `KPM ${formatDecimal(v.killsPerMinute)} · 摧毁 ${formatNum(v.destroyed)} · ${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}`;
-            return `<div class="flex items-start gap-2 mb-3"><span class="text-xs text-gray-500 w-4 text-right shrink-0 pt-1">${i+1}</span><div class="w-8 h-8 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden ">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 truncate">${v.vehicleName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(v.kills)}</span></div><div style="font-size:10px;color:#9ca3af;margin-top:2px">${sub}</div></div></div>`;
+            return `<div class="flex items-start gap-2 mb-3"><span class="text-xs text-gray-500 w-4 text-right shrink-0 pt-1">${i+1}</span><div class="w-8 h-8 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden ">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 truncate">${v.vehicleName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(v.kills)}</span></div><div style="font-size:12px;color:#ff4655;margin-top:4px;font-weight:bold">${sub}</div></div></div>`;
           }).join('');
           // 移动端：列表
           document.getElementById(`vehicleList-${platform}`).innerHTML = topV.map((v, i) => `
@@ -548,7 +548,7 @@
           const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
           const img = m.image ? `<img src="${m.image}" class="w-8 h-8 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">M</span>`;
           const sub = `KD ${parseFloat(m.killDeath).toFixed(2)} · ${formatNum(m.kills)}杀 · ${m.matches}场 · ${formatSeconds(m.secondsPlayed)}`;
-          return `<div class="flex items-start gap-2 mb-3"><span class="text-xs text-gray-500 w-4 text-right shrink-0 pt-1">${i+1}</span><div class="w-8 h-8 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden ">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 truncate">${getModeName(m.gamemodeName)}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-12 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div><div style="font-size:10px;color:#9ca3af;margin-top:2px">${sub}</div></div></div>`;
+          return `<div class="flex items-start gap-2 mb-3"><span class="text-xs text-gray-500 w-4 text-right shrink-0 pt-1">${i+1}</span><div class="w-8 h-8 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden ">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 truncate">${getModeName(m.gamemodeName)}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-12 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div><div style="font-size:12px;color:#ff4655;margin-top:4px;font-weight:bold">${sub}</div></div></div>`;
         }).join('');
         // 移动端：列表
         document.getElementById(`modeList-${platform}`).innerHTML = gameModes.map(m => {
@@ -583,7 +583,7 @@
           const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
           const img = m.image ? `<img src="${m.image}" class="w-8 h-8 object-cover rounded shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(MAP_CN[m.mapName]||m.mapName||'?')[0]}</span>`;
           const sub = `${formatNum(m.wins)}胜/${formatNum(m.losses)}负 · ${m.matches}场 · ${formatSeconds(m.secondsPlayed)}`;
-          return `<div class="flex items-start gap-2 mb-3"><span class="text-xs text-gray-500 w-4 text-right shrink-0 pt-1">${i+1}</span><div class="w-8 h-8 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden ">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 truncate">${MAP_CN[m.mapName] || m.mapName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-12 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div><div style="font-size:10px;color:#9ca3af;margin-top:2px">${sub}</div></div></div>`;
+          return `<div class="flex items-start gap-2 mb-3"><span class="text-xs text-gray-500 w-4 text-right shrink-0 pt-1">${i+1}</span><div class="w-8 h-8 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden ">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 truncate">${MAP_CN[m.mapName] || m.mapName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-12 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div><div style="font-size:12px;color:#ff4655;margin-top:4px;font-weight:bold">${sub}</div></div></div>`;
         }).join('');
         // 移动端：列表
         document.getElementById(`mapList-${platform}`).innerHTML = maps.map(m => `
