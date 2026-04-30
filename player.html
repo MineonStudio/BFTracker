@@ -89,12 +89,12 @@
 
     <!-- 海报预览弹窗 -->
     <div id="posterPreviewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.8)">
-      <div class="bg-card rounded-2xl p-5 sm:p-6 max-w-md w-full mx-4 max-h-[90vh] flex flex-col">
-        <h3 class="text-lg font-bold mb-3">🖼️ 海报预览</h3>
-        <div class="flex-1 overflow-auto mb-4 flex items-center justify-center bg-dark rounded-xl p-2 min-h-[200px]">
-          <img id="posterPreviewImg" class="max-w-full rounded" alt="海报预览" />
+      <div class="bg-card rounded-2xl p-5 sm:p-6 w-full max-w-2xl mx-4 flex flex-col" style="max-height:90vh">
+        <h3 class="text-lg font-bold mb-3 shrink-0">🖼️ 海报预览</h3>
+        <div class="flex-1 overflow-y-auto mb-4 bg-dark rounded-xl" style="min-height:120px">
+          <img id="posterPreviewImg" class="w-full h-auto rounded" alt="海报预览" />
         </div>
-        <div class="flex gap-3">
+        <div class="flex gap-3 shrink-0">
           <button onclick="window.closePosterPreview()" class="flex-1 border border-gray-600 text-gray-400 hover:text-white rounded-lg py-2.5 text-sm transition-colors">取消</button>
           <button onclick="window.downloadPoster()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">💾 保存</button>
           <button onclick="window.sharePoster()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">📤 分享</button>
@@ -955,26 +955,53 @@
         const sections = [...checks].map(c => c.value);
         const BG = '#12151c';
 
-        // 替换所有图片为占位符，避免跨域污染
-        const imgBackups = [];
-        document.querySelectorAll('#tabPanel img').forEach(img => {
-          imgBackups.push({ el: img, src: img.src, srcset: img.srcset });
-          img.src = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg"/>');
-          img.removeAttribute('srcset');
-        });
+        // 1. 隐藏分享按钮
+        const shareBtn = document.querySelector('#tabPanel button[onclick*="openShareModal"]');
+        const shareBtnDisplay = shareBtn?.style.display;
+        if (shareBtn) shareBtn.style.display = 'none';
 
-        // 移除 echarts canvas 元素（截图无意义）
+        // 2. 处理图片：尝试 CORS 加载转 data URI，失败则用彩色占位
+        const imgBackups = [];
+        const tabImgs = document.querySelectorAll('#tabPanel img');
+        for (const img of tabImgs) {
+          const backup = { el: img, src: img.src, srcset: img.srcset, width: img.width, height: img.height };
+          imgBackups.push(backup);
+          const dataUrl = await new Promise(resolve => {
+            const probe = new Image();
+            probe.crossOrigin = 'anonymous';
+            probe.onload = () => {
+              const c = document.createElement('canvas');
+              c.width = probe.naturalWidth; c.height = probe.naturalHeight;
+              c.getContext('2d').drawImage(probe, 0, 0);
+              try { resolve(c.toDataURL()); } catch { resolve(null); }
+            };
+            probe.onerror = () => resolve(null);
+            probe.src = img.src;
+          });
+          if (dataUrl) {
+            img.src = dataUrl;
+            img.removeAttribute('srcset');
+          } else {
+            // 彩色占位
+            const w = img.width || img.offsetWidth || 32;
+            const h = img.height || img.offsetHeight || 32;
+            img.src = 'data:image/svg+xml,' + encodeURIComponent(
+              `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="#2a3040" rx="4"/></svg>`
+            );
+            img.removeAttribute('srcset');
+          }
+        }
+
+        // 3. 移除 echarts canvas
         const canvasParents = [];
         document.querySelectorAll('#tabPanel canvas').forEach(c => {
-          const p = c.parentElement;
-          canvasParents.push({ parent: p, canvas: c, next: c.nextSibling });
+          canvasParents.push({ parent: c.parentElement, canvas: c, next: c.nextSibling });
           c.remove();
         });
 
-        const opts = { backgroundColor: BG, pixelRatio: 1 };
+        const opts = { backgroundColor: BG, pixelRatio: 2 };
         const captures = [];
 
-        // 玩家概览
         if (sections.includes('overview')) {
           const card = document.querySelector('#tabPanel .bg-card.rounded-2xl');
           if (card) {
@@ -983,43 +1010,24 @@
           }
         }
 
-        // 武器
-        if (sections.includes('weapons')) {
-          const el = document.querySelector('[id^="weaponPanel-"]');
-          if (el && el.offsetParent) {
-            const url = await toPng(el, opts);
-            if (url) captures.push(url);
+        const panelSelectors = {
+          weapons: '[id^="weaponPanel-"]',
+          vehicles: '[id^="vehiclePanel-"]',
+          maps: '[id^="mapSection-"]',
+          classes: '[id^="classSection-"]',
+        };
+        for (const [key, sel] of Object.entries(panelSelectors)) {
+          if (sections.includes(key)) {
+            const el = document.querySelector(sel);
+            if (el?.offsetParent) {
+              const url = await toPng(el, opts);
+              if (url) captures.push(url);
+            }
           }
         }
 
-        // 载具
-        if (sections.includes('vehicles')) {
-          const el = document.querySelector('[id^="vehiclePanel-"]');
-          if (el && el.offsetParent) {
-            const url = await toPng(el, opts);
-            if (url) captures.push(url);
-          }
-        }
-
-        // 地图
-        if (sections.includes('maps')) {
-          const el = document.querySelector('[id^="mapSection-"]');
-          if (el && el.offsetParent) {
-            const url = await toPng(el, opts);
-            if (url) captures.push(url);
-          }
-        }
-
-        // 兵种
-        if (sections.includes('classes')) {
-          const el = document.querySelector('[id^="classSection-"]');
-          if (el && el.offsetParent) {
-            const url = await toPng(el, opts);
-            if (url) captures.push(url);
-          }
-        }
-
-        // 恢复图片和 canvas
+        // 4. 恢复一切
+        if (shareBtn) shareBtn.style.display = shareBtnDisplay;
         imgBackups.forEach(b => {
           b.el.src = b.src;
           if (b.srcset) b.el.srcset = b.srcset;
@@ -1034,7 +1042,7 @@
           return;
         }
 
-        // 加载所有图片到 Image 对象
+        // 加载截图
         const images = await Promise.all(captures.map(url => new Promise((resolve, reject) => {
           const img = new Image();
           img.onload = () => resolve(img);
