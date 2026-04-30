@@ -23,22 +23,6 @@ export function saveApiCache(game, platform, name, data) {
 }
 
 // 获取 API 缓存数据
-export function getApiCache(game, platform, name) {
-  const key = API_CACHE_KEY(game, platform, name);
-  try {
-    const cached = localStorage.getItem(key);
-    if (!cached) return null;
-    const { ts, data } = JSON.parse(cached);
-    // 检查是否过期
-    if (Date.now() - ts > CACHE_TTL) {
-      localStorage.removeItem(key);
-      return null;
-    }
-    return data;
-  } catch {
-    return null;
-  }
-}
 
 // 保存一次战绩快照
 export function saveSnapshot(game, platform, name, stats) {
@@ -63,14 +47,6 @@ export function saveSnapshot(game, platform, name, stats) {
 }
 
 // 获取历史快照列表
-export function getHistory(game, platform, name) {
-  const key = HISTORY_KEY(game, platform, name);
-  try {
-    return JSON.parse(localStorage.getItem(key) || '[]');
-  } catch {
-    return [];
-  }
-}
 
 // 保存最近搜索记录
 export function saveRecentSearch(game, platform, name) {

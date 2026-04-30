@@ -1,15 +1,6 @@
 const BASE = 'https://api.gametools.network';
 
 // 各游戏支持的平台
-export const GAME_PLATFORMS = {
-  bf6:    ['xbox', 'steam', 'ea', 'epic', 'xboxone', 'xboxseries', 'psn', 'ps4', 'ps5'],
-  bf2042: ['xbox', 'steam', 'ea', 'epic', 'xboxone', 'xboxseries', 'psn', 'ps4', 'ps5'],
-  bfv:    ['xboxone', 'steam', 'ea', 'epic', 'ps4'],
-  bf1:    ['xboxone', 'steam', 'ea', 'epic', 'ps4'],
-  bf4:    ['steam', 'ea', 'epic', 'ps4'],
-  bf3:    ['steam', 'ea', 'epic', 'ps4'],
-};
-
 export const PLATFORM_LABELS = {
   steam:      'Steam',
   ea:         'EA App',
