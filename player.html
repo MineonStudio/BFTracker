@@ -145,8 +145,19 @@
     const { game, name, platform: urlPlatform } = getUrlParams();
     gameSelect.value = game;
     nameInput.value  = name;
-    // 设置平台分类（默认为 Xbox）
-    if (platformCatEl) platformCatEl.value = urlPlatform || 'Xbox';
+    // 设置平台分类（子平台映射到分类，默认 Xbox）
+    if (platformCatEl) {
+      const pLower = (urlPlatform || '').toLowerCase();
+      if (pLower === 'steam' || pLower === 'ea' || pLower === 'epic' || pLower === 'pc') {
+        platformCatEl.value = 'PC';
+      } else if (pLower === 'xbox' || pLower === 'xboxone' || pLower === 'xboxseries') {
+        platformCatEl.value = 'Xbox';
+      } else if (pLower === 'psn' || pLower === 'ps4' || pLower === 'ps5' || pLower === 'playstation') {
+        platformCatEl.value = 'PlayStation';
+      } else {
+        platformCatEl.value = 'Xbox';
+      }
+    }
 
     // 搜索
     function doSearch() {
