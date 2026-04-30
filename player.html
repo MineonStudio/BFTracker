@@ -166,7 +166,13 @@
     // 搜索
     function doSearch() {
       const n = nameInput.value.trim();
-      if (!n) return;
+      if (!n) {
+        nameInput.style.animation = 'none';
+        nameInput.offsetHeight;
+        nameInput.style.animation = 'shake 0.4s ease';
+        nameInput.focus();
+        return;
+      }
       const pcat = document.getElementById('platformSelect')?.value || 'Xbox';
       window.location.href = `player.html?game=${encodeURIComponent(gameSelect.value)}&platform=${encodeURIComponent(pcat)}&name=${encodeURIComponent(n)}`;
     }
@@ -780,7 +786,11 @@
       if (!results.length) {
         // 取第一个失败原因作为错误信息
         const firstErr = settled.find(r => r.status === 'rejected')?.reason;
-        showError(firstErr?.message || 'NOTFOUND');
+        let errMsg = firstErr?.message || 'NOTFOUND';
+        if (errMsg === 'TIMEOUT') errMsg = '请求超时，请检查网络后重试';
+        else if (errMsg === 'NETWORK') errMsg = '网络连接失败，请检查网络';
+        else if (errMsg === 'NOTFOUND' || errMsg === 'NO_STATS') errMsg = '未找到该玩家，请检查用户名和平台';
+        showError(errMsg);
         return;
       }
 
