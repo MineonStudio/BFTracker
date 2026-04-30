@@ -197,6 +197,36 @@
       });
     }
 
+    function renderRadarChart(el, items) {
+      requestAnimationFrame(() => {
+        const chart = echarts.init(el, 'dark');
+        const maxVal = Math.max(...items.map(i => i.value), 1);
+        chart.setOption({
+          backgroundColor: 'transparent',
+          radar: {
+            indicator: items.map(i => ({ name: i.name, max: Math.ceil(maxVal * 1.3) })),
+            center: ['50%', '55%'],
+            radius: '65%',
+            axisName: { color: '#9ca3af', fontSize: 11 },
+            splitArea: { areaStyle: { color: ['rgba(255,70,85,0.04)', 'rgba(255,70,85,0.08)'] } },
+            splitLine: { lineStyle: { color: '#374151' } },
+            axisLine: { lineStyle: { color: '#374151' } },
+          },
+          series: [{
+            type: 'radar',
+            data: [{ value: items.map(i => i.value), name: '' }],
+            areaStyle: { color: 'rgba(255,70,85,0.15)' },
+            lineStyle: { color: '#ff4655', width: 2 },
+            itemStyle: { color: '#ff4655' },
+            symbol: 'circle',
+            symbolSize: 3,
+          }],
+          tooltip: { trigger: 'item', backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' } },
+        });
+        window.addEventListener('resize', () => chart.resize());
+      });
+    }
+
 
     function renderPlatformContent(container, { stats, allData, platform }) {
       const BASE = 'https://api.gametools.network';
@@ -445,7 +475,7 @@
         { name: '多杀',     value: dk.multiKills || 0 },
         { name: '乘客击杀', value: dk.passenger || 0 },
       ].filter(x => x.value > 0);
-      if (killTypes.length) renderPieChart(document.getElementById(`killTypeChart-${platform}`), killTypes);
+      if (killTypes.length) renderRadarChart(document.getElementById(`killTypeChart-${platform}`), killTypes);
 
       // ── 兵种 ──
       const classes = (allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0);
@@ -472,7 +502,7 @@
               </div>
             </div>`;
         }).join('');
-        renderPieChart(document.getElementById(`classChart-${platform}`), classes.map(c => ({ name: CLASS_CN[c.className] || c.className, value: c.kills })));
+        renderRadarChart(document.getElementById(`classChart-${platform}`), classes.map(c => ({ name: CLASS_CN[c.className] || c.className, value: c.kills })));
       } else {
         document.getElementById(`classChart-${platform}`).innerHTML = '<p class="text-gray-600 text-sm text-center pt-10">暂无兵种数据</p>';
       }
