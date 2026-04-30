@@ -229,7 +229,7 @@
             ${stats.avatar && !stats.avatar.includes('default-avatar') ? `<img src="${stats.avatar}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 object-cover" alt="">` : ''}
             <div class="flex-1 min-w-0">
               <h1 class="text-2xl sm:text-4xl font-black gradient-text tracking-tight truncate">${stats.userName || name}</h1>
-              ${(() => { const p = platform?.toLowerCase() || ''; const slug = p.includes('steam') ? 'steam' : p.includes('ea') ? 'ea' : p.includes('epic') ? 'epicgames' : p.includes('xbox') ? 'xbox' : p.includes('ps') || p.includes('playstation') ? 'playstation' : null; return slug ? `<img src="https://cdn.simpleicons.org/${slug}/9ca3af" class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 ml-1 inline-block align-middle" alt="${slug}">` : ''; })()}
+              ${(() => { const p = platform?.toLowerCase() || ''; const icons = { steam:'PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9IiM5Y2EzYWYiPjxyZWN0IHg9IjIiIHk9IjMiIHdpZHRoPSIyMCIgaGVpZ2h0PSIxNCIgcng9IjIiIHN0cm9rZT0iIzljYTNhZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNOCAyMWg4TTEyIDE3djQiIHN0cm9rZT0iIzljYTNhZiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L3N2Zz4=',ea:'PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9IiM5Y2EzYWYiPjxyZWN0IHg9IjIiIHk9IjMiIHdpZHRoPSIyMCIgaGVpZ2h0PSIxNCIgcng9IjIiIHN0cm9rZT0iIzljYTNhZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNOCAyMWg4TTEyIDE3djQiIHN0cm9rZT0iIzljYTNhZiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L3N2Zz4=',epicgames:'PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9IiM5Y2EzYWYiPjxyZWN0IHg9IjIiIHk9IjMiIHdpZHRoPSIyMCIgaGVpZ2h0PSIxNCIgcng9IjIiIHN0cm9rZT0iIzljYTNhZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNOCAyMWg4TTEyIDE3djQiIHN0cm9rZT0iIzljYTNhZiIgc3Ryb2tlLXdpZHRoPSIxLjUiLz48L3N2Zz4=',xbox:'PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIiBzdHJva2U9IiM5Y2EzYWYiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHBhdGggZD0iTTguNSA4LjVsMy41IDMuNSAzLjUtMy41TTguNSAxNS41bDMuNS0zLjUgMy41IDMuNSIgc3Ryb2tlPSIjOWNhM2FmIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg==',playstation:'PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjEwIiBzdHJva2U9IiM5Y2EzYWYiIHN0cm9rZS13aWR0aD0iMS41Ii8+PHRleHQgeD0iMTIiIHk9IjE2LjUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iOSIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiM5Y2EzYWYiIGZvbnQtZmFtaWx5PSJzeXN0ZW0tdWkiPlBTPC90ZXh0Pjwvc3ZnPg=='}; const key = p.includes('steam')?'steam':p.includes('ea')?'ea':p.includes('epic')?'epicgames':p.includes('xbox')?'xbox':p.includes('ps')||p.includes('playstation')?'playstation':null; return key && icons[key] ? `<img src="data:image/svg+xml;base64,${icons[key]}" class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 ml-1 inline-block align-middle" alt="">` : ''; })()}
               <div class="flex items-center gap-3 mt-0.5">
                 <span class="text-gray-400 text-xs sm:text-sm">${formatSeconds(stats.secondsPlayed)} 游戏时长</span>
                 <span class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-accent/10">${GAME_LABELS[game] || game}</span>
@@ -955,18 +955,17 @@
         ctx.fillStyle = '#f3f4f6';
         ctx.font = 'bold 48px system-ui, -apple-system, sans-serif';
         ctx.fillText(d.name || '—', P, y + 48);
-        // 平台图标
-        const pVal = d.platform ? d.platform.toLowerCase() : '';
-        const iconSlug = pVal.includes('steam') ? 'steam' : pVal.includes('ea') ? 'ea' : pVal.includes('epic') ? 'epicgames' : pVal.includes('xbox') ? 'xbox' : pVal.includes('ps') || pVal.includes('playstation') ? 'playstation' : null;
-        if (iconSlug) {
+        // 平台图标（内联SVG，无外部依赖）
+        const pVal2 = d.platform ? d.platform.toLowerCase() : '';
+        const iconSvg = pVal2.includes('steam') ? '<svg viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#6b7280" stroke-width="1.5"/><path d="M8 21h8M12 17v4" stroke="#6b7280" stroke-width="1.5"/></svg>' : pVal2.includes('ea') ? '<svg viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#6b7280" stroke-width="1.5"/><path d="M8 21h8M12 17v4" stroke="#6b7280" stroke-width="1.5"/></svg>' : pVal2.includes('epic') ? '<svg viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="14" rx="2" stroke="#6b7280" stroke-width="1.5"/><path d="M8 21h8M12 17v4" stroke="#6b7280" stroke-width="1.5"/></svg>' : pVal2.includes('xbox') ? '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#6b7280" stroke-width="1.5"/><path d="M8.5 8.5l3.5 3.5 3.5-3.5M8.5 15.5l3.5-3.5 3.5 3.5" stroke="#6b7280" stroke-width="1.5"/></svg>' : (pVal2.includes('ps') || pVal2.includes('playstation')) ? '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#6b7280" stroke-width="1.5"/><text x="12" y="16.5" text-anchor="middle" font-size="9" font-weight="bold" fill="#6b7280" font-family="system-ui">PS</text></svg>' : null;
+        if (iconSvg) {
           try {
             const icon = await new Promise((rs, rj) => {
-              const im = new Image(); im.crossOrigin = 'anonymous';
-              im.onload = () => rs(im); im.onerror = rj;
-              im.src = 'https://cdn.simpleicons.org/' + iconSlug + '/6b7280';
+              const im = new Image(); im.onload = () => rs(im); im.onerror = rj;
+              im.src = 'data:image/svg+xml,' + encodeURIComponent(iconSvg);
             });
-            const nameW = ctx.measureText(d.name || '—').width;
-            ctx.drawImage(icon, P + nameW + 14, y + 28, 32, 32);
+            const nameW2 = ctx.measureText(d.name || '—').width;
+            ctx.drawImage(icon, P + nameW2 + 14, y + 28, 32, 32);
           } catch {}
         }
         y += 80;
