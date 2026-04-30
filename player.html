@@ -1052,7 +1052,8 @@
 
         // 纵向拼接
         const GAP = 16;
-        const totalH = images.reduce((h, img) => h + img.height + GAP, GAP);
+        const FOOTER_H = 140;
+        const totalH = images.reduce((h, img) => h + img.height + GAP, GAP) + FOOTER_H;
         const maxW = Math.max(...images.map(img => img.width));
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = maxW;
@@ -1066,6 +1067,43 @@
           ctx.drawImage(img, (maxW - img.width) / 2, posY);
           posY += img.height + GAP;
         }
+
+        // 底部：网站信息 + 二维码
+        const footerY = totalH - FOOTER_H;
+        // 分隔线
+        ctx.strokeStyle = '#2a3040'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(32, footerY); ctx.lineTo(maxW - 32, footerY); ctx.stroke();
+
+        // 左侧文字
+        const textX = 40, textBaseY = footerY + 40;
+        const titleGrad = ctx.createLinearGradient(textX, 0, textX + 180, 0);
+        titleGrad.addColorStop(0, '#ff4655'); titleGrad.addColorStop(1, '#fb923c');
+        ctx.fillStyle = titleGrad;
+        ctx.font = 'bold 20px system-ui, -apple-system, sans-serif';
+        ctx.fillText('BF Tracker', textX, textBaseY);
+        ctx.fillStyle = '#6b7280'; ctx.font = '12px system-ui, -apple-system, sans-serif';
+        ctx.fillText('战地系列战绩查询 · 全平台数据 · 免费开源', textX, textBaseY + 24);
+        ctx.fillStyle = '#4b5563'; ctx.font = '11px system-ui, -apple-system, sans-serif';
+        ctx.fillText('mineonstudio.github.io/BFTracker', textX, textBaseY + 44);
+
+        // 右侧二维码
+        const qrSize = 100;
+        const qrX = maxW - qrSize - 32;
+        const qrY = footerY + 20;
+        try {
+          const qrImg = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent('https://mineonstudio.github.io/BFTracker/')}&margin=4`;
+          });
+          ctx.fillStyle = '#1a1e26';
+          ctx.beginPath(); ctx.roundRect(qrX - 4, qrY - 4, qrSize + 8, qrSize + 8, 10); ctx.fill();
+          ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+          ctx.fillStyle = '#6b7280'; ctx.font = '10px system-ui, -apple-system, sans-serif';
+          ctx.fillText('扫码访问', qrX + qrSize / 2 - 20, qrY + qrSize + 16);
+        } catch { /* QR 加载失败不阻塞 */ }
 
         // 预览
         const d = window.__shareData || {};
