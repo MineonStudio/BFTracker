@@ -6,6 +6,7 @@
   <title id="pageTitle">玩家战绩 - BF Tracker</title>
   <link rel="stylesheet" href="css/input.css">
   <link rel="stylesheet" href="css/style.css">
+<script src="js/i18n.js"></script>
 </head>
 <body class="bg-dark text-gray-200 min-h-screen">
   <script>(function(){if(localStorage.theme==='light')document.body.classList.add('light')})()</script>
@@ -17,7 +18,8 @@
       <div class="flex gap-6 text-sm text-gray-400">
         <a href="index.html" aria-label="首页" class="nav-link hover:text-white pb-1">首页</a>
         <a href="compare.html" aria-label="多人对比" class="nav-link hover:text-white pb-1">多人对比</a>
-      <button onclick="document.body.classList.toggle('light');localStorage.theme=document.body.classList.contains('light')?'light':'dark'" class="text-gray-400 hover:text-white text-sm ml-4" title="切换主题">🌓</button>
+      <button id="langToggle" onclick="toggleLang()" class="text-gray-400 hover:text-white text-xs ml-4 border border-gray-600 rounded px-2 py-0.5">EN</button>
+      
       </div>
     </div>
   </nav>
@@ -464,59 +466,76 @@
         </div>
       `;
 
-      // ── 武器 Top10 列表（带图标） ──
-      if (allData?.weapons?.length) {
-        const top10 = [...allData.weapons].filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 10);
-        if (top10.length) {
-          document.getElementById(`killsSection-${platform}`).style.display = '';
-          document.getElementById(`weaponPanel-${platform}`).style.display = '';
-          // 桌面端：热力条
-          document.getElementById(`weaponChart-${platform}`).innerHTML = top10.map((w, i) => {
-            const pct = Math.round((w.kills / top10[0].kills) * 100);
-            const img = w.image ? `<img loading="lazy" src="${w.image}" class="w-10 h-10 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(w.weaponName||'?')[0]}</span>`;
-            const sub = `总伤害 ${formatNum(Math.round(w.damage))} · 命中率 ${formatPct(w.accuracy)} · 爆头率 ${formatPct(w.headshots)} · 时长 ${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}`;
-            return `<div class="flex items-start gap-3 bg-dark rounded-lg px-3 py-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0 pt-1">${i+1}</span><div class="w-12 h-12 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 w-24 truncate shrink-0">${w.weaponName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#ff4655,#fb923c)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(w.kills)}</span></div><div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总伤害<div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(w.damage))}</div></div><div style="color:#6b7280">命中率<div style="color:#d1d5db;font-size:11px">${formatPct(w.accuracy)}</div></div><div style="color:#6b7280">爆头率<div style="color:#d1d5db;font-size:11px">${formatPct(w.headshots)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}</div></div></div></div></div>`;
-          }).join('');
-          // 移动端：列表
-          document.getElementById(`weaponList-${platform}`).innerHTML = top10.map((w, i) => `
-            <div class="bg-dark rounded-lg px-3 py-2">
-              <div class="flex items-center gap-3">
-                ${w.image ? `<img loading="lazy" src="${w.image}" class="w-8 h-8 object-contain" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded">${(w.weaponName || '?')[0]}</span>`}
-                <span class="text-sm text-gray-200 flex-1 truncate">${w.weaponName}</span>
-                <span class="text-sm font-bold text-accent shrink-0">${formatNum(w.kills)}</span>
-              </div>
-              <div style="font-size:10px;margin-top:3px;padding-left:44px;display:flex;gap:18px"><div style="text-align:left"><div style="color:#6b7280">总伤害</div><div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(w.damage))}</div></div><div style="text-align:left"><div style="color:#6b7280">命中率</div><div style="color:#d1d5db;font-size:11px">${formatPct(w.accuracy)}</div></div><div style="text-align:left"><div style="color:#6b7280">爆头率</div><div style="color:#d1d5db;font-size:11px">${formatPct(w.headshots)}</div></div><div style="text-align:left"><div style="color:#6b7280">时长</div><div style="color:#d1d5db;font-size:11px">${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}</div></div></div>
-            </div>`).join('');
-        }
-      }
+      // ── 数据填充（武器/载具/地图/模式/兵种/记录/赛季/贡献）──
+      renderWeaponTop10(allData, platform);
+      renderVehicleTop10(allData, platform);
+      renderKillTypeChart(stats, platform);
+      renderClassSection(allData, platform);
+      renderPersonalRecords(stats, platform);
+      renderSeasonHistory(allData, platform);
+      renderGameModes(allData, platform);
+      renderMaps(allData, platform);
+      renderSupportSection(stats, platform);
+    }
 
-      // ── 载具 Top10 ──
-      if (allData?.vehicles?.length) {
-        const topV = [...allData.vehicles].filter(v => v.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 10);
-        if (topV.length) {
-          document.getElementById(`killsSection-${platform}`).style.display = '';
-          document.getElementById(`vehiclePanel-${platform}`).style.display = '';
-          // 桌面端：热力条
-          document.getElementById(`vehicleChart-${platform}`).innerHTML = topV.map((v, i) => {
-            const pct = Math.round((v.kills / topV[0].kills) * 100);
-            const img = v.image ? `<img loading="lazy" src="${v.image}" class="w-10 h-10 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(v.vehicleName||'?')[0]}</span>`;
-            const sub = `总伤害 ${formatNum(Math.round(v.damage||0))} · 摧毁载具 ${formatNum(v.destroyed)} · 路杀 ${formatNum(v.roadKills||0)} · 时长 ${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}`;
-            return `<div class="flex items-start gap-3 bg-dark rounded-lg px-3 py-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0 pt-1">${i+1}</span><div class="w-12 h-12 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 w-24 truncate shrink-0">${v.vehicleName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#ff4655,#fb923c)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(v.kills)}</span></div><div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总伤害<div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(v.damage||0))}</div></div><div style="color:#6b7280">摧毁载具<div style="color:#d1d5db;font-size:11px">${formatNum(v.destroyed)}</div></div><div style="color:#6b7280">路杀<div style="color:#d1d5db;font-size:11px">${formatNum(v.roadKills||0)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}</div></div></div></div></div>`;
-          }).join('');
-          // 移动端：列表
-          document.getElementById(`vehicleList-${platform}`).innerHTML = topV.map((v, i) => `
-            <div class="bg-dark rounded-lg px-3 py-2">
-              <div class="flex items-center gap-3">
-                ${v.image ? `<img loading="lazy" src="${v.image}" class="w-8 h-8 object-contain" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded">${(v.vehicleName || '?')[0]}</span>`}
-                <span class="text-sm text-gray-200 flex-1 truncate">${v.vehicleName}</span>
-                <span class="text-sm font-bold text-accent shrink-0">${formatNum(v.kills)}</span>
-              </div>
-              <div style="font-size:10px;margin-top:3px;padding-left:44px;display:flex;gap:18px"><div style="text-align:left"><div style="color:#6b7280">总伤害</div><div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(v.damage||0))}</div></div><div style="text-align:left"><div style="color:#6b7280">摧毁载具</div><div style="color:#d1d5db;font-size:11px">${formatNum(v.destroyed)}</div></div><div style="text-align:left"><div style="color:#6b7280">路杀</div><div style="color:#d1d5db;font-size:11px">${formatNum(v.roadKills||0)}</div></div><div style="text-align:left"><div style="color:#6b7280">时长</div><div style="color:#d1d5db;font-size:11px">${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}</div></div></div>
-            </div>`).join('');
-        }
-      }
+    // ═══════════════════════════════════════════════════════
+    // renderPlatformContent 的数据填充辅助函数
+    // ═══════════════════════════════════════════════════════
 
-      // ── 击杀类型饼图 ──
+    // ── 武器 Top10 渲染（桌面热力条 + 移动端列表）──
+    function renderWeaponTop10(allData, platform) {
+      if (!allData?.weapons?.length) return;
+      const top10 = [...allData.weapons].filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 10);
+      if (!top10.length) return;
+      document.getElementById(`killsSection-${platform}`).style.display = '';
+      document.getElementById(`weaponPanel-${platform}`).style.display = '';
+      // 桌面端：热力条
+      document.getElementById(`weaponChart-${platform}`).innerHTML = top10.map((w, i) => {
+        const pct = Math.round((w.kills / top10[0].kills) * 100);
+        const img = w.image ? `<img loading="lazy" src="${w.image}" class="w-10 h-10 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(w.weaponName||'?')[0]}</span>`;
+        const sub = `总伤害 ${formatNum(Math.round(w.damage))} · 命中率 ${formatPct(w.accuracy)} · 爆头率 ${formatPct(w.headshots)} · 时长 ${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}`;
+        return `<div class="flex items-start gap-3 bg-dark rounded-lg px-3 py-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0 pt-1">${i+1}</span><div class="w-12 h-12 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 w-24 truncate shrink-0">${w.weaponName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#ff4655,#fb923c)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(w.kills)}</span></div><div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总伤害<div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(w.damage))}</div></div><div style="color:#6b7280">命中率<div style="color:#d1d5db;font-size:11px">${formatPct(w.accuracy)}</div></div><div style="color:#6b7280">爆头率<div style="color:#d1d5db;font-size:11px">${formatPct(w.headshots)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}</div></div></div></div></div>`;
+      }).join('');
+      // 移动端：列表
+      document.getElementById(`weaponList-${platform}`).innerHTML = top10.map((w, i) => `
+        <div class="bg-dark rounded-lg px-3 py-2">
+          <div class="flex items-center gap-3">
+            ${w.image ? `<img loading="lazy" src="${w.image}" class="w-8 h-8 object-contain" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded">${(w.weaponName || '?')[0]}</span>`}
+            <span class="text-sm text-gray-200 flex-1 truncate">${w.weaponName}</span>
+            <span class="text-sm font-bold text-accent shrink-0">${formatNum(w.kills)}</span>
+          </div>
+          <div style="font-size:10px;margin-top:3px;padding-left:44px;display:flex;gap:18px"><div style="text-align:left"><div style="color:#6b7280">总伤害</div><div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(w.damage))}</div></div><div style="text-align:left"><div style="color:#6b7280">命中率</div><div style="color:#d1d5db;font-size:11px">${formatPct(w.accuracy)}</div></div><div style="text-align:left"><div style="color:#6b7280">爆头率</div><div style="color:#d1d5db;font-size:11px">${formatPct(w.headshots)}</div></div><div style="text-align:left"><div style="color:#6b7280">时长</div><div style="color:#d1d5db;font-size:11px">${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}</div></div></div>
+        </div>`).join('');
+    }
+
+    // ── 载具 Top10 渲染（桌面热力条 + 移动端列表）──
+    function renderVehicleTop10(allData, platform) {
+      if (!allData?.vehicles?.length) return;
+      const topV = [...allData.vehicles].filter(v => v.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 10);
+      if (!topV.length) return;
+      document.getElementById(`killsSection-${platform}`).style.display = '';
+      document.getElementById(`vehiclePanel-${platform}`).style.display = '';
+      // 桌面端：热力条
+      document.getElementById(`vehicleChart-${platform}`).innerHTML = topV.map((v, i) => {
+        const pct = Math.round((v.kills / topV[0].kills) * 100);
+        const img = v.image ? `<img loading="lazy" src="${v.image}" class="w-10 h-10 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(v.vehicleName||'?')[0]}</span>`;
+        const sub = `总伤害 ${formatNum(Math.round(v.damage||0))} · 摧毁载具 ${formatNum(v.destroyed)} · 路杀 ${formatNum(v.roadKills||0)} · 时长 ${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}`;
+        return `<div class="flex items-start gap-3 bg-dark rounded-lg px-3 py-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0 pt-1">${i+1}</span><div class="w-12 h-12 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 w-24 truncate shrink-0">${v.vehicleName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#ff4655,#fb923c)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(v.kills)}</span></div><div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总伤害<div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(v.damage||0))}</div></div><div style="color:#6b7280">摧毁载具<div style="color:#d1d5db;font-size:11px">${formatNum(v.destroyed)}</div></div><div style="color:#6b7280">路杀<div style="color:#d1d5db;font-size:11px">${formatNum(v.roadKills||0)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}</div></div></div></div></div>`;
+      }).join('');
+      // 移动端：列表
+      document.getElementById(`vehicleList-${platform}`).innerHTML = topV.map((v, i) => `
+        <div class="bg-dark rounded-lg px-3 py-2">
+          <div class="flex items-center gap-3">
+            ${v.image ? `<img loading="lazy" src="${v.image}" class="w-8 h-8 object-contain" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded">${(v.vehicleName || '?')[0]}</span>`}
+            <span class="text-sm text-gray-200 flex-1 truncate">${v.vehicleName}</span>
+            <span class="text-sm font-bold text-accent shrink-0">${formatNum(v.kills)}</span>
+          </div>
+          <div style="font-size:10px;margin-top:3px;padding-left:44px;display:flex;gap:18px"><div style="text-align:left"><div style="color:#6b7280">总伤害</div><div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(v.damage||0))}</div></div><div style="text-align:left"><div style="color:#6b7280">摧毁载具</div><div style="color:#d1d5db;font-size:11px">${formatNum(v.destroyed)}</div></div><div style="text-align:left"><div style="color:#6b7280">路杀</div><div style="color:#d1d5db;font-size:11px">${formatNum(v.roadKills||0)}</div></div><div style="text-align:left"><div style="color:#6b7280">时长</div><div style="color:#d1d5db;font-size:11px">${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}</div></div></div>
+        </div>`).join('');
+    }
+
+    // ── 击杀类型雷达图 ──
+    function renderKillTypeChart(stats, platform) {
       const dk = stats.dividedKills || {};
       const killTypes = [
         { name: '步兵击杀', value: dk.human || 0 },
@@ -530,8 +549,10 @@
         { name: '乘客击杀', value: dk.passenger || 0 },
       ].filter(x => x.value > 0);
       if (killTypes.length) renderRadarChart(document.getElementById(`killTypeChart-${platform}`), killTypes);
+    }
 
-      // ── 兵种 ──
+    // ── 兵种数据 ──
+    function renderClassSection(allData, platform) {
       const classes = (allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0);
       if (classes.length) {
         document.getElementById(`classSection-${platform}`).style.display = '';
@@ -560,8 +581,10 @@
       } else {
         document.getElementById(`classChart-${platform}`).innerHTML = '<p class="text-gray-600 text-sm text-center pt-10">暂无兵种数据</p>';
       }
+    }
 
-      // ── 个人记录 ──
+    // ── 个人记录 ──
+    function renderPersonalRecords(stats, platform) {
       const recordDefs = [
         { label: '最远爆头距离', value: stats.longestHeadShot != null ? formatNum(Math.round(stats.longestHeadShot)) + ' m' : null },
         { label: '最高连杀',     value: stats.highestKillStreak != null ? formatNum(stats.highestKillStreak) : null },
@@ -580,131 +603,136 @@
             <p class="text-xs text-gray-500 mt-1">${r.label}</p>
           </div>`).join('');
       }
+    }
 
-      // ── 赛季历史 ──
+    // ── 赛季历史 ──
+    function renderSeasonHistory(allData, platform) {
       const seasons = Array.isArray(allData?.seasons) ? allData.seasons : [];
-      if (seasons.length > 1) {
-        // 每个赛季汇总所有模式的数据
-        const seasonSummary = seasons.map(s => {
-          const all = s.modes || [];
-          const kills   = all.reduce((a, m) => a + (m.kills || 0), 0);
-          const deaths  = all.reduce((a, m) => a + (m.deaths || 0), 0);
-          const wins    = all.reduce((a, m) => a + (m.wins || 0), 0);
-          const matches = all.reduce((a, m) => a + (m.matches || 0), 0);
-          return {
-            season: s.season,
-            kd:     deaths ? (kills / deaths) : 0,
-            wins,
-            matches,
-            winRate: matches ? (wins / matches * 100) : 0,
-            kills,
-          };
-        });
-        document.getElementById(`seasonSection-${platform}`).style.display = '';
-        requestAnimationFrame(() => {
-          const chart = echarts.init(document.getElementById(`seasonChart-${platform}`), 'dark');
-          chart.setOption({
-            backgroundColor: 'transparent',
-            legend: { data: ['K/D', '胜率(%)'], textStyle: { color: '#9ca3af' }, top: 0 },
-            grid: { left: 45, right: 55, top: 40, bottom: 40 },
-            xAxis: { type: 'category', data: seasonSummary.map(s => s.season), axisLabel: { color: '#6b7280', fontSize: 10 }, splitLine: { show: false } },
-            yAxis: [
-              { type: 'value', name: 'K/D', nameTextStyle: { color: '#6b7280', fontSize: 10 }, axisLabel: { color: '#6b7280', fontSize: 10 }, splitLine: { lineStyle: { color: '#374151' } } },
-              { type: 'value', name: '胜率%', nameTextStyle: { color: '#6b7280', fontSize: 10 }, position: 'right', axisLabel: { color: '#6b7280', fontSize: 10, formatter: '{value}%' }, splitLine: { show: false } },
-            ],
-            tooltip: {
-              trigger: 'axis', backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' },
-              formatter: params => {
-                const s = seasonSummary[params[0].dataIndex];
-                return `${s.season}<br/>${params.map(p => `${p.marker}${p.seriesName}: <b>${p.value}</b>${p.seriesName === '胜率(%)' ? '%' : ''}`).join('<br/>')}<br/>场次: ${s.matches}  击杀: ${s.kills}`;
-              },
+      if (seasons.length <= 1) return;
+      // 每个赛季汇总所有模式的数据
+      const seasonSummary = seasons.map(s => {
+        const all = s.modes || [];
+        const kills   = all.reduce((a, m) => a + (m.kills || 0), 0);
+        const deaths  = all.reduce((a, m) => a + (m.deaths || 0), 0);
+        const wins    = all.reduce((a, m) => a + (m.wins || 0), 0);
+        const matches = all.reduce((a, m) => a + (m.matches || 0), 0);
+        return {
+          season: s.season,
+          kd:     deaths ? (kills / deaths) : 0,
+          wins,
+          matches,
+          winRate: matches ? (wins / matches * 100) : 0,
+          kills,
+        };
+      });
+      document.getElementById(`seasonSection-${platform}`).style.display = '';
+      requestAnimationFrame(() => {
+        const chart = echarts.init(document.getElementById(`seasonChart-${platform}`), 'dark');
+        chart.setOption({
+          backgroundColor: 'transparent',
+          legend: { data: ['K/D', '胜率(%)'], textStyle: { color: '#9ca3af' }, top: 0 },
+          grid: { left: 45, right: 55, top: 40, bottom: 40 },
+          xAxis: { type: 'category', data: seasonSummary.map(s => s.season), axisLabel: { color: '#6b7280', fontSize: 10 }, splitLine: { show: false } },
+          yAxis: [
+            { type: 'value', name: 'K/D', nameTextStyle: { color: '#6b7280', fontSize: 10 }, axisLabel: { color: '#6b7280', fontSize: 10 }, splitLine: { lineStyle: { color: '#374151' } } },
+            { type: 'value', name: '胜率%', nameTextStyle: { color: '#6b7280', fontSize: 10 }, position: 'right', axisLabel: { color: '#6b7280', fontSize: 10, formatter: '{value}%' }, splitLine: { show: false } },
+          ],
+          tooltip: {
+            trigger: 'axis', backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' },
+            formatter: params => {
+              const s = seasonSummary[params[0].dataIndex];
+              return `${s.season}<br/>${params.map(p => `${p.marker}${p.seriesName}: <b>${p.value}</b>${p.seriesName === '胜率(%)' ? '%' : ''}`).join('<br/>')}<br/>场次: ${s.matches}  击杀: ${s.kills}`;
             },
-            series: [
-              { name: 'K/D',    yAxisIndex: 0, type: 'line', smooth: true, data: seasonSummary.map(s => s.kd.toFixed(2)),       lineStyle: { color: '#ff4655' }, itemStyle: { color: '#ff4655' }, symbol: 'circle', symbolSize: 6 },
-              { name: '胜率(%)', yAxisIndex: 1, type: 'line', smooth: true, data: seasonSummary.map(s => s.winRate.toFixed(1)), lineStyle: { color: '#22c55e' }, itemStyle: { color: '#22c55e' }, symbol: 'circle', symbolSize: 6 },
-            ],
-          });
-          window.addEventListener('resize', () => chart.resize());
+          },
+          series: [
+            { name: 'K/D',    yAxisIndex: 0, type: 'line', smooth: true, data: seasonSummary.map(s => s.kd.toFixed(2)),       lineStyle: { color: '#ff4655' }, itemStyle: { color: '#ff4655' }, symbol: 'circle', symbolSize: 6 },
+            { name: '胜率(%)', yAxisIndex: 1, type: 'line', smooth: true, data: seasonSummary.map(s => s.winRate.toFixed(1)), lineStyle: { color: '#22c55e' }, itemStyle: { color: '#22c55e' }, symbol: 'circle', symbolSize: 6 },
+          ],
         });
-        // 赛季汇总卡片
-        const seasonCards = document.createElement('div');
-        seasonCards.className = 'grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4';
-        seasonCards.innerHTML = seasonSummary.map(s => `
-          <div class="bg-dark rounded-xl p-4">
-            <p class="text-xs text-gray-500 mb-1">${s.season}</p>
-            <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
-              <div><p class="font-bold text-white">${s.kills}</p><p class="text-xs text-gray-500">击杀</p></div>
-              <div><p class="font-bold text-white">${formatDecimal(s.kd)}</p><p class="text-xs text-gray-500">K/D</p></div>
-              <div><p class="font-bold text-white">${s.wins}</p><p class="text-xs text-gray-500">胜场</p></div>
-              <div><p class="font-bold text-white">${s.winRate.toFixed(1)}%</p><p class="text-xs text-gray-500">胜率</p></div>
-            </div>
+        window.addEventListener('resize', () => chart.resize());
+      });
+      // 赛季汇总卡片
+      const seasonCards = document.createElement('div');
+      seasonCards.className = 'grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4';
+      seasonCards.innerHTML = seasonSummary.map(s => `
+        <div class="bg-dark rounded-xl p-4">
+          <p class="text-xs text-gray-500 mb-1">${s.season}</p>
+          <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+            <div><p class="font-bold text-white">${s.kills}</p><p class="text-xs text-gray-500">击杀</p></div>
+            <div><p class="font-bold text-white">${formatDecimal(s.kd)}</p><p class="text-xs text-gray-500">K/D</p></div>
+            <div><p class="font-bold text-white">${s.wins}</p><p class="text-xs text-gray-500">胜场</p></div>
+            <div><p class="font-bold text-white">${s.winRate.toFixed(1)}%</p><p class="text-xs text-gray-500">胜率</p></div>
           </div>
-        `).join('');
-        document.getElementById(`seasonChart-${platform}`).parentElement.appendChild(seasonCards);
-      }
+        </div>
+      `).join('');
+      document.getElementById(`seasonChart-${platform}`).parentElement.appendChild(seasonCards);
+    }
 
-      // ── 游戏模式（按胜率降序）──
+    // ── 游戏模式胜率（桌面热力条 + 移动端列表）──
+    function renderGameModes(allData, platform) {
       const gameModes = (allData?.gameModes || allData?.gamemodes || [])
         .filter(m => m.matches > 0 && m.gamemodeName !== 'Official')
         .sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0));
-      if (gameModes.length) {
-        document.getElementById(`winRateSection-${platform}`).style.display = '';
-        document.getElementById(`modeSection-${platform}`).style.display = '';
-        // 桌面端：热力条
-        document.getElementById(`modeChart-${platform}`).innerHTML = gameModes.map((m, i) => {
-          const pct = Math.max(0, parseFloat(m.winPercent) || 0);
-          const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
-          const img = m.image ? `<img loading="lazy" src="${m.image}" class="w-10 h-10 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">M</span>`;
-          const sub = `总场次 ${m.matches} · 胜场 ${formatNum(m.wins)} · 负场 ${formatNum(m.losses)} · 时长 ${formatSeconds(m.secondsPlayed)}`;
-          return `<div class="flex items-start gap-3 bg-dark rounded-lg px-3 py-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0 pt-1">${i+1}</span><div class="w-12 h-12 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 w-24 truncate shrink-0">${getModeName(m.gamemodeName)}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-12 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div><div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总场次<div style="color:#d1d5db;font-size:11px">${m.matches}</div></div><div style="color:#6b7280">胜场<div style="color:#d1d5db;font-size:11px">${formatNum(m.wins)}</div></div><div style="color:#6b7280">负场<div style="color:#d1d5db;font-size:11px">${formatNum(m.losses)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${formatSeconds(m.secondsPlayed)}</div></div></div></div></div>`;
-        }).join('');
-        // 移动端：列表
-        document.getElementById(`modeList-${platform}`).innerHTML = gameModes.map(m => {
-          const pct = parseFloat(m.winPercent) || 0;
-          const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
-          const img = m.image ? `<img loading="lazy" src="${m.image}" class="w-8 h-8 object-contain" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded">M</span>`;
-          return `<div class="bg-dark rounded-lg px-3 py-2">
-            <div class="flex items-center gap-3">
-              ${img}
-              <span class="text-sm text-gray-200 flex-1 truncate">${getModeName(m.gamemodeName)}</span>
-              <span class="text-sm font-bold shrink-0" style="color:${color}">${pct.toFixed(1)}%</span>
-            </div>
-            <div style="font-size:10px;margin-top:3px;padding-left:44px;display:flex;gap:18px"><div style="text-align:left"><div style="color:#6b7280">总场次</div><div style="color:#d1d5db;font-size:11px">${m.matches}</div></div><div style="text-align:left"><div style="color:#6b7280">胜场</div><div style="color:#d1d5db;font-size:11px">${formatNum(m.wins)}</div></div><div style="text-align:left"><div style="color:#6b7280">负场</div><div style="color:#d1d5db;font-size:11px">${formatNum(m.losses)}</div></div><div style="text-align:left"><div style="color:#6b7280">时长</div><div style="color:#d1d5db;font-size:11px">${formatSeconds(m.secondsPlayed)}</div></div></div>
-          </div>`;
-        }).join('');
-      }
+      if (!gameModes.length) return;
+      document.getElementById(`winRateSection-${platform}`).style.display = '';
+      document.getElementById(`modeSection-${platform}`).style.display = '';
+      // 桌面端：热力条
+      document.getElementById(`modeChart-${platform}`).innerHTML = gameModes.map((m, i) => {
+        const pct = Math.max(0, parseFloat(m.winPercent) || 0);
+        const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
+        const img = m.image ? `<img loading="lazy" src="${m.image}" class="w-10 h-10 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">M</span>`;
+        const sub = `总场次 ${m.matches} · 胜场 ${formatNum(m.wins)} · 负场 ${formatNum(m.losses)} · 时长 ${formatSeconds(m.secondsPlayed)}`;
+        return `<div class="flex items-start gap-3 bg-dark rounded-lg px-3 py-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0 pt-1">${i+1}</span><div class="w-12 h-12 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 w-24 truncate shrink-0">${getModeName(m.gamemodeName)}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-12 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div><div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总场次<div style="color:#d1d5db;font-size:11px">${m.matches}</div></div><div style="color:#6b7280">胜场<div style="color:#d1d5db;font-size:11px">${formatNum(m.wins)}</div></div><div style="color:#6b7280">负场<div style="color:#d1d5db;font-size:11px">${formatNum(m.losses)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${formatSeconds(m.secondsPlayed)}</div></div></div></div></div>`;
+      }).join('');
+      // 移动端：列表
+      document.getElementById(`modeList-${platform}`).innerHTML = gameModes.map(m => {
+        const pct = parseFloat(m.winPercent) || 0;
+        const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
+        const img = m.image ? `<img loading="lazy" src="${m.image}" class="w-8 h-8 object-contain" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded">M</span>`;
+        return `<div class="bg-dark rounded-lg px-3 py-2">
+          <div class="flex items-center gap-3">
+            ${img}
+            <span class="text-sm text-gray-200 flex-1 truncate">${getModeName(m.gamemodeName)}</span>
+            <span class="text-sm font-bold shrink-0" style="color:${color}">${pct.toFixed(1)}%</span>
+          </div>
+          <div style="font-size:10px;margin-top:3px;padding-left:44px;display:flex;gap:18px"><div style="text-align:left"><div style="color:#6b7280">总场次</div><div style="color:#d1d5db;font-size:11px">${m.matches}</div></div><div style="text-align:left"><div style="color:#6b7280">胜场</div><div style="color:#d1d5db;font-size:11px">${formatNum(m.wins)}</div></div><div style="text-align:left"><div style="color:#6b7280">负场</div><div style="color:#d1d5db;font-size:11px">${formatNum(m.losses)}</div></div><div style="text-align:left"><div style="color:#6b7280">时长</div><div style="color:#d1d5db;font-size:11px">${formatSeconds(m.secondsPlayed)}</div></div></div>
+        </div>`;
+      }).join('');
+    }
 
-      // ── 地图（按胜率降序）──
+    // ── 地图胜率（桌面热力条 + 移动端列表）──
+    function renderMaps(allData, platform) {
       const maps = (allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0)
         .sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0)).slice(0, 15);
-      if (maps.length) {
-        document.getElementById(`winRateSection-${platform}`).style.display = '';
-        document.getElementById(`mapSection-${platform}`).style.display = '';
-        // 桌面端：热力条
-        document.getElementById(`mapChart-${platform}`).innerHTML = maps.map((m, i) => {
-          const pct = Math.max(0, parseFloat(m.winPercent) || 0);
-          const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
-          const img = m.image ? `<img loading="lazy" src="${m.image}" class="w-10 h-10 object-cover rounded shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(MAP_CN[m.mapName]||m.mapName||'?')[0]}</span>`;
-          const sub = `总场次 ${m.matches} · 胜场 ${formatNum(m.wins)} · 负场 ${formatNum(m.losses)} · 时长 ${formatSeconds(m.secondsPlayed)}`;
-          return `<div class="flex items-start gap-3 bg-dark rounded-lg px-3 py-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0 pt-1">${i+1}</span><div class="w-12 h-12 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 w-24 truncate shrink-0">${MAP_CN[m.mapName] || m.mapName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-12 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div><div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总场次<div style="color:#d1d5db;font-size:11px">${m.matches}</div></div><div style="color:#6b7280">胜场<div style="color:#d1d5db;font-size:11px">${formatNum(m.wins)}</div></div><div style="color:#6b7280">负场<div style="color:#d1d5db;font-size:11px">${formatNum(m.losses)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${formatSeconds(m.secondsPlayed)}</div></div></div></div></div>`;
-        }).join('');
-        // 移动端：列表
-        document.getElementById(`mapList-${platform}`).innerHTML = maps.map(m => {
-          const pct2 = parseFloat(m.winPercent) || 0;
-          const color2 = pct2 >= 50 ? '#22c55e' : pct2 >= 40 ? '#facc15' : '#f87171';
-          const img = m.image ? `<img loading="lazy" src="${m.image}" class="w-8 h-8 object-cover rounded" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded">${(MAP_CN[m.mapName] || m.mapName || '?')[0]}</span>`;
-          return `<div class="bg-dark rounded-lg px-3 py-2">
-            <div class="flex items-center gap-3">
-              ${img}
-              <span class="text-sm text-gray-200 flex-1 truncate">${MAP_CN[m.mapName] || m.mapName}</span>
-              <span class="text-sm font-bold shrink-0" style="color:${color2}">${pct2.toFixed(1)}%</span>
-            </div>
-            <div style="font-size:10px;margin-top:3px;padding-left:44px;display:flex;gap:18px"><div style="text-align:left"><div style="color:#6b7280">总场次</div><div style="color:#d1d5db;font-size:11px">${m.matches}</div></div><div style="text-align:left"><div style="color:#6b7280">胜场</div><div style="color:#d1d5db;font-size:11px">${formatNum(m.wins)}</div></div><div style="text-align:left"><div style="color:#6b7280">负场</div><div style="color:#d1d5db;font-size:11px">${formatNum(m.losses)}</div></div><div style="text-align:left"><div style="color:#6b7280">时长</div><div style="color:#d1d5db;font-size:11px">${formatSeconds(m.secondsPlayed)}</div></div></div>
-          </div>`;
-        }).join('');
-      }
+      if (!maps.length) return;
+      document.getElementById(`winRateSection-${platform}`).style.display = '';
+      document.getElementById(`mapSection-${platform}`).style.display = '';
+      // 桌面端：热力条
+      document.getElementById(`mapChart-${platform}`).innerHTML = maps.map((m, i) => {
+        const pct = Math.max(0, parseFloat(m.winPercent) || 0);
+        const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
+        const img = m.image ? `<img loading="lazy" src="${m.image}" class="w-10 h-10 object-cover rounded shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(MAP_CN[m.mapName]||m.mapName||'?')[0]}</span>`;
+        const sub = `总场次 ${m.matches} · 胜场 ${formatNum(m.wins)} · 负场 ${formatNum(m.losses)} · 时长 ${formatSeconds(m.secondsPlayed)}`;
+        return `<div class="flex items-start gap-3 bg-dark rounded-lg px-3 py-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0 pt-1">${i+1}</span><div class="w-12 h-12 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 w-24 truncate shrink-0">${MAP_CN[m.mapName] || m.mapName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-12 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div><div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总场次<div style="color:#d1d5db;font-size:11px">${m.matches}</div></div><div style="color:#6b7280">胜场<div style="color:#d1d5db;font-size:11px">${formatNum(m.wins)}</div></div><div style="color:#6b7280">负场<div style="color:#d1d5db;font-size:11px">${formatNum(m.losses)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${formatSeconds(m.secondsPlayed)}</div></div></div></div></div>`;
+      }).join('');
+      // 移动端：列表
+      document.getElementById(`mapList-${platform}`).innerHTML = maps.map(m => {
+        const pct2 = parseFloat(m.winPercent) || 0;
+        const color2 = pct2 >= 50 ? '#22c55e' : pct2 >= 40 ? '#facc15' : '#f87171';
+        const img = m.image ? `<img loading="lazy" src="${m.image}" class="w-8 h-8 object-cover rounded" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded">${(MAP_CN[m.mapName] || m.mapName || '?')[0]}</span>`;
+        return `<div class="bg-dark rounded-lg px-3 py-2">
+          <div class="flex items-center gap-3">
+            ${img}
+            <span class="text-sm text-gray-200 flex-1 truncate">${MAP_CN[m.mapName] || m.mapName}</span>
+            <span class="text-sm font-bold shrink-0" style="color:${color2}">${pct2.toFixed(1)}%</span>
+          </div>
+          <div style="font-size:10px;margin-top:3px;padding-left:44px;display:flex;gap:18px"><div style="text-align:left"><div style="color:#6b7280">总场次</div><div style="color:#d1d5db;font-size:11px">${m.matches}</div></div><div style="text-align:left"><div style="color:#6b7280">胜场</div><div style="color:#d1d5db;font-size:11px">${formatNum(m.wins)}</div></div><div style="text-align:left"><div style="color:#6b7280">负场</div><div style="color:#d1d5db;font-size:11px">${formatNum(m.losses)}</div></div><div style="text-align:left"><div style="color:#6b7280">时长</div><div style="color:#d1d5db;font-size:11px">${formatSeconds(m.secondsPlayed)}</div></div></div>
+        </div>`;
+      }).join('');
+    }
 
-      // ── 支援与目标 ──
+    // ── 支援与目标数据 ──
+    function renderSupportSection(stats, platform) {
       function statCell(label, value) {
         return `<div class="bg-dark rounded-xl p-3">
           <p class="text-base font-bold text-white">${value}</p>
