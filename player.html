@@ -926,8 +926,7 @@
         // 玩家概览
         const card = document.querySelector('#tabPanel .bg-card.rounded-2xl');
         if (card) {
-          const c = await html2canvas(card, { backgroundColor: BG, scale: SCALE, useCORS: true, allowTaint: true, logging: false });
-          captures.push(c);
+          try { const c = await html2canvas(card, { backgroundColor: BG, scale: SCALE, allowTaint: true, logging: false }); captures.push(c); } catch(e) { console.error('概览截图失败:', e); }
         }
 
         // 自动捕获所有可见板块
@@ -940,8 +939,7 @@
         for (const sel of Object.values(panelMap)) {
           const el = document.querySelector(sel);
           if (el?.offsetParent) {
-            const c = await html2canvas(el, { backgroundColor: BG, scale: SCALE, useCORS: true, allowTaint: true, logging: false });
-            captures.push(c);
+            try { const c = await html2canvas(el, { backgroundColor: BG, scale: SCALE, allowTaint: true, logging: false }); captures.push(c); } catch(e) { console.error('板块截图失败:', e); }
           }
         }
 
@@ -1012,7 +1010,7 @@
         document.getElementById('posterPreviewModal').classList.remove('hidden');
       } catch (err) {
         console.error('海报生成失败:', err);
-        alert('海报生成失败，请重试');
+        alert('海报生成失败: ' + (err?.message || err));
       } finally {
         window.__posterLoading = false;
       }
