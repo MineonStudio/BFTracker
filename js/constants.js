@@ -56,7 +56,7 @@ export const MAP_CN = {
 };
 
 // 游戏模式中文名
-export const GAMEMODE_CN = {
+const GAMEMODE_CN = {
   // BF6 官方中文名 (来源: ea.com/zh-hans)
   'Conquest': '征服', 'Breakthrough': '突破', 'Rush': '突袭', 'Escalation': '升级',
   'Team Deathmatch': '团队死斗', 'Squad Deathmatch': '小队死斗',
@@ -96,10 +96,6 @@ const GAMEMODE_CN_LOWER = Object.fromEntries(
   Object.entries(GAMEMODE_CN).map(([k, v]) => [k.toLowerCase(), v])
 );
 
-export function getMapName(name) {
-  if (!name) return '—';
-  return MAP_CN[name] || name;
-}
 
 export function getModeName(name) {
   if (!name) return '—';
