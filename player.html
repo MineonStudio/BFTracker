@@ -226,7 +226,7 @@
           </div>
           <!-- 玩家信息 -->
           <div class="flex items-center gap-3 mb-4">
-            ${(() => { const p = platform?.toLowerCase() || ''; const key = p.includes('steam')?'steam':p.includes('ea')?'ea':p.includes('epic')?'epic':p.includes('xbox')?'xbox':p.includes('ps')||p.includes('playstation')?'playstation':null; const map = {steam:'steam',ea:'ea',epic:'epic',xbox:'xbox',playstation:'playstation'}; return key ? `<div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700/50 flex items-center justify-center shrink-0"><img src="icons/${map[key]}.svg" class="w-6 h-6 sm:w-7 sm:h-7" alt=""></div>` : (stats.avatar && !stats.avatar.includes('default-avatar') ? `<img src="${stats.avatar}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 object-cover" alt="">` : ''); })()}
+            ${(() => { const p = platform?.toLowerCase() || ''; const key = p.includes('steam')?'steam':p.includes('ea')?'ea':p.includes('epic')?'epic':p.includes('xbox')?'xbox':p.includes('ps')||p.includes('playstation')?'playstation':null; const map = {steam:'steam',ea:'ea',epic:'epic',xbox:'xbox',playstation:'playstation'}; return key ? `<div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gray-700/50 flex items-center justify-center shrink-0"><img src="icons/${map[key]}.svg" class="w-8 h-8 sm:w-9 sm:h-9" alt=""></div>` : (stats.avatar && !stats.avatar.includes('default-avatar') ? `<img src="${stats.avatar}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 object-cover" alt="">` : ''); })()}
             <div class="flex-1 min-w-0">
               <h1 class="text-2xl sm:text-4xl font-black gradient-text tracking-tight truncate">${stats.userName || name}</h1>
               <div class="flex items-center gap-3 mt-0.5">
@@ -953,7 +953,7 @@
         // 玩家名 + 平台图标（圆形头像位）
         const pVal2 = d.platform ? d.platform.toLowerCase() : '';
         const iconSvg = pVal2.includes('steam') ? 'icons/steam.svg' : pVal2.includes('ea') ? 'icons/ea.svg' : pVal2.includes('epic') ? 'icons/epic.svg' : pVal2.includes('xbox') ? 'icons/xbox.svg' : (pVal2.includes('ps') || pVal2.includes('playstation')) ? 'icons/playstation.svg' : null;
-        const iconSize = 36, avatarR = 28;
+        const iconSize = 44, avatarR = 36;
         if (iconSvg) {
           try {
             const icon = await new Promise((rs, rj) => { const im = new Image(); im.onload = () => rs(im); im.onerror = rj; im.src = iconSvg; });
@@ -964,19 +964,19 @@
         }
         ctx.fillStyle = '#f3f4f6';
         ctx.font = 'bold 48px system-ui, -apple-system, sans-serif';
-        ctx.fillText(d.name || '—', P + 72, y + 60);
+        ctx.fillText(d.name || '—', P + 86, y + 60);
         y += 80;
 
         // 游戏名 · 时长 · 封禁
         ctx.font = '26px system-ui, -apple-system, sans-serif';
         ctx.fillStyle = '#9ca3af';
         const meta = `${d.game} · ${d.time}`;
-        ctx.fillText(meta, P, y + 28);
+        ctx.fillText(meta, P + 86, y + 28);
         const mw = ctx.measureText(meta).width;
         const ban = d.isBanned ? '封禁玩家' : '绿色玩家';
         ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
         const bw = ctx.measureText(ban).width + 28;
-        const bx = P + mw + 24;
+        const bx = P + 86 + mw + 24;
         ctx.fillStyle = d.isBanned ? 'rgba(239,68,68,0.18)' : 'rgba(74,222,128,0.18)';
         ctx.beginPath(); ctx.roundRect(bx, y + 4, bw, 36, 18); ctx.fill();
         ctx.fillStyle = d.isBanned ? '#f87171' : '#4ade80';
