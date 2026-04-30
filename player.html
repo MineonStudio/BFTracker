@@ -924,7 +924,7 @@
         ].filter(s => s[1] != null && s[1] !== '—');
 
         const rows = Math.ceil(stats.length / 3);
-        const FOOTER_H = 220;
+        const FOOTER_H = 196;
         const H = 16 + P + 80 + 72 + 56 + 32 + 200 + 32 + rows * 120 + 24 + 32 + FOOTER_H + P;
 
         const canvas = document.createElement('canvas');
@@ -1027,23 +1027,27 @@
         // 分隔线
         ctx.strokeStyle = '#2a3040'; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke();
-        y += 36;
+        y += 32;
 
-        // 底部
+        // 底部：左侧文字 + 右侧二维码，底部对齐
+        const ftH = 150;
+        const ftBase = y + ftH; // footer区域底部基线
+
+        // 左侧文字
         const ftg = ctx.createLinearGradient(P, 0, P + 300, 0);
         ftg.addColorStop(0, '#ff4655'); ftg.addColorStop(1, '#fb923c');
         ctx.fillStyle = ftg;
         ctx.font = 'bold 36px system-ui, -apple-system, sans-serif';
-        ctx.fillText('BF Tracker', P, y + 40);
+        ctx.fillText('BF Tracker', P, ftBase - 70);
         ctx.fillStyle = '#9ca3af';
         ctx.font = '24px system-ui, -apple-system, sans-serif';
-        ctx.fillText('战地系列战绩查询 · 全平台 · 免费开源', P, y + 80);
+        ctx.fillText('战地系列战绩查询 · 全平台 · 免费开源', P, ftBase - 36);
         ctx.fillStyle = '#6b7280';
         ctx.font = '20px system-ui, -apple-system, sans-serif';
-        ctx.fillText('mineonstudio.github.io/BFTracker', P, y + 110);
+        ctx.fillText('mineonstudio.github.io/BFTracker', P, ftBase - 6);
 
-        // QR
-        const qr = 144;
+        // 右侧二维码 - 底部与文字底部对齐
+        const qr = 120;
         try {
           const qi = await new Promise((rs, rj) => {
             const im = new Image(); im.crossOrigin = 'anonymous';
@@ -1051,13 +1055,15 @@
             im.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + qr + 'x' + qr + '&data=' + encodeURIComponent('https://mineonstudio.github.io/BFTracker/') + '&margin=2';
           });
           const qx = W - P - qr;
+          const qy = ftBase - qr; // 底部对齐
           ctx.fillStyle = CARD;
-          ctx.beginPath(); ctx.roundRect(qx - 8, y + 20, qr + 16, qr + 16, 16); ctx.fill();
-          ctx.drawImage(qi, qx, y + 28, qr, qr);
+          ctx.beginPath(); ctx.roundRect(qx - 6, qy - 6, qr + 12, qr + 12, 16); ctx.fill();
+          ctx.drawImage(qi, qx, qy, qr, qr);
           ctx.fillStyle = '#9ca3af';
-          ctx.font = '18px system-ui, -apple-system, sans-serif';
-          ctx.fillText('扫码访问', qx + qr / 2 - 36, y + qr + 50);
+          ctx.font = '16px system-ui, -apple-system, sans-serif';
+          ctx.fillText('扫码访问', qx + qr / 2 - 32, qy + qr + 22);
         } catch {}
+        y += ftH + 10;
 
         // 预览
         window.__posterCanvas = canvas;
