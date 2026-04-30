@@ -114,30 +114,39 @@
 
     // 渲染玩家输入槽（平台分类选择）
     function renderSlots() {
+      // 保存已有输入值
+      const saved = [];
+      for (let i = 0; i < 4; i++) {
+        const n = document.querySelector('[data-slot="' + i + '"][data-field="name"]');
+        const p = document.querySelector('[data-slot="' + i + '"][data-field="platform"]');
+        saved.push({ name: n ? n.value : '', platform: p ? p.value : '' });
+      }
       const slotsEl = document.getElementById('playerSlots');
       slotsEl.innerHTML = '';
       for (let i = 0; i < MAX; i++) {
+        const preName = saved[i] ? saved[i].name : (i === 0 ? urlParams.get('p1name') || '' : '');
+        const preCat = saved[i] ? saved[i].platform : (i === 0 ? (urlParams.get('p1platform') || 'Xbox') : 'Xbox');
         const div = document.createElement('div');
         div.className = 'bg-dark rounded-lg p-3 border border-gray-700';
-        const preName = i === 0 ? urlParams.get('p1name') || '' : '';
-        const preCat = i === 0 ? (urlParams.get('p1platform') || 'Xbox') : 'Xbox';
-        div.innerHTML = `
-          <div class="flex items-center gap-2 mb-2">
-            <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style="background:${COLORS[i]}">${i+1}</span>
-            <span class="text-xs text-gray-400">${i > 1 ? '可选' : '必填'}</span>
-          </div>
-          <input type="text" placeholder="用户名" value="${preName}"
-            data-slot="${i}" data-field="name"
-            class="search-input w-full bg-card border border-gray-600 rounded-lg px-3 py-2 text-xs mb-2 focus:outline-none focus:border-accent" />
-          <select data-slot="${i}" data-field="platform"
-            class="w-full bg-card border border-gray-600 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-accent">
-            ${PLATFORM_CATEGORIES.map(cat => `<option value="${cat}" ${cat === preCat ? 'selected' : ''}>${cat}</option>`).join('')}
-          </select>
-        `;
+        div.innerHTML = '<div class="flex items-center gap-2 mb-2">' +
+          '<span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style="background:' + COLORS[i] + '">' + (i+1) + '</span>' +
+          '<span class="text-xs text-gray-400">' + (i > 1 ? '可选' : '必填') + '</span>' +
+          (i > 1 ? '<button data-del="' + i + '" class="ml-auto text-gray-600 hover:text-red-400 text-lg leading-none">&times;</button>' : '') +
+          '</div>' +
+          '<input type="text" placeholder="用户名" value="' + preName + '" data-slot="' + i + '" data-field="name" class="search-input w-full bg-card border border-gray-600 rounded-lg px-3 py-2 text-xs mb-2 focus:outline-none focus:border-accent" />' +
+          '<select data-slot="' + i + '" data-field="platform" class="w-full bg-card border border-gray-600 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-accent">' +
+          PLATFORM_CATEGORIES.map(function(cat) { return '<option value="' + cat + '"' + (cat === preCat ? ' selected' : '') + '>' + cat + '</option>'; }).join('') +
+          '</select>';
         slotsEl.appendChild(div);
       }
-          }
-    renderSlots();
+      // X 删除按钮
+      document.querySelectorAll('[data-del]').forEach(function(b) {
+        b.onclick = function() {
+          MAX--; renderSlots();
+        };
+      });
+      checkAddBtn();
+    }
     gameSelect.addEventListener('change', renderSlots);
     // 添加对比按钮
     document.getElementById('addSlotBtn').addEventListener('click', () => {
