@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @theme {
   --color-accent: #ff4655;
-  --color-dark: #1a1e26;
-  --color-card: #242933;
+  --color-dark: #1f2228;
+  --color-card: rgba(255,255,255,0.04);
 }
