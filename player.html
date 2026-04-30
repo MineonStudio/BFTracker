@@ -319,7 +319,8 @@
               <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">游戏模式胜率</h2>
               <a href="${detailBase}&type=gamemodes" class="text-xs text-accent hover:underline">详情 →</a>
             </div>
-            <div id="modeChart-${platform}" style="height:320px"></div>
+            <div id="modeChart-${platform}" class="hidden lg:block"></div>
+            <div id="modeList-${platform}" class="space-y-2 lg:hidden"></div>
           </div>
         </div>
 
@@ -382,7 +383,8 @@
           // 桌面端：热力条
           document.getElementById(`weaponChart-${platform}`).innerHTML = top10.map((w, i) => {
             const pct = Math.round((w.kills / top10[0].kills) * 100);
-            return `<div class="flex items-center gap-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span><span class="text-xs text-gray-300 w-20 truncate shrink-0">${w.weaponName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-4 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#ff4655,#fb923c)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(w.kills)}</span></div>`;
+            const img = w.image ? `<img src="${w.image}" class="w-5 h-5 object-contain shrink-0" alt="">` : `<span class="w-5 h-5 flex items-center justify-center text-[10px] font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(w.weaponName||'?')[0]}</span>`;
+            return `<div class="flex items-center gap-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span>${img}<span class="text-xs text-gray-300 w-20 truncate shrink-0">${w.weaponName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-4 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#ff4655,#fb923c)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(w.kills)}</span></div>`;
           }).join('');
           // 移动端：列表
           document.getElementById(`weaponList-${platform}`).innerHTML = top10.map((w, i) => `
@@ -404,7 +406,8 @@
           // 桌面端：热力条
           document.getElementById(`vehicleChart-${platform}`).innerHTML = topV.map((v, i) => {
             const pct = Math.round((v.kills / topV[0].kills) * 100);
-            return `<div class="flex items-center gap-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span><span class="text-xs text-gray-300 w-20 truncate shrink-0">${v.vehicleName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-4 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(v.kills)}</span></div>`;
+            const img = v.image ? `<img src="${v.image}" class="w-5 h-5 object-contain shrink-0" alt="">` : `<span class="w-5 h-5 flex items-center justify-center text-[10px] font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(v.vehicleName||'?')[0]}</span>`;
+            return `<div class="flex items-center gap-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span>${img}<span class="text-xs text-gray-300 w-20 truncate shrink-0">${v.vehicleName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-4 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(v.kills)}</span></div>`;
           }).join('');
           // 移动端：列表
           document.getElementById(`vehicleList-${platform}`).innerHTML = topV.map((v, i) => `
@@ -529,7 +532,7 @@
         });
       }
 
-      // ── 游戏模式（按胜率降序，横向柱状图）──
+      // ── 游戏模式（按胜率降序）──
       const SKIP_MODES = new Set(['Official', 'All', 'Custom', 'Duos', 'Quads', 'Gauntlet', 'REDSEC', 'Redsec', 'Redsec Duo', 'Redsec Squad', 'Battle Royale']);
       const gameModes = (allData?.gameModes || allData?.gamemodes || [])
         .filter(m => !SKIP_MODES.has(m.gamemodeName) && m.matches > 0)
@@ -537,36 +540,22 @@
       if (gameModes.length) {
         document.getElementById(`winRateSection-${platform}`).style.display = '';
         document.getElementById(`modeSection-${platform}`).style.display = '';
-        const el = document.getElementById(`modeChart-${platform}`);
-        el.style.height = Math.max(280, gameModes.length * 36 + 60) + 'px';
-        const modesAsc = [...gameModes].reverse();
-        requestAnimationFrame(() => {
-          const chart = echarts.init(el, 'dark');
-          chart.setOption({
-            backgroundColor: 'transparent',
-            grid: { left: 10, right: 80, top: 10, bottom: 30, containLabel: true },
-            xAxis: { type: 'value', max: 100, axisLabel: { color: '#9ca3af', fontSize: 11, formatter: '{value}%' }, splitLine: { lineStyle: { color: '#374151' } } },
-            yAxis: { type: 'category', data: modesAsc.map(m => getModeName(m.gamemodeName)), axisLabel: { color: '#d1d5db', fontSize: 11 }, axisTick: { show: false } },
-            series: [{
-              type: 'bar', barMaxWidth: 22,
-              data: modesAsc.map(m => parseFloat(m.winPercent) || 0),
-              itemStyle: {
-                color: params => params.value >= 50 ? '#22c55e' : params.value >= 40 ? '#facc15' : '#f87171',
-                borderRadius: [0, 4, 4, 0],
-              },
-              label: { show: true, position: 'right', color: '#9ca3af', fontSize: 11, formatter: p => `${p.value.toFixed(1)}%  ${modesAsc[p.dataIndex]?.matches}场` },
-            }],
-            tooltip: {
-              trigger: 'axis', backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' },
-              formatter: p => {
-                const m = modesAsc[p[0].dataIndex];
-                const displayName = getModeName(m.gamemodeName);
-                return `${displayName}<br/>胜率: ${m.winPercent}<br/>场次: ${m.matches} (${m.wins}胜/${m.losses}负)<br/>K/D: ${formatDecimal(m.killDeath)}<br/>时长: ${formatSeconds(m.secondsPlayed)}`;
-              },
-            },
-          });
-          window.addEventListener('resize', () => chart.resize());
-        });
+        // 桌面端：热力条
+        document.getElementById(`modeChart-${platform}`).innerHTML = gameModes.map((m, i) => {
+          const pct = Math.max(0, parseFloat(m.winPercent) || 0);
+          const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
+          return `<div class="flex items-center gap-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span><span class="text-xs text-gray-300 w-20 truncate shrink-0">${getModeName(m.gamemodeName)}</span><div class="flex-1 bg-gray-700/50 rounded-full h-4 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-14 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div>`;
+        }).join('');
+        // 移动端：列表
+        document.getElementById(`modeList-${platform}`).innerHTML = gameModes.map(m => {
+          const pct = parseFloat(m.winPercent) || 0;
+          const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
+          return `<div class="flex items-center gap-3 bg-dark rounded-lg px-3 py-2">
+            <span class="text-sm text-gray-200 flex-1 truncate">${getModeName(m.gamemodeName)}</span>
+            <span class="text-sm font-bold shrink-0" style="color:${color}">${pct.toFixed(1)}%</span>
+            <span class="text-xs text-gray-500 shrink-0 w-10 text-right">${m.matches}场</span>
+          </div>`;
+        }).join('');
       }
 
       // ── 地图（按胜率降序）──
@@ -579,7 +568,8 @@
         document.getElementById(`mapChart-${platform}`).innerHTML = maps.map((m, i) => {
           const pct = Math.max(0, parseFloat(m.winPercent) || 0);
           const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
-          return `<div class="flex items-center gap-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span><span class="text-xs text-gray-300 w-20 truncate shrink-0">${MAP_CN[m.mapName] || m.mapName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-4 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-14 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div>`;
+          const img = m.image ? `<img src="${m.image}" class="w-5 h-5 object-cover rounded shrink-0" alt="">` : `<span class="w-5 h-5 flex items-center justify-center text-[10px] font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(MAP_CN[m.mapName]||m.mapName||'?')[0]}</span>`;
+          return `<div class="flex items-center gap-2 mb-2"><span class="text-xs text-gray-500 w-5 text-right shrink-0">${i+1}</span>${img}<span class="text-xs text-gray-300 w-20 truncate shrink-0">${MAP_CN[m.mapName] || m.mapName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-4 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-14 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div>`;
         }).join('');
         // 移动端：列表
         document.getElementById(`mapList-${platform}`).innerHTML = maps.map(m => `
