@@ -394,7 +394,7 @@
                 <span class="text-sm text-gray-200 flex-1 truncate">${w.weaponName}</span>
                 <span class="text-sm font-bold text-accent shrink-0">${formatNum(w.kills)}</span>
               </div>
-              <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding-left:44px">总伤害 ${formatNum(Math.round(w.damage))} · 命中率 ${formatPct(w.accuracy)} · 爆头率 ${formatPct(w.headshots)} · 时长 ${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}</div>
+              <div style="font-size:10px;color:#6b7280;margin-top:3px;padding-left:44px;display:flex;justify-content:space-between;max-width:280px">总伤害<span>命中率</span><span>爆头率</span><span>时长</span></div><div style="font-size:11px;color:#d1d5db;padding-left:44px;display:flex;justify-content:space-between;max-width:280px">${formatNum(Math.round(w.damage))}<span>${formatPct(w.accuracy)}</span><span>${formatPct(w.headshots)}</span><span>${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}</span></div>
             </div>`).join('');
         }
       }
@@ -420,7 +420,7 @@
                 <span class="text-sm text-gray-200 flex-1 truncate">${v.vehicleName}</span>
                 <span class="text-sm font-bold text-accent shrink-0">${formatNum(v.kills)}</span>
               </div>
-              <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding-left:44px">总伤害 ${formatNum(Math.round(v.damage||0))} · 摧毁载具 ${formatNum(v.destroyed)} · 路杀 ${formatNum(v.roadKills||0)} · 时长 ${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}</div>
+              <div style="font-size:10px;color:#6b7280;margin-top:3px;padding-left:44px;display:flex;justify-content:space-between;max-width:280px">总伤害<span>摧毁载具</span><span>路杀</span><span>时长</span></div><div style="font-size:11px;color:#d1d5db;padding-left:44px;display:flex;justify-content:space-between;max-width:280px">${formatNum(Math.round(v.damage||0))}<span>${formatNum(v.destroyed)}</span><span>${formatNum(v.roadKills||0)}</span><span>${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}</span></div>
             </div>`).join('');
         }
       }
@@ -564,7 +564,7 @@
               <span class="text-sm text-gray-200 flex-1 truncate">${getModeName(m.gamemodeName)}</span>
               <span class="text-sm font-bold shrink-0" style="color:${color}">${pct.toFixed(1)}%</span>
             </div>
-            <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding-left:44px">总场次 ${m.matches} · 胜场 ${formatNum(m.wins)} · 负场 ${formatNum(m.losses)} · 时长 ${formatSeconds(m.secondsPlayed)}</div>
+            <div style="font-size:10px;color:#6b7280;margin-top:3px;padding-left:44px;display:flex;justify-content:space-between;max-width:280px">总场次<span>胜场</span><span>负场</span><span>时长</span></div><div style="font-size:11px;color:#d1d5db;padding-left:44px;display:flex;justify-content:space-between;max-width:280px">${m.matches}<span>${formatNum(m.wins)}</span><span>${formatNum(m.losses)}</span><span>${formatSeconds(m.secondsPlayed)}</span></div>
           </div>`;
         }).join('');
       }
@@ -594,7 +594,7 @@
               <span class="text-sm text-gray-200 flex-1 truncate">${MAP_CN[m.mapName] || m.mapName}</span>
               <span class="text-sm font-bold shrink-0" style="color:${color2}">${pct2.toFixed(1)}%</span>
             </div>
-            <div style="font-size:10px;color:#9ca3af;margin-top:3px;padding-left:44px">总场次 ${m.matches} · 胜场 ${formatNum(m.wins)} · 负场 ${formatNum(m.losses)} · 时长 ${formatSeconds(m.secondsPlayed)}</div>
+            <div style="font-size:10px;color:#6b7280;margin-top:3px;padding-left:44px;display:flex;justify-content:space-between;max-width:280px">总场次<span>胜场</span><span>负场</span><span>时长</span></div><div style="font-size:11px;color:#d1d5db;padding-left:44px;display:flex;justify-content:space-between;max-width:280px">${m.matches}<span>${formatNum(m.wins)}</span><span>${formatNum(m.losses)}</span><span>${formatSeconds(m.secondsPlayed)}</span></div>
           </div>`;
         }).join('');
       }
