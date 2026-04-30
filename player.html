@@ -384,8 +384,9 @@
           document.getElementById(`weaponChart-${platform}`).innerHTML = top10.map((w, i) => {
             const pct = Math.round((w.kills / top10[0].kills) * 100);
             const img = w.image ? `<img src="${w.image}" class="w-8 h-8 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(w.weaponName||'?')[0]}</span>`;
-            const sub = `KPM ${formatDecimal(w.killsPerMinute)} · 命中 ${formatPct(w.accuracy)} · 爆头 ${formatPct(w.headshots)} · ${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}`;
-            return `<div class="flex items-start gap-2 mb-3"><span class="text-xs text-gray-500 w-4 text-right shrink-0 pt-1">${i+1}</span><div class="w-8 h-8 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden ">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 truncate">${w.weaponName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#ff4655,#fb923c)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(w.kills)}</span></div><div style="font-size:12px;color:#ff4655;margin-top:4px;font-weight:bold">${sub}</div></div></div>`;
+            const sub = ` · KPM ${formatDecimal(w.killsPerMinute)} · 命中 ${formatPct(w.accuracy)} · 爆头 ${formatPct(w.headshots)} · ${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}`;
+            console.log('WEAPON SUB:', sub);
+            return `<div class="mb-2 flex items-center gap-2"><span class="text-xs text-gray-500 w-5">${i+1}</span>${img}<span class="text-xs text-gray-300 flex-1 truncate">${w.weaponName}<span style="color:#f87171;font-size:10px">${sub}</span></span><span class="text-xs font-bold text-white w-12 text-right">${formatNum(w.kills)}</span></div>`;
           }).join('');
           // 移动端：列表
           document.getElementById(`weaponList-${platform}`).innerHTML = top10.map((w, i) => `
@@ -408,8 +409,9 @@
           document.getElementById(`vehicleChart-${platform}`).innerHTML = topV.map((v, i) => {
             const pct = Math.round((v.kills / topV[0].kills) * 100);
             const img = v.image ? `<img src="${v.image}" class="w-8 h-8 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(v.vehicleName||'?')[0]}</span>`;
-            const sub = `KPM ${formatDecimal(v.killsPerMinute)} · 摧毁 ${formatNum(v.destroyed)} · ${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}`;
-            return `<div class="flex items-start gap-2 mb-3"><span class="text-xs text-gray-500 w-4 text-right shrink-0 pt-1">${i+1}</span><div class="w-8 h-8 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden ">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 truncate">${v.vehicleName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div><span class="text-xs font-bold text-white w-12 text-right shrink-0">${formatNum(v.kills)}</span></div><div style="font-size:12px;color:#ff4655;margin-top:4px;font-weight:bold">${sub}</div></div></div>`;
+            const sub = ` · KPM ${formatDecimal(v.killsPerMinute)} · 摧毁 ${formatNum(v.destroyed)} · ${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}`;
+            console.log('VEHICLE SUB:', sub);
+            return `<div class="mb-2 flex items-center gap-2"><span class="text-xs text-gray-500 w-5">${i+1}</span>${img}<span class="text-xs text-gray-300 flex-1 truncate">${v.vehicleName}<span style="color:#f87171;font-size:10px">${sub}</span></span><span class="text-xs font-bold text-white w-12 text-right">${formatNum(v.kills)}</span></div>`;
           }).join('');
           // 移动端：列表
           document.getElementById(`vehicleList-${platform}`).innerHTML = topV.map((v, i) => `
@@ -547,8 +549,9 @@
           const pct = Math.max(0, parseFloat(m.winPercent) || 0);
           const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
           const img = m.image ? `<img src="${m.image}" class="w-8 h-8 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">M</span>`;
-          const sub = `KD ${parseFloat(m.killDeath).toFixed(2)} · ${formatNum(m.kills)}杀 · ${m.matches}场 · ${formatSeconds(m.secondsPlayed)}`;
-          return `<div class="flex items-start gap-2 mb-3"><span class="text-xs text-gray-500 w-4 text-right shrink-0 pt-1">${i+1}</span><div class="w-8 h-8 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden ">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 truncate">${getModeName(m.gamemodeName)}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-12 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div><div style="font-size:12px;color:#ff4655;margin-top:4px;font-weight:bold">${sub}</div></div></div>`;
+          const sub = ` · KD ${parseFloat(m.killDeath).toFixed(2)} · ${formatNum(m.kills)}杀 · ${m.matches}场 · ${formatSeconds(m.secondsPlayed)}`;
+          console.log('MODE SUB:', sub);
+          return `<div class="mb-2 flex items-center gap-2"><span class="text-xs text-gray-500 w-5">${i+1}</span>${img}<span class="text-xs text-gray-300 flex-1 truncate">${getModeName(m.gamemodeName)}<span style="color:#f87171;font-size:10px">${sub}</span></span><span class="text-xs font-bold w-12 text-right" style="color:${color}">${pct.toFixed(1)}%</span></div>`;
         }).join('');
         // 移动端：列表
         document.getElementById(`modeList-${platform}`).innerHTML = gameModes.map(m => {
@@ -582,8 +585,9 @@
           const pct = Math.max(0, parseFloat(m.winPercent) || 0);
           const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
           const img = m.image ? `<img src="${m.image}" class="w-8 h-8 object-cover rounded shrink-0" alt="">` : `<span class="w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(MAP_CN[m.mapName]||m.mapName||'?')[0]}</span>`;
-          const sub = `${formatNum(m.wins)}胜/${formatNum(m.losses)}负 · ${m.matches}场 · ${formatSeconds(m.secondsPlayed)}`;
-          return `<div class="flex items-start gap-2 mb-3"><span class="text-xs text-gray-500 w-4 text-right shrink-0 pt-1">${i+1}</span><div class="w-8 h-8 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden ">${img}</div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs text-gray-300 truncate">${MAP_CN[m.mapName] || m.mapName}</span><div class="flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div><span class="text-xs font-bold w-12 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span></div><div style="font-size:12px;color:#ff4655;margin-top:4px;font-weight:bold">${sub}</div></div></div>`;
+          const sub = ` · ${formatNum(m.wins)}胜/${formatNum(m.losses)}负 · ${m.matches}场 · ${formatSeconds(m.secondsPlayed)}`;
+          console.log('MAP SUB:', sub);
+          return `<div class="mb-2 flex items-center gap-2"><span class="text-xs text-gray-500 w-5">${i+1}</span>${img}<span class="text-xs text-gray-300 flex-1 truncate">${MAP_CN[m.mapName] || m.mapName}<span style="color:#f87171;font-size:10px">${sub}</span></span><span class="text-xs font-bold w-12 text-right" style="color:${color}">${pct.toFixed(1)}%</span></div>`;
         }).join('');
         // 移动端：列表
         document.getElementById(`mapList-${platform}`).innerHTML = maps.map(m => `
