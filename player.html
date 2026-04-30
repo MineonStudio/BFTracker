@@ -87,6 +87,21 @@
       <div id="errorTips" class="text-left inline-block bg-card rounded-xl p-5 text-sm text-gray-400 space-y-2 max-w-sm"></div>
     </div>
 
+    <!-- 海报预览弹窗 -->
+    <div id="posterPreviewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.8)">
+      <div class="bg-card rounded-2xl p-5 sm:p-6 max-w-md w-full mx-4 max-h-[90vh] flex flex-col">
+        <h3 class="text-lg font-bold mb-3">🖼️ 海报预览</h3>
+        <div class="flex-1 overflow-auto mb-4 flex items-center justify-center bg-dark rounded-xl p-2 min-h-[200px]">
+          <img id="posterPreviewImg" class="max-w-full rounded" alt="海报预览" />
+        </div>
+        <div class="flex gap-3">
+          <button onclick="window.closePosterPreview()" class="flex-1 border border-gray-600 text-gray-400 hover:text-white rounded-lg py-2.5 text-sm transition-colors">取消</button>
+          <button onclick="window.downloadPoster()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">💾 保存</button>
+          <button onclick="window.sharePoster()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">📤 分享</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 分享弹窗 -->
     <div id="shareModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.6)">
       <div class="bg-card rounded-2xl p-5 sm:p-6 max-w-sm w-full mx-4 max-h-[80vh] overflow-y-auto">
@@ -225,15 +240,15 @@
       container.innerHTML = `
         <!-- 玩家总览 -->
         <div class="bg-card rounded-2xl p-5 mb-8 fade-up">
-          <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">玩家概览</h2>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">玩家概览</h2>
+            <button onclick="window.openShareModal()" class="text-xs text-accent hover:text-white transition-colors border border-accent/30 hover:border-accent rounded-lg px-3 py-1.5 shrink-0">📤 分享</button>
+          </div>
           <!-- 玩家信息 -->
           <div class="flex items-center gap-3 mb-4">
             ${stats.avatar && !stats.avatar.includes('default-avatar') ? `<img src="${stats.avatar}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 object-cover" alt="">` : ''}
             <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2">
-                <h1 class="text-2xl sm:text-4xl font-black gradient-text tracking-tight truncate">${stats.userName || name}</h1>
-                <button onclick="window.openShareModal()" class="text-xs text-accent hover:text-white transition-colors border border-accent/30 hover:border-accent rounded-lg px-3 py-1.5 shrink-0">📤 分享</button>
-              </div>
+              <h1 class="text-2xl sm:text-4xl font-black gradient-text tracking-tight truncate">${stats.userName || name}</h1>
               <div class="flex items-center gap-3 mt-0.5">
                 <span class="text-gray-400 text-xs sm:text-sm">${formatSeconds(stats.secondsPlayed)} 游戏时长</span>
                 <span class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-accent/10">${GAME_LABELS[game] || game}</span>
@@ -698,16 +713,41 @@
 
       // 缓存分享数据
       const stats = first.stats;
+      const allClass = first.allData?.classes?.find(c => c.id === 'kit') || first.allData?.classes?.[0];
+      const humanKills = stats.dividedKills?.human || stats.kills || 0;
+      const spmVal = (allClass?.score && allClass?.secondsPlayed)
+        ? (allClass.score / (allClass.secondsPlayed / 60)).toFixed(2)
+        : (stats.scorePerMinute != null ? parseFloat(stats.scorePerMinute).toFixed(2) : null);
+      const mp = stats.matchesPlayed ?? ((stats.wins != null && stats.loses != null) ? stats.wins + stats.loses : null);
+      const hp = stats.headshots;
+      const hkr = humanKills / (stats.deaths || 1);
+      const hkpm = mp ? (humanKills / mp).toFixed(2) : null;
+      const dpm = mp ? ((allClass?.deaths ?? stats.deaths ?? 0) / mp).toFixed(2) : null;
       window.__shareData = {
         name: stats.userName || name,
         game: GAME_LABELS[game] || game,
         time: formatSeconds(stats.secondsPlayed),
-        kd: formatDecimal(stats.killDeath),
-        kdColor: kdColor(stats.killDeath),
+        kd: formatDecimal(hkr),
+        kdColor: kdColor(hkr),
         wr: formatPct(stats.winPercent),
         wrColor: winColor(parseFloat(stats.winPercent)),
         platform: first.platform,
         url: location.href,
+        avatar: stats.avatar,
+        kills: formatNum(humanKills),
+        deaths: formatNum(stats.deaths),
+        wins: formatNum(stats.wins),
+        matches: formatNum(mp),
+        spm: spmVal,
+        headshots: formatPct(hp),
+        accuracy: formatPct(stats.accuracy),
+        kpm: formatDecimal(stats.killsPerMinute),
+        killsPerMatch: hkpm,
+        deathsPerMatch: dpm,
+        headShots: formatNum(stats.headShots),
+        assists: formatNum(allClass?.assists ?? stats.killAssists),
+        revives: formatNum(stats.revives),
+        isBanned: false,
       };
       // 缓存板块数据供分享文本使用
       window.__shareOps = {
@@ -725,13 +765,15 @@
             checkEacBan(name).catch(() => null),
           ]);
           const el = document.getElementById('banStatus');
+          const banned = banData?.isBanned || eacData?.isBanned;
           if (el) {
-            if (banData?.isBanned || eacData?.isBanned) {
+            if (banned) {
               el.innerHTML = '<span class="text-red-400 text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-red-900/50">封禁玩家</span>';
             } else {
               el.innerHTML = '<span class="text-green-400 text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-green-900/50">绿色玩家</span>';
             }
           }
+          if (window.__shareData) window.__shareData.isBanned = banned;
         } catch {}
       })();
 
@@ -907,73 +949,202 @@
 
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const W = 600; const P = 28;
+      const W = 640; const P = 32;
       let y = P;
 
-      // 计算高度
-      let H = P + 36 + 8 + 40 + 12 + 80 + 8; // title + name + KD row
-      if (sections.includes('weapons') && ops.weapons?.length) H += 24 + ops.weapons.slice(0,5).length * 20 + 8;
-      if (sections.includes('vehicles') && ops.vehicles?.length) H += 24 + ops.vehicles.slice(0,5).length * 20 + 8;
-      if (sections.includes('maps') && ops.maps?.length) H += 24 + ops.maps.slice(0,5).length * 20 + 8;
-      if (sections.includes('classes') && ops.classes?.length) H += 24 + ops.classes.length * 20 + 8;
-      H += P + 20;
+      // ── 计算高度 ──
+      let H = P; // top padding
+      H += 32 + 16; // title + gap
+      H += 40;     // player name
+      H += 24;     // game/time/badge row
+      H += 24;     // gap
+      H += 100;    // KD + WinRate cards
+      H += 24;     // gap
+      H += 88;     // 3x3 stats grid (3 rows × ~29px)
+      H += 24;     // gap
+
+      // sections
+      if (sections.includes('weapons') && ops.weapons?.length) H += 28 + ops.weapons.slice(0,5).length * 24 + 8;
+      if (sections.includes('vehicles') && ops.vehicles?.length) H += 28 + ops.vehicles.slice(0,5).length * 24 + 8;
+      if (sections.includes('maps') && ops.maps?.length) H += 28 + ops.maps.slice(0,5).length * 24 + 8;
+      if (sections.includes('classes') && ops.classes?.length) H += 28 + ops.classes.length * 24 + 8;
+
+      H += P + 24; // footer + bottom
 
       canvas.width = W; canvas.height = H;
-      ctx.fillStyle = '#1a1e26'; ctx.fillRect(0, 0, W, H);
 
-      // Title
-      const g = ctx.createLinearGradient(P, 0, P + 260, 0);
-      g.addColorStop(0, '#ff4655'); g.addColorStop(1, '#fb923c');
-      ctx.fillStyle = g; ctx.font = 'bold 26px system-ui';
-      ctx.fillText('BF Tracker 战绩报告', P, y + 26); y += 42;
-      ctx.strokeStyle = '#374151'; ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke(); y += 14;
+      // ── 背景 ──
+      ctx.fillStyle = '#12151c'; ctx.fillRect(0, 0, W, H);
 
-      // Player name + KD
-      ctx.fillStyle = '#f3f4f6'; ctx.font = 'bold 22px system-ui'; ctx.fillText(d.name || '—', P, y + 22); y += 34;
-      ctx.fillStyle = '#9ca3af'; ctx.font = '14px system-ui'; ctx.fillText(d.game + ' · ' + d.time, P, y + 16); y += 30;
+      // ── 顶部装饰线 ──
+      const topGrad = ctx.createLinearGradient(0, 0, W, 0);
+      topGrad.addColorStop(0, '#ff4655'); topGrad.addColorStop(1, '#fb923c');
+      ctx.fillStyle = topGrad; ctx.fillRect(0, 0, W, 4);
+      y += 4;
 
-      ctx.fillStyle = '#ff4655'; ctx.font = 'bold 52px system-ui'; ctx.fillText(d.kd, P, y + 42);
-      ctx.fillStyle = '#6b7280'; ctx.font = '13px system-ui'; ctx.fillText('K/D', P, y + 58);
-      ctx.fillStyle = '#ff4655'; ctx.font = 'bold 52px system-ui'; ctx.fillText(d.wr, W / 2 + 16, y + 42);
-      ctx.fillStyle = '#6b7280'; ctx.font = '13px system-ui'; ctx.fillText('胜率', W / 2 + 16, y + 58);
-      y += 86;
+      // ── 标题 ──
+      const titleGrad = ctx.createLinearGradient(P, 0, P + 240, 0);
+      titleGrad.addColorStop(0, '#ff4655'); titleGrad.addColorStop(1, '#fb923c');
+      ctx.fillStyle = titleGrad;
+      ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
+      ctx.fillText('BF Tracker 战绩报告', P, y + 24);
+      y += 40;
 
-      ctx.strokeStyle = '#374151'; ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke(); y += 14;
+      // ── 分隔线 ──
+      ctx.strokeStyle = '#2a3040'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke();
+      y += 16;
 
-      // 板块
-      const drawSection = (title, items, formatter) => {
+      // ── 玩家名 ──
+      ctx.fillStyle = '#f3f4f6'; ctx.font = 'bold 28px system-ui, -apple-system, sans-serif';
+      ctx.fillText(d.name || '—', P, y + 30); y += 44;
+
+      // ── 游戏名 + 时长 + 封禁状态 ──
+      ctx.font = '14px system-ui, -apple-system, sans-serif';
+      ctx.fillStyle = '#9ca3af';
+      const metaText = `${d.game} · ${d.time}`;
+      ctx.fillText(metaText, P, y + 16);
+      const metaW = ctx.measureText(metaText).width;
+
+      // 封禁状态 badge
+      const banText = d.isBanned ? '封禁玩家' : '绿色玩家';
+      const banColor = d.isBanned ? '#f87171' : '#4ade80';
+      const banBg = d.isBanned ? 'rgba(239,68,68,0.15)' : 'rgba(74,222,128,0.15)';
+      ctx.font = 'bold 12px system-ui, -apple-system, sans-serif';
+      const banW = ctx.measureText(banText).width + 16;
+      const banX = P + metaW + 16;
+      ctx.fillStyle = banBg;
+      ctx.beginPath(); ctx.roundRect(banX, y + 2, banW, 20, 10); ctx.fill();
+      ctx.fillStyle = banColor;
+      ctx.fillText(banText, banX + 8, y + 16);
+      y += 30;
+
+      // ── KD + 胜率 卡片 ──
+      const cardY = y; const cardH = 88;
+      const cardW = (W - P * 2 - 12) / 2;
+
+      const drawCard = (x, value, label, color, sub1, sub1Label, sub2, sub2Label) => {
+        ctx.fillStyle = '#1a1e26';
+        ctx.beginPath(); ctx.roundRect(x, cardY, cardW, cardH, 12); ctx.fill();
+        ctx.fillStyle = color;
+        ctx.font = 'bold 42px system-ui, -apple-system, sans-serif';
+        ctx.fillText(value, x + 16, cardY + 38);
+        ctx.fillStyle = '#6b7280'; ctx.font = '12px system-ui, -apple-system, sans-serif';
+        ctx.fillText(label, x + 16, cardY + 56);
+        // sub stats
+        ctx.font = '13px system-ui, -apple-system, sans-serif';
+        ctx.fillStyle = '#f3f4f6'; ctx.fillText(sub1, x + 16, cardY + 80);
+        ctx.fillStyle = '#6b7280'; ctx.font = '11px system-ui, -apple-system, sans-serif';
+        ctx.fillText(sub1Label, x + 20 + ctx.measureText(sub1).width, cardY + 80);
+        ctx.fillStyle = '#f3f4f6'; ctx.font = '13px system-ui, -apple-system, sans-serif';
+        const sub2X = x + cardW / 2 + 8;
+        ctx.fillText(sub2, sub2X, cardY + 80);
+        ctx.fillStyle = '#6b7280'; ctx.font = '11px system-ui, -apple-system, sans-serif';
+        ctx.fillText(sub2Label, sub2X + ctx.measureText(sub2).width + 4, cardY + 80);
+      };
+
+      drawCard(P, d.kd, 'K/D', d.kdColor,
+        d.kills, '击杀', d.deaths, '死亡');
+      drawCard(P + cardW + 12, d.wr, '胜率', d.wrColor,
+        d.matches, '总场次', d.wins, '胜场');
+      y += cardH + 20;
+
+      // ── 9 指标网格 (3x3) ──
+      const statDefs = [
+        ['每分钟得分', d.spm],       ['爆头率', d.headshots],     ['命中率', d.accuracy],
+        ['KPM', d.kpm],               ['场均击杀', d.killsPerMatch], ['场均死亡', d.deathsPerMatch],
+        ['爆头数', d.headShots],      ['助攻数', d.assists],       ['急救数', d.revives],
+      ].filter(s => s[1] != null && s[1] !== '—');
+
+      const gridCols = Math.min(statDefs.length, 3);
+      const gridRows = Math.ceil(statDefs.length / 3);
+      const cellW = (W - P * 2 - 12) / 3;
+      const cellH = 26;
+      const gridY = y;
+
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+          const idx = row * 3 + col;
+          if (idx >= statDefs.length) break;
+          const [label, value] = statDefs[idx];
+          const cx = P + col * (cellW + 6);
+          const cy = gridY + row * (cellH + 4);
+          ctx.fillStyle = '#1a1e26';
+          ctx.beginPath(); ctx.roundRect(cx, cy, cellW, cellH, 8); ctx.fill();
+          ctx.fillStyle = '#f3f4f6'; ctx.font = 'bold 14px system-ui, -apple-system, sans-serif';
+          ctx.fillText(value, cx + 8, cy + 17);
+          ctx.fillStyle = '#6b7280'; ctx.font = '11px system-ui, -apple-system, sans-serif';
+          ctx.fillText(label, cx + ctx.measureText(value).width + 12, cy + 17);
+        }
+      }
+      y = gridY + 3 * (cellH + 4) + 12;
+
+      // ── 分隔线 ──
+      ctx.strokeStyle = '#2a3040';
+      ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke();
+      y += 16;
+
+      // ── 板块 ──
+      const drawSection = (title, items, formatter, color = '#e5e7eb') => {
         if (!items?.length) return;
-        ctx.fillStyle = '#d1d5db'; ctx.font = 'bold 13px system-ui'; ctx.fillText(title, P, y + 14); y += 22;
-        ctx.fillStyle = '#9ca3af'; ctx.font = '12px system-ui';
-        items.slice(0, 5).forEach(item => {
-          ctx.fillText(formatter(item), P, y + 14); y += 20;
+        ctx.fillStyle = '#d1d5db'; ctx.font = 'bold 13px system-ui, -apple-system, sans-serif';
+        ctx.fillText(title, P, y + 14); y += 26;
+        ctx.font = '12px system-ui, -apple-system, sans-serif';
+        items.slice(0, 5).forEach((item, i) => {
+          ctx.fillStyle = i === 0 ? color : '#9ca3af';
+          ctx.fillText(formatter(item), P + 8, y + 14); y += 24;
         });
         y += 6;
       };
 
-      if (sections.includes('weapons')) drawSection('武器击杀排行', ops.weapons, w => `${w.name}: ${w.kills}杀`);
-      if (sections.includes('vehicles')) drawSection('载具击杀排行', ops.vehicles, v => `${v.name}: ${v.kills}杀`);
-      if (sections.includes('maps')) drawSection('地图胜率', ops.maps, m => `${m.name}: ${m.wr}%`);
-      if (sections.includes('classes')) drawSection('兵种分布', ops.classes, c => `${c.name}: ${c.kills}杀`);
+      if (sections.includes('weapons')) drawSection('▸ 武器击杀排行', ops.weapons, w => `${w.name}: ${w.kills}杀`);
+      if (sections.includes('vehicles')) drawSection('▸ 载具击杀排行', ops.vehicles, v => `${v.name}: ${v.kills}杀`);
+      if (sections.includes('maps')) drawSection('▸ 地图胜率', ops.maps, m => `${m.name}: ${m.wr}%`);
+      if (sections.includes('classes')) drawSection('▸ 兵种分布', ops.classes, c => `${c.name}: ${c.kills}杀`);
 
-      ctx.fillStyle = '#4b5563'; ctx.font = '11px system-ui';
-      ctx.fillText('via BF Tracker · mineonstudio.github.io/BFTracker', P, H - 16);
+      // ── 底部 ──
+      ctx.fillStyle = '#374151'; ctx.font = '11px system-ui, -apple-system, sans-serif';
+      ctx.fillText('via BF Tracker · mineonstudio.github.io/BFTracker', P, H - 20);
 
+      // ── 预览 ──
       canvas.toBlob(async blob => {
         const file = new File([blob], `bf-tracker-${d.name}.png`, { type: 'image/png' });
-        try {
-          if (navigator.canShare?.({ files: [file] })) {
-            await navigator.share({ files: [file], title: `${d.name} 的 ${d.game} 战绩` });
-          } else {
-            const a = document.createElement('a'); a.download = `bf-tracker-${d.name}.png`; a.href = canvas.toDataURL(); a.click();
-          }
-        } catch (err) {
-          if (err?.name !== 'AbortError') {
-            const a = document.createElement('a'); a.download = `bf-tracker-${d.name}.png`; a.href = canvas.toDataURL(); a.click();
-          }
-        }
+        window.__posterFile = file;
+        window.__posterCanvas = canvas;
+        document.getElementById('posterPreviewImg').src = canvas.toDataURL();
+        document.getElementById('posterPreviewModal').classList.remove('hidden');
       }, 'image/png');
       window.closeShareModal();
+    };
+
+    window.closePosterPreview = () => {
+      document.getElementById('posterPreviewModal')?.classList.add('hidden');
+      window.__posterFile = null;
+      window.__posterCanvas = null;
+    };
+
+    window.downloadPoster = () => {
+      const c = window.__posterCanvas;
+      if (!c) return;
+      const d = window.__shareData || {};
+      const a = document.createElement('a');
+      a.download = `bf-tracker-${d.name}.png`;
+      a.href = c.toDataURL();
+      a.click();
+    };
+
+    window.sharePoster = async () => {
+      const file = window.__posterFile;
+      if (!file) return;
+      try {
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ files: [file], title: `${window.__shareData?.name} 的 ${window.__shareData?.game} 战绩` });
+        } else {
+          window.downloadPoster();
+        }
+      } catch (err) {
+        if (err?.name !== 'AbortError') window.downloadPoster();
+      }
     };
   </script>
   <script>
