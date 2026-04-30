@@ -960,39 +960,15 @@
         const shareBtnDisplay = shareBtn?.style.display;
         if (shareBtn) shareBtn.style.display = 'none';
 
-        // 2. 处理图片：尝试 CORS 加载转 data URI，失败则用彩色占位
+        // 2. 图片通过 CORS 代理中转，避免跨域
+        const CORS_PROXY = 'https://corsproxy.io/?';
         const imgBackups = [];
-        const tabImgs = document.querySelectorAll('#tabPanel img');
-        for (const img of tabImgs) {
-          const backup = { el: img, src: img.src, srcset: img.srcset, width: img.width, height: img.height };
-          imgBackups.push(backup);
-          const dataUrl = await new Promise(resolve => {
-            const probe = new Image();
-            probe.crossOrigin = 'anonymous';
-            probe.onload = () => {
-              const c = document.createElement('canvas');
-              c.width = probe.naturalWidth; c.height = probe.naturalHeight;
-              c.getContext('2d').drawImage(probe, 0, 0);
-              try { resolve(c.toDataURL()); } catch { resolve(null); }
-            };
-            probe.onerror = () => resolve(null);
-            probe.src = img.src;
-          });
-          if (dataUrl) {
-            img.src = dataUrl;
-            img.removeAttribute('srcset');
-          } else {
-            // 可见的占位：用 img 实际显示尺寸，颜色偏亮
-            const w = img.naturalWidth || img.width || img.offsetWidth || 32;
-            const h = img.naturalHeight || img.height || img.offsetHeight || 32;
-            img.src = 'data:image/svg+xml,' + encodeURIComponent(
-              `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="#374151" rx="4"/><text x="${w/2}" y="${h/2+5}" text-anchor="middle" fill="#6b7280" font-size="${Math.min(w,h)*0.4}" font-family="system-ui">?</text></svg>`
-            );
-            img.removeAttribute('srcset');
-            img.style.width = w + 'px';
-            img.style.height = h + 'px';
-          }
-        }
+        document.querySelectorAll('#tabPanel img').forEach(img => {
+          if (!img.src || img.src.startsWith('data:')) return;
+          imgBackups.push({ el: img, src: img.src, srcset: img.srcset });
+          img.src = CORS_PROXY + encodeURIComponent(img.src);
+          img.removeAttribute('srcset');
+        });
 
         // 3. 移除 echarts canvas
         const canvasParents = [];
