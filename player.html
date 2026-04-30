@@ -577,7 +577,7 @@
 
       // ── 游戏模式（按胜率降序）──
       const gameModes = (allData?.gameModes || allData?.gamemodes || [])
-        .filter(m => m.matches > 0)
+        .filter(m => m.matches > 0 && m.gamemodeName !== 'Official')
         .sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0));
       if (gameModes.length) {
         document.getElementById(`winRateSection-${platform}`).style.display = '';
