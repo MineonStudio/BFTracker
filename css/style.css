@@ -75,10 +75,6 @@ button, .bg-accent { border-radius: 0 !important; }
 .spinner { width: 36px; height: 36px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #ffffff; border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* 响应式：桌面热力条 / 移动端列表 */
-@media (min-width: 1024px) { .desktop-chart { display: block; } .mobile-list { display: none; } }
-@media (max-width: 1023px) { .desktop-chart { display: none; } .mobile-list { display: block; } }
-
 /* 移动端表格横向滚动 */
 .table-responsive { -webkit-overflow-scrolling: touch; }
 
