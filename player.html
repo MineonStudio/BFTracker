@@ -116,7 +116,11 @@
   <script type="module">
     import { getStats, GAME_LABELS, PLATFORM_LABELS, PLATFORM_CATEGORIES, searchPlayer, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
     import { saveSnapshot, saveRecentSearch, saveApiCache } from './js/storage.js';
-    import * as echarts from 'echarts';
+    import * as echarts from 'echarts/core';
+    import { PieChart, BarChart, LineChart, RadarChart } from 'echarts/charts';
+    import { LegendComponent, TooltipComponent, GridComponent } from 'echarts/components';
+    import { CanvasRenderer } from 'echarts/renderers';
+    echarts.use([PieChart, BarChart, LineChart, RadarChart, LegendComponent, TooltipComponent, GridComponent, CanvasRenderer]);
     import { checkBan, checkEacBan, getInventory } from './js/api.js';
     import { MAP_CN, getModeName, CLASS_CN } from './js/constants.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, getUrlParams, buildPlayerUrl } from './js/utils.js';
