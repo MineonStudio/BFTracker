@@ -6,6 +6,7 @@
   <title>多人对比 - BF Tracker</title>
   <link rel="stylesheet" href="css/input.css">
   <link rel="stylesheet" href="css/style.css">
+<script src="js/i18n.js"></script>
 </head>
 <body class="bg-dark text-gray-200 min-h-screen">
   <script>(function(){if(localStorage.theme==='light')document.body.classList.add('light')})()</script>
@@ -17,6 +18,7 @@
       <div class="flex gap-6 text-sm text-gray-400">
         <a href="index.html" aria-label="首页" class="nav-link hover:text-white pb-1">首页</a>
         <a href="compare.html" aria-label="多人对比" class="nav-link active pb-1">多人对比</a>
+      <button id="langToggle" onclick="toggleLang()" class="text-gray-400 hover:text-white text-xs ml-4 border border-gray-600 rounded px-2 py-0.5">EN</button>
       </div>
     </div>
   </nav>
