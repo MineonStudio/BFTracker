@@ -96,28 +96,8 @@
         </div>
         <div class="flex gap-3 shrink-0">
           <button onclick="window.closePosterPreview()" class="flex-1 border border-gray-600 text-gray-400 hover:text-white rounded-lg py-2.5 text-sm transition-colors">取消</button>
-          <button onclick="window.downloadPoster()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">💾 保存</button>
-          <button onclick="window.sharePoster()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">📤 分享</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 分享弹窗 -->
-    <div id="shareModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.6)">
-      <div class="bg-card rounded-2xl p-5 sm:p-6 max-w-sm w-full mx-4 max-h-[80vh] overflow-y-auto">
-        <h3 class="text-lg font-bold mb-2">📤 分享战绩</h3>
-        <p class="text-sm text-gray-400 mb-4">玩家概览必选，以下可多选</p>
-        <div class="space-y-2 mb-6" id="shareSections">
-          <label class="flex items-center gap-3 bg-dark rounded-lg px-4 py-3 cursor-pointer"><input type="checkbox" value="overview" checked disabled data-panel="overview"><span class="text-sm">玩家概览</span><span class="text-xs text-gray-500 ml-auto">必选</span></label>
-          <label class="flex items-center gap-3 bg-dark rounded-lg px-4 py-3 cursor-pointer"><input type="checkbox" value="weapons" data-panel="killsSection"><span class="text-sm">武器击杀排行</span></label>
-          <label class="flex items-center gap-3 bg-dark rounded-lg px-4 py-3 cursor-pointer"><input type="checkbox" value="vehicles" data-panel="killsSection"><span class="text-sm">载具击杀排行</span></label>
-          <label class="flex items-center gap-3 bg-dark rounded-lg px-4 py-3 cursor-pointer"><input type="checkbox" value="maps" data-panel="winRateSection"><span class="text-sm">地图胜率</span></label>
-          <label class="flex items-center gap-3 bg-dark rounded-lg px-4 py-3 cursor-pointer"><input type="checkbox" value="classes" data-panel="classSection"><span class="text-sm">兵种数据</span></label>
-        </div>
-        <div class="flex gap-3">
-          <button onclick="window.closeShareModal()" class="flex-1 border border-gray-600 text-gray-400 hover:text-white rounded-lg py-2.5 text-sm transition-colors">取消</button>
-          <button onclick="window.doShareLink()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">🔗 分享链接</button>
-          <button onclick="window.doSharePoster()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">🖼️ 海报</button>
+          <button onclick="window.downloadPoster()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">🖼️ 海报分享</button>
+          <button onclick="window.doShareLink()" class="flex-1 bg-accent hover:bg-red-500 text-white rounded-lg py-2.5 text-sm font-semibold transition-colors">🔗 链接分享</button>
         </div>
       </div>
     </div>
@@ -243,7 +223,7 @@
         <div class="bg-card rounded-2xl p-5 mb-8 fade-up">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">玩家概览</h2>
-            <button onclick="window.openShareModal()" class="text-xs text-accent hover:text-white transition-colors border border-accent/30 hover:border-accent rounded-lg px-3 py-1.5 shrink-0">📤 分享</button>
+            <button onclick="window.doSharePoster()" class="text-xs text-accent hover:text-white transition-colors border border-accent/30 hover:border-accent rounded-lg px-3 py-1.5 shrink-0">📤 分享</button>
           </div>
           <!-- 玩家信息 -->
           <div class="flex items-center gap-3 mb-4">
@@ -881,20 +861,6 @@
     });
 
     // ─── 分享功能（放在最后避免初始化顺序问题） ───
-    window.openShareModal = () => {
-      const modal = document.getElementById('shareModal');
-      if (!modal) return;
-      modal.classList.remove('hidden');
-      const ops = window.__shareOps;
-      document.querySelectorAll('#shareSections input[type=checkbox]').forEach(cb => {
-        if (cb.value === 'weapons') cb.checked = ops?.weapons?.length > 0;
-        else if (cb.value === 'vehicles') cb.checked = ops?.vehicles?.length > 0;
-        else if (cb.value === 'maps') cb.checked = ops?.maps?.length > 0;
-        else if (cb.value === 'classes') cb.checked = ops?.classes?.length > 0;
-        cb.disabled = cb.value === 'overview';
-      });
-    };
-    window.closeShareModal = () => document.getElementById('shareModal')?.classList.add('hidden');
 
     window.doShareLink = async () => {
       const checks = document.querySelectorAll('#shareSections input[type=checkbox]:checked');
@@ -949,11 +915,8 @@
       if (window.__posterLoading) return;
       window.__posterLoading = true;
       try {
-        const checks = document.querySelectorAll('#shareSections input[type=checkbox]:checked');
-        const sections = [...checks].map(c => c.value);
-
         // 隐藏分享按钮
-        const shareBtn = document.querySelector('#tabPanel button[onclick*="openShareModal"]');
+        const shareBtn = document.querySelector('#tabPanel button[onclick*="doSharePoster"]');
         const sd = shareBtn?.style.display;
         if (shareBtn) shareBtn.style.display = 'none';
 
@@ -961,38 +924,33 @@
         const captures = [];
 
         // 玩家概览
-        if (sections.includes('overview')) {
-          const card = document.querySelector('#tabPanel .bg-card.rounded-2xl');
-          if (card) {
-            const c = await html2canvas(card, { backgroundColor: BG, scale: SCALE, useCORS: true, allowTaint: true, logging: false });
-            captures.push(c);
-          }
+        const card = document.querySelector('#tabPanel .bg-card.rounded-2xl');
+        if (card) {
+          const c = await html2canvas(card, { backgroundColor: BG, scale: SCALE, useCORS: true, allowTaint: true, logging: false });
+          captures.push(c);
         }
 
-        // 武器 / 载具 / 地图 / 兵种
+        // 自动捕获所有可见板块
         const panelMap = {
           weapons: '[id^="weaponPanel-"]',
           vehicles: '[id^="vehiclePanel-"]',
           maps: '[id^="mapSection-"]',
           classes: '[id^="classSection-"]',
         };
-        for (const [key, sel] of Object.entries(panelMap)) {
-          if (sections.includes(key)) {
-            const el = document.querySelector(sel);
-            if (el?.offsetParent) {
-              const c = await html2canvas(el, { backgroundColor: BG, scale: SCALE, useCORS: true, allowTaint: true, logging: false });
-              captures.push(c);
-            }
+        for (const sel of Object.values(panelMap)) {
+          const el = document.querySelector(sel);
+          if (el?.offsetParent) {
+            const c = await html2canvas(el, { backgroundColor: BG, scale: SCALE, useCORS: true, allowTaint: true, logging: false });
+            captures.push(c);
           }
         }
 
-        // 恢复分享按钮
+        // 恢复
         if (shareBtn) shareBtn.style.display = sd;
-
         if (!captures.length) { alert('未找到内容'); return; }
 
         // 纵向拼接
-        const GAP = 16, FOOTER_H = 120;
+        const GAP = 16, FOOTER_H = 130;
         const totalH = captures.reduce((h, c) => h + c.height + GAP, GAP) + FOOTER_H;
         const maxW = Math.max(...captures.map(c => c.width));
         const final = document.createElement('canvas');
@@ -1005,34 +963,41 @@
           posY += c.height + GAP;
         }
 
-        // 底部
+        // 底部：网站信息 + 二维码（放大、底部对齐）
         const fY = totalH - FOOTER_H;
         ctx.strokeStyle = '#2a3040'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(36, fY); ctx.lineTo(maxW - 36, fY); ctx.stroke();
-        const fGrad = ctx.createLinearGradient(36, 0, 36 + 200, 0);
+        ctx.beginPath(); ctx.moveTo(40, fY); ctx.lineTo(maxW - 40, fY); ctx.stroke();
+        const fGrad = ctx.createLinearGradient(40, 0, 40 + 220, 0);
         fGrad.addColorStop(0, '#ff4655'); fGrad.addColorStop(1, '#fb923c');
-        ctx.fillStyle = fGrad; ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-        ctx.fillText('BF Tracker', 36, fY + 36);
-        ctx.fillStyle = '#6b7280'; ctx.font = '13px system-ui, -apple-system, sans-serif';
-        ctx.fillText('战地系列战绩查询 · 全平台数据 · 免费开源', 36, fY + 60);
-        ctx.fillStyle = '#4b5563'; ctx.font = '11px system-ui, -apple-system, sans-serif';
-        ctx.fillText('mineonstudio.github.io/BFTracker', 36, fY + 78);
-        // QR
+        ctx.fillStyle = fGrad;
+        ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
+        ctx.fillText('BF Tracker', 40, fY + 38);
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '14px system-ui, -apple-system, sans-serif';
+        ctx.fillText('战地系列战绩查询 · 全平台数据 · 免费开源', 40, fY + 64);
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '12px system-ui, -apple-system, sans-serif';
+        ctx.fillText('mineonstudio.github.io/BFTracker', 40, fY + 86);
+
+        // QR（放大到96px，底部对齐）
+        const qrS = 96;
         try {
           const qr = await new Promise((res, rej) => {
             const i = new Image(); i.crossOrigin = 'anonymous';
             i.onload = () => res(i); i.onerror = rej;
-            i.src = 'https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=' + encodeURIComponent('https://mineonstudio.github.io/BFTracker/') + '&margin=2';
+            i.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + qrS + 'x' + qrS + '&data=' + encodeURIComponent('https://mineonstudio.github.io/BFTracker/') + '&margin=2';
           });
+          const qrX = maxW - 40 - qrS;
+          const qrY = fY + FOOTER_H - qrS - 14;
           ctx.fillStyle = '#1a1e26';
-          ctx.beginPath(); ctx.roundRect(maxW - 36 - 88, fY + 14, 88, 88, 8); ctx.fill();
-          ctx.drawImage(qr, maxW - 36 - 80, fY + 18, 80, 80);
-          ctx.fillStyle = '#6b7280'; ctx.font = '10px system-ui, -apple-system, sans-serif';
-          ctx.fillText('扫码访问', maxW - 36 - 56, fY + 110);
+          ctx.beginPath(); ctx.roundRect(qrX - 6, qrY - 6, qrS + 12, qrS + 12, 10); ctx.fill();
+          ctx.drawImage(qr, qrX, qrY, qrS, qrS);
+          ctx.fillStyle = '#9ca3af';
+          ctx.font = '11px system-ui, -apple-system, sans-serif';
+          ctx.fillText('扫码访问', qrX + qrS / 2 - 22, qrY + qrS + 18);
         } catch {}
 
         // 预览
-        window.closeShareModal();
         const d = window.__shareData || {};
         window.__posterCanvas = final;
         try {
@@ -1041,7 +1006,6 @@
             window.__posterFile = new File([blob], `bf-tracker-${d.name}.png`, { type: 'image/png' });
           }, 'image/png');
         } catch {
-          // 图片跨域导致画布污染，直接显示canvas元素
           const imgWrap = document.getElementById('posterPreviewModal').querySelector('.overflow-y-auto');
           if (imgWrap) { imgWrap.innerHTML = ''; imgWrap.appendChild(final); final.style.maxWidth = '100%'; }
         }
@@ -1060,10 +1024,18 @@
       window.__posterCanvas = null;
     };
 
-    window.downloadPoster = () => {
+    window.downloadPoster = async () => {
       const c = window.__posterCanvas;
       if (!c) return;
       const d = window.__shareData || {};
+      // 优先尝试原生分享
+      if (window.__posterFile && navigator.canShare?.({ files: [window.__posterFile] })) {
+        try {
+          await navigator.share({ files: [window.__posterFile], title: `${d.name} 的 ${d.game} 战绩` });
+          return;
+        } catch (err) { if (err?.name === 'AbortError') return; }
+      }
+      // 降级下载
       try {
         const a = document.createElement('a');
         a.download = `bf-tracker-${d.name}.png`;
