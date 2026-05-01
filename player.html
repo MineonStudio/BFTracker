@@ -679,7 +679,7 @@
           overlay.classList.add('hidden');
           list.innerHTML = '';
           document.removeEventListener('click', handler);
-          resolve(personaList[idx].personaId);
+          resolve({ personaId: personaList[idx].personaId, platform: personaList[idx].platform });
         };
         // 取消按钮
         document.getElementById('personaCancel').onclick = () => {
@@ -719,7 +719,7 @@
       let platforms = gameCatPlatforms[platformCategory] || ['steam'];
 
       // ── 搜索玩家，检测活跃平台和多个 personaId ──
-      let selectedPersonaId = null;
+      let selectedPersona = null;
       try {
         const playerResults = await searchPlayer(game, name, platforms[0]);
         if (playerResults?.results?.length) {
@@ -750,7 +750,11 @@
           // 如果同一平台有多个不同 personaId，弹出选择
           const personaList = [...personaMap.values()];
           if (personaList.length > 1) {
-            selectedPersonaId = await showPersonaSelector(personaList);
+            selectedPersona = await showPersonaSelector(personaList);
+            // 用户选了具体账号后，只查该账号的对应平台
+            if (selectedPersona) {
+              platforms = [selectedPersona.platform];
+            }
           }
         }
       } catch {}
@@ -759,8 +763,8 @@
       const settled = await Promise.allSettled(
         platforms.map(async p => {
           const [stats, allData] = await Promise.all([
-            getStats(game, name, p, selectedPersonaId),
-            fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${mapStatsPlatform(p)}${selectedPersonaId ? '&personaid=' + selectedPersonaId : ''}`, { signal: AbortSignal.timeout?.(15000) })
+            getStats(game, name, p, selectedPersona?.personaId),
+            fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${mapStatsPlatform(p)}${selectedPersona?.personaId ? '&personaid=' + selectedPersona.personaId : ''}`, { signal: AbortSignal.timeout?.(15000) })
               .then(r => r.json()).catch(() => null),
           ]);
           // 保存 API 数据到缓存
@@ -849,7 +853,7 @@
       if (game === 'bf6') {
         (async () => {
           try {
-            const data = await getStatsSeparated('bf6', name, results[0].platform, selectedPersonaId).catch(() => null);
+            const data = await getStatsSeparated('bf6', name, results[0].platform, selectedPersona?.personaId).catch(() => null);
             if (!data) return;
             const seasons = data.seasons || data.gamemodeSeperation || [];
             if (!seasons.length) return;
