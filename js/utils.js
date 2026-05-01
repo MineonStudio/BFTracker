@@ -30,7 +30,7 @@ export function formatDecimal(v, digits = 2) {
 // KD 颜色分级（红 = 高 = 危险）
 export function kdColor(kd) {
   const v = parseFloat(kd);
-  if (v >= 2)   return '#ff4655';  // 红
+  if (v >= 2)   return '#60a5fa';  // 红
   if (v >= 1)   return '#facc15';  // 黄
   return '#22c55e';                // 绿
 }
@@ -38,7 +38,7 @@ export function kdColor(kd) {
 // 胜率颜色分级（红 = 高胜率 = 强）
 export function winColor(pct) {
   const v = parseFloat(pct);
-  if (v >= 60) return '#ff4655';
+  if (v >= 60) return '#60a5fa';
   if (v >= 30) return '#facc15';
   return '#22c55e';
 }

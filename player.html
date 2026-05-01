@@ -116,7 +116,7 @@
     const { game, name, platform: urlPlatform } = getUrlParams();
 
     // ─── 图表渲染 ───────────────────────────────────────────
-    function renderBarChart(el, labels, values, color = '#ff4655') {
+    function renderBarChart(el, labels, values, color = '#3b82f6') {
       requestAnimationFrame(() => {
         const chart = echarts.init(el, 'dark');
         chart.setOption({
@@ -126,7 +126,7 @@
           yAxis: { type: 'category', data: labels, axisLabel: { color: '#d1d5db', fontSize: 11 }, axisTick: { show: false } },
           series: [{
             type: 'bar', data: values, barMaxWidth: 24,
-            itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color }, { offset: 1, color: '#fb923c' }] }, borderRadius: [0, 4, 4, 0] },
+            itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color }, { offset: 1, color: '#8b5cf6' }] }, borderRadius: [0, 4, 4, 0] },
             label: { show: true, position: 'right', color: '#9ca3af', fontSize: 11 },
           }],
           tooltip: { trigger: 'axis', backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' } },
@@ -165,16 +165,16 @@
             center: ['50%', '52%'],
             radius: '68%',
             axisName: { color: '#9ca3af', fontSize: 11 },
-            splitArea: { areaStyle: { color: ['rgba(255,70,85,0.04)', 'rgba(255,70,85,0.08)'] } },
+            splitArea: { areaStyle: { color: ['rgba(59,130,246,0.04)', 'rgba(59,130,246,0.08)'] } },
             splitLine: { lineStyle: { color: '#374151' } },
             axisLine: { lineStyle: { color: '#374151' } },
           },
           series: [{
             type: 'radar',
             data: [{ value: items.map(i => i.value), name: '' }],
-            areaStyle: { color: 'rgba(255,70,85,0.15)' },
-            lineStyle: { color: '#ff4655', width: 2 },
-            itemStyle: { color: '#ff4655' },
+            areaStyle: { color: 'rgba(59,130,246,0.15)' },
+            lineStyle: { color: '#3b82f6', width: 2 },
+            itemStyle: { color: '#3b82f6' },
             symbol: 'circle',
             symbolSize: 3,
           }],
@@ -397,7 +397,7 @@
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
               <span class="flex-1 lg:flex-none lg:w-24 text-sm lg:text-xs text-gray-200 lg:text-gray-300 truncate shrink-0">${w.weaponName}</span>
-              <div class="hidden lg:block flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#ff4655,#fb923c)"></div></div>
+              <div class="hidden lg:block flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#3b82f6,#8b5cf6)"></div></div>
               <span class="text-sm lg:text-xs font-bold text-accent lg:text-white w-auto lg:w-12 text-right shrink-0">${formatNum(w.kills)}</span>
             </div>
             <div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总伤害<div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(w.damage))}</div></div><div style="color:#6b7280">命中率<div style="color:#d1d5db;font-size:11px">${formatPct(w.accuracy)}</div></div><div style="color:#6b7280">爆头率<div style="color:#d1d5db;font-size:11px">${formatPct(w.headshots)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}</div></div></div>
@@ -422,7 +422,7 @@
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
               <span class="flex-1 lg:flex-none lg:w-24 text-sm lg:text-xs text-gray-200 lg:text-gray-300 truncate shrink-0">${v.vehicleName}</span>
-              <div class="hidden lg:block flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#ff4655,#fb923c)"></div></div>
+              <div class="hidden lg:block flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#3b82f6,#8b5cf6)"></div></div>
               <span class="text-sm lg:text-xs font-bold text-accent lg:text-white w-auto lg:w-12 text-right shrink-0">${formatNum(v.kills)}</span>
             </div>
             <div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总伤害<div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(v.damage||0))}</div></div><div style="color:#6b7280">摧毁载具<div style="color:#d1d5db;font-size:11px">${formatNum(v.destroyed)}</div></div><div style="color:#6b7280">路杀<div style="color:#d1d5db;font-size:11px">${formatNum(v.roadKills||0)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}</div></div></div>
@@ -542,7 +542,7 @@
             },
           },
           series: [
-            { name: 'K/D',    yAxisIndex: 0, type: 'line', smooth: true, data: seasonSummary.map(s => s.kd.toFixed(2)),       lineStyle: { color: '#ff4655' }, itemStyle: { color: '#ff4655' }, symbol: 'circle', symbolSize: 6 },
+            { name: 'K/D',    yAxisIndex: 0, type: 'line', smooth: true, data: seasonSummary.map(s => s.kd.toFixed(2)),       lineStyle: { color: '#3b82f6' }, itemStyle: { color: '#3b82f6' }, symbol: 'circle', symbolSize: 6 },
             { name: '胜率(%)', yAxisIndex: 1, type: 'line', smooth: true, data: seasonSummary.map(s => s.winRate.toFixed(1)), lineStyle: { color: '#22c55e' }, itemStyle: { color: '#22c55e' }, symbol: 'circle', symbolSize: 6 },
           ],
         });
