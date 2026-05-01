@@ -101,7 +101,7 @@
   </div>
 
   <script type="module">
-    import { getStats, getStatsSeparated, mapStatsPlatform, GAME_LABELS, PLATFORM_LABELS, searchPlayer, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
+    import { getStats, getStatsSeparated, mapStatsPlatform, GAME_LABELS, searchPlayer, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
     import { saveSnapshot, saveRecentSearch, saveApiCache } from './js/storage.js';
     import * as echarts from 'echarts/core';
     import { PieChart, BarChart, LineChart, RadarChart } from 'echarts/charts';
@@ -655,43 +655,6 @@
     }
 
     // ─── 主加载逻辑 ──────────────────────────────────────────
-    // ── 多账号选择弹窗 ──
-    function showPersonaSelector(personaList) {
-      return new Promise(resolve => {
-        const overlay = document.getElementById('personaOverlay');
-        const list = document.getElementById('personaList');
-        list.innerHTML = personaList.map((p, i) => {
-          const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString('zh-CN') : '未知';
-          const label = `${p.displayName}${p.platform ? ' · ' + (PLATFORM_LABELS[p.platform] || p.platform) : ''}`;
-          return `
-            <button class="persona-option w-full text-left px-4 py-3 rounded-lg border border-gray-700 hover:border-blue-500 hover:bg-gray-800/50 transition-colors" data-index="${i}">
-              <div class="font-medium text-sm text-white">${label}</div>
-              <div class="text-xs text-gray-500 mt-0.5">创建于 ${date} · ID: …${String(p.personaId).slice(-6)}</div>
-            </button>
-          `;
-        }).join('');
-        overlay.classList.remove('hidden');
-
-        const handler = e => {
-          const btn = e.target.closest('.persona-option');
-          if (!btn) return;
-          const idx = parseInt(btn.dataset.index);
-          overlay.classList.add('hidden');
-          list.innerHTML = '';
-          document.removeEventListener('click', handler);
-          resolve({ personaId: personaList[idx].personaId, platform: personaList[idx].platform });
-        };
-        // 取消按钮
-        document.getElementById('personaCancel').onclick = () => {
-          overlay.classList.add('hidden');
-          list.innerHTML = '';
-          document.removeEventListener('click', handler);
-          resolve(null);
-        };
-        document.addEventListener('click', handler);
-      });
-    }
-
     async function load() {
       if (!name) {
         document.getElementById('loadingState').classList.add('hidden');
@@ -717,54 +680,30 @@
       })();
       const gameCatPlatforms = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['steam'] };
       let platforms = gameCatPlatforms[platformCategory] || ['steam'];
+      let playerId = null;
 
-      // ── 搜索玩家，检测活跃平台和多个 personaId ──
-      let selectedPersona = null;
+      // ── 搜索玩家，获取真实平台和 playerId ──
       try {
-        const playerResults = await searchPlayer(game, name, platforms[0]);
+        const playerResults = await searchPlayer(game, name);
         if (playerResults?.results?.length) {
-          // 检测活跃平台
-          const activePlatforms = new Set();
-          // 收集所有 unique personaId（同平台可能有多条）
-          const personaMap = new Map(); // personaId -> { displayName, platform, createdAt, status }
-          playerResults.results.forEach(r => {
-            if (r.platform && platforms.includes(r.platform)) {
-              activePlatforms.add(r.platform);
-            }
-            if (r.personaId) {
-              const key = String(r.personaId);
-              if (!personaMap.has(key)) {
-                personaMap.set(key, {
-                  personaId: r.personaId,
-                  displayName: r.displayName || r.username || name,
-                  platform: r.platform || platforms[0],
-                  createdAt: r.createdAt,
-                  status: r.status,
-                });
-              }
-            }
-          });
-          if (activePlatforms.size > 0) {
-            platforms = [...new Set([...activePlatforms, ...platforms])];
-          }
-          // 如果同一平台有多个不同 personaId，弹出选择
-          const personaList = [...personaMap.values()];
-          if (personaList.length > 1) {
-            selectedPersona = await showPersonaSelector(personaList);
-            // 用户选了具体账号后，只查该账号的对应平台
-            if (selectedPersona) {
-              platforms = [selectedPersona.platform];
-            }
+          // 找出第一个匹配当前平台分类的结果
+          const matched = playerResults.results.find(r =>
+            r.platform && platforms.includes(r.platform)
+          );
+          if (matched) {
+            playerId = matched.personaId || matched.playerid || null;
+            // 用搜索结果返回的真实平台取代用户选择的泛平台
+            platforms = [matched.platform];
           }
         }
       } catch {}
 
-      // 并发查询（只查检测到的平台）
+      // 并发查询
       const settled = await Promise.allSettled(
         platforms.map(async p => {
           const [stats, allData] = await Promise.all([
-            getStats(game, name, p, selectedPersona?.personaId),
-            fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${mapStatsPlatform(p)}${selectedPersona?.personaId ? '&personaid=' + selectedPersona.personaId : ''}`, { signal: AbortSignal.timeout?.(15000) })
+            getStats(game, name, p, playerId),
+            fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${mapStatsPlatform(p)}${playerId ? '&playerid=' + playerId : ''}`, { signal: AbortSignal.timeout?.(15000) })
               .then(r => r.json()).catch(() => null),
           ]);
           // 保存 API 数据到缓存
@@ -853,7 +792,7 @@
       if (game === 'bf6') {
         (async () => {
           try {
-            const data = await getStatsSeparated('bf6', name, results[0].platform, selectedPersona?.personaId).catch(() => null);
+            const data = await getStatsSeparated('bf6', name, results[0].platform, playerId).catch(() => null);
             if (!data) return;
             const seasons = data.seasons || data.gamemodeSeperation || [];
             if (!seasons.length) return;
@@ -1245,20 +1184,6 @@
       window.downloadPoster();
     };
   </script>
-  </div>
-
-  <!-- ── 多账号选择弹窗 ── -->
-  <div id="personaOverlay" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-    <div class="bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-      <div class="px-5 pt-5 pb-3 border-b border-gray-700">
-        <h3 class="text-lg font-semibold text-white">找到多个账号</h3>
-        <p class="text-sm text-gray-400 mt-1">该用户名下存在多个账号，请选择要查询的账号：</p>
-      </div>
-      <div id="personaList" class="px-4 py-3 space-y-2 max-h-80 overflow-y-auto"></div>
-      <div class="px-5 py-3 border-t border-gray-700 flex justify-end">
-        <button id="personaCancel" class="text-sm text-gray-400 hover:text-white px-4 py-2 rounded-lg transition-colors">取消</button>
-      </div>
-    </div>
   </div>
 
   <!-- 页脚 -->
