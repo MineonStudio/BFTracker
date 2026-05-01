@@ -679,72 +679,71 @@
         return raw;
       })();
       const gameCatPlatforms = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['steam'] };
-      let platforms = gameCatPlatforms[platformCategory] || ['steam'];
-      let playerId = null;
+      const categoryPlatforms = gameCatPlatforms[platformCategory] || ['steam'];
 
-      // ── 搜索玩家，获取真实平台和 playerId ──
+      // ── 搜索玩家，遍历所有结果直到找到有数据的 ──
+      let platformStats = null;
       try {
         const playerResults = await searchPlayer(game, name);
         if (playerResults?.results?.length) {
-          // 找出第一个匹配当前平台分类的结果
-          const matched = playerResults.results.find(r =>
-            r.platform && platforms.includes(r.platform)
-          );
-          if (matched) {
-            playerId = matched.personaId || matched.playerid || null;
-            // 用搜索结果返回的真实平台取代用户选择的泛平台
-            platforms = [matched.platform];
+          // 按是否匹配用户分类排序：匹配的优先
+          const sorted = [...playerResults.results].sort((a, b) => {
+            const aMatch = a.platform && categoryPlatforms.includes(a.platform) ? 0 : 1;
+            const bMatch = b.platform && categoryPlatforms.includes(b.platform) ? 0 : 1;
+            return aMatch - bMatch;
+          });
+          // 逐个尝试，直到找到有数据的
+          for (const r of sorted) {
+            const p = r.platform || categoryPlatforms[0];
+            const pid = r.personaId || r.playerid || null;
+            try {
+              const stats = await getStats(game, name, p, pid);
+              const allData = await fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${mapStatsPlatform(p)}${pid ? '&playerid=' + pid : ''}`, { signal: AbortSignal.timeout?.(10000) })
+                .then(r => r.json()).catch(() => null);
+              if (allData) saveApiCache(game, p, name, allData);
+              platformStats = { platform: p, stats, allData, playerId: pid };
+              break; // 找到有数据的，跳出
+            } catch {}
           }
         }
       } catch {}
 
-      // 并发查询
-      const settled = await Promise.allSettled(
-        platforms.map(async p => {
-          const [stats, allData] = await Promise.all([
-            getStats(game, name, p, playerId),
-            fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${mapStatsPlatform(p)}${playerId ? '&playerid=' + playerId : ''}`, { signal: AbortSignal.timeout?.(15000) })
-              .then(r => r.json()).catch(() => null),
-          ]);
-          // 保存 API 数据到缓存
-          if (allData) saveApiCache(game, p, name, allData);
-          return { platform: p, stats, allData };
-        })
-      );
+      // 如果搜索没找到，尝试用户选择的全部平台
+      if (!platformStats) {
+        const settled = await Promise.allSettled(
+          categoryPlatforms.map(async p => {
+            try {
+              const [stats, allData] = await Promise.all([
+                getStats(game, name, p),
+                fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${mapStatsPlatform(p)}`, { signal: AbortSignal.timeout?.(10000) })
+                  .then(r => r.json()).catch(() => null),
+              ]);
+              if (allData) saveApiCache(game, p, name, allData);
+              return { platform: p, stats, allData };
+            } catch {
+              return { platform: p, stats: null, allData: null };
+            }
+          })
+        );
+        const results = settled.filter(r => r.status === 'fulfilled' && r.value.stats);
+        if (results.length) {
+          platformStats = results[0].value;
+        }
+      }
 
-      // 过滤成功结果，按 userId 去重
-      const seen = new Set();
-      const results = settled
-        .filter(r => r.status === 'fulfilled')
-        .map(r => r.value)
-        .filter(({ stats }) => {
-          const uid = stats.userId ?? stats.id;
-          if (uid == null) return true;
-          if (seen.has(uid)) return false;
-          seen.add(uid);
-          return true;
-        });
-
-      if (!results.length) {
-        // 取第一个失败原因作为错误信息
-        const firstErr = settled.find(r => r.status === 'rejected')?.reason;
-        let errMsg = firstErr?.message || 'NOTFOUND';
-        if (errMsg === 'TIMEOUT') errMsg = '请求超时，请检查网络后重试';
-        else if (errMsg === 'NETWORK') errMsg = '网络连接失败，请检查网络';
-        else if (errMsg === 'NOTFOUND' || errMsg === 'NO_STATS') errMsg = '未找到该玩家，请检查用户名和平台';
-        showError(errMsg);
+      if (!platformStats) {
+        showError('NOTFOUND');
         return;
       }
 
-      // 保存搜索记录（用第一个结果的平台）
-      saveSnapshot(game, results[0].platform, name, results[0].stats);
-      saveRecentSearch(game, results[0].platform, name);
+      // 保存搜索记录
+      saveSnapshot(game, platformStats.platform, name, platformStats.stats);
+      saveRecentSearch(game, platformStats.platform, name);
 
-      // 填充玩家头部（用第一个结果）
-      const first = results[0];
-
-      // 缓存分享数据
+      const first = platformStats;
       const stats = first.stats;
+      const playerId = first.playerId;
+
       const allClass = first.allData?.classes?.find(c => c.id === 'kit') || first.allData?.classes?.[0];
       const humanKills = stats.dividedKills?.human || stats.kills || 0;
       const spmVal = (allClass?.score && allClass?.secondsPlayed)
@@ -792,7 +791,7 @@
       if (game === 'bf6') {
         (async () => {
           try {
-            const data = await getStatsSeparated('bf6', name, results[0].platform, playerId).catch(() => null);
+            const data = await getStatsSeparated('bf6', name, platformStats.platform, playerId).catch(() => null);
             if (!data) return;
             const seasons = data.seasons || data.gamemodeSeperation || [];
             if (!seasons.length) return;
@@ -814,7 +813,7 @@
       if (game === 'bf2042') {
         (async () => {
           try {
-            const inv = await getInventory('bf2042', name, results[0].platform).catch(() => null);
+            const inv = await getInventory('bf2042', name, platformStats.platform).catch(() => null);
             if (!inv) return;
             const sec = document.getElementById('inventorySection');
             const ct = document.getElementById('inventoryContent');
