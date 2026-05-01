@@ -101,14 +101,14 @@
   </div>
 
   <script type="module">
-    import { getStats, GAME_LABELS, PLATFORM_LABELS, searchPlayer, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
+    import { getStats, getStatsSeparated, mapStatsPlatform, GAME_LABELS, PLATFORM_LABELS, searchPlayer, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
     import { saveSnapshot, saveRecentSearch, saveApiCache } from './js/storage.js';
     import * as echarts from 'echarts/core';
     import { PieChart, BarChart, LineChart, RadarChart } from 'echarts/charts';
     import { LegendComponent, TooltipComponent, GridComponent } from 'echarts/components';
     import { CanvasRenderer } from 'echarts/renderers';
     echarts.use([PieChart, BarChart, LineChart, RadarChart, LegendComponent, TooltipComponent, GridComponent, CanvasRenderer]);
-    import { checkBan, checkEacBan, getInventory } from './js/api.js';
+    import { getInventory } from './js/api.js';
     import { MAP_CN, getModeName, CLASS_CN } from './js/constants.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, getUrlParams } from './js/utils.js';
 
@@ -218,7 +218,6 @@
                 <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight truncate">${stats.userName || name}</h1>
                 <div class="flex items-center gap-2 ml-auto shrink-0">
                   <span class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-accent/10 h-6 flex items-center">${(GAME_LABELS[game] || game).replace('Battlefield ','BF')}</span>
-                  <span id="banStatus"></span>
                   <button onclick="window.doSharePoster()" class="text-gray-400 hover:text-white transition-colors" title="分享"><svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
                 </div>
               </div>
@@ -656,6 +655,43 @@
     }
 
     // ─── 主加载逻辑 ──────────────────────────────────────────
+    // ── 多账号选择弹窗 ──
+    function showPersonaSelector(personaList) {
+      return new Promise(resolve => {
+        const overlay = document.getElementById('personaOverlay');
+        const list = document.getElementById('personaList');
+        list.innerHTML = personaList.map((p, i) => {
+          const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString('zh-CN') : '未知';
+          const label = `${p.displayName}${p.platform ? ' · ' + (PLATFORM_LABELS[p.platform] || p.platform) : ''}`;
+          return `
+            <button class="persona-option w-full text-left px-4 py-3 rounded-lg border border-gray-700 hover:border-blue-500 hover:bg-gray-800/50 transition-colors" data-index="${i}">
+              <div class="font-medium text-sm text-white">${label}</div>
+              <div class="text-xs text-gray-500 mt-0.5">创建于 ${date} · ID: …${String(p.personaId).slice(-6)}</div>
+            </button>
+          `;
+        }).join('');
+        overlay.classList.remove('hidden');
+
+        const handler = e => {
+          const btn = e.target.closest('.persona-option');
+          if (!btn) return;
+          const idx = parseInt(btn.dataset.index);
+          overlay.classList.add('hidden');
+          list.innerHTML = '';
+          document.removeEventListener('click', handler);
+          resolve(personaList[idx].personaId);
+        };
+        // 取消按钮
+        document.getElementById('personaCancel').onclick = () => {
+          overlay.classList.add('hidden');
+          list.innerHTML = '';
+          document.removeEventListener('click', handler);
+          resolve(null);
+        };
+        document.addEventListener('click', handler);
+      });
+    }
+
     async function load() {
       if (!name) {
         document.getElementById('loadingState').classList.add('hidden');
@@ -682,33 +718,49 @@
       const gameCatPlatforms = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['steam'] };
       let platforms = gameCatPlatforms[platformCategory] || ['steam'];
 
-      // 智能检测：找出该玩家实际活跃的子平台，配合通用平台作为兜底
-      let detectedPlatforms = null;
-      if (platforms.length > 2) {
-        try {
-          const playerResults = await searchPlayer(game, name, platforms[0]);
-          if (playerResults?.results?.length) {
-            const activePlatforms = new Set();
-            playerResults.results.forEach(r => {
-              if (r.platform && platforms.includes(r.platform)) {
-                activePlatforms.add(r.platform);
+      // ── 搜索玩家，检测活跃平台和多个 personaId ──
+      let selectedPersonaId = null;
+      try {
+        const playerResults = await searchPlayer(game, name, platforms[0]);
+        if (playerResults?.results?.length) {
+          // 检测活跃平台
+          const activePlatforms = new Set();
+          // 收集所有 unique personaId（同平台可能有多条）
+          const personaMap = new Map(); // personaId -> { displayName, platform, createdAt, status }
+          playerResults.results.forEach(r => {
+            if (r.platform && platforms.includes(r.platform)) {
+              activePlatforms.add(r.platform);
+            }
+            if (r.personaId) {
+              const key = String(r.personaId);
+              if (!personaMap.has(key)) {
+                personaMap.set(key, {
+                  personaId: r.personaId,
+                  displayName: r.displayName || r.username || name,
+                  platform: r.platform || platforms[0],
+                  createdAt: r.createdAt,
+                  status: r.status,
+                });
               }
-            });
-            if (activePlatforms.size > 0) detectedPlatforms = [...activePlatforms];
+            }
+          });
+          if (activePlatforms.size > 0) {
+            platforms = [...new Set([...activePlatforms, ...platforms])];
           }
-        } catch {}
-      }
-      // 用检测到的平台优先，但保留全量作为兜底（兼容 API 只认通用平台名的情况）
-      if (detectedPlatforms) {
-        platforms = [...new Set([...detectedPlatforms, ...platforms])];
-      }
+          // 如果同一平台有多个不同 personaId，弹出选择
+          const personaList = [...personaMap.values()];
+          if (personaList.length > 1) {
+            selectedPersonaId = await showPersonaSelector(personaList);
+          }
+        }
+      } catch {}
 
       // 并发查询（只查检测到的平台）
       const settled = await Promise.allSettled(
         platforms.map(async p => {
           const [stats, allData] = await Promise.all([
-            getStats(game, name, p),
-            fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${p}`, { signal: AbortSignal.timeout?.(15000) })
+            getStats(game, name, p, selectedPersonaId),
+            fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${mapStatsPlatform(p)}${selectedPersonaId ? '&personaid=' + selectedPersonaId : ''}`, { signal: AbortSignal.timeout?.(15000) })
               .then(r => r.json()).catch(() => null),
           ]);
           // 保存 API 数据到缓存
@@ -784,7 +836,6 @@
         headShots: formatNum(stats.headShots),
         assists: formatNum(allClass?.assists ?? stats.killAssists),
         revives: formatNum(stats.revives),
-        isBanned: false,
       };
       // 缓存板块数据供分享文本使用
       window.__shareOps = {
@@ -794,31 +845,11 @@
         classes: (first.allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 4).map(c => ({ name: CLASS_CN[c.className] || c.className, kills: formatNum(c.kills) })),
       };
 
-      // ── 封禁检测 ──
-      (async () => {
-        try {
-          const [banData, eacData] = await Promise.all([
-            checkBan(name).catch(() => null),
-            checkEacBan(name).catch(() => null),
-          ]);
-          const el = document.getElementById('banStatus');
-          const banned = banData?.isBanned || eacData?.isBanned;
-          if (el) {
-            if (banned) {
-              el.innerHTML = '<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-900/50 text-red-400 h-6 flex items-center">已封禁</span>';
-            } else {
-              el.innerHTML = '<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-900/50 text-green-400 h-6 flex items-center">绿玩</span>';
-            }
-          }
-          if (window.__shareData) window.__shareData.isBanned = banned;
-        } catch {}
-      })();
-
       // ── BF6 赛季分离数据 ──
       if (game === 'bf6') {
         (async () => {
           try {
-            const data = await getStatsSeparated('bf6', name, results[0].platform).catch(() => null);
+            const data = await getStatsSeparated('bf6', name, results[0].platform, selectedPersonaId).catch(() => null);
             if (!data) return;
             const seasons = data.seasons || data.gamemodeSeperation || [];
             if (!seasons.length) return;
@@ -1054,20 +1085,11 @@
         ctx.fillText(d.name || '—', P + 86, y + 60);
         y += 80;
 
-        // 游戏名 · 时长 · 封禁
+        // 游戏名 · 时长
         ctx.font = '26px system-ui, -apple-system, sans-serif';
         ctx.fillStyle = '#9ca3af';
         const meta = `${d.game} · ${d.time}`;
         ctx.fillText(meta, P + 86, y + 28);
-        const mw = ctx.measureText(meta).width;
-        const ban = d.isBanned ? '已封禁' : '绿玩';
-        ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-        const bw = ctx.measureText(ban).width + 28;
-        const bx = P + 86 + mw + 24;
-        ctx.fillStyle = d.isBanned ? 'rgba(239,68,68,0.18)' : 'rgba(74,222,128,0.18)';
-        ctx.beginPath(); ctx.roundRect(bx, y + 4, bw, 36, 18); ctx.fill();
-        ctx.fillStyle = d.isBanned ? '#f87171' : '#4ade80';
-        ctx.fillText(ban, bx + 14, y + 30);
         y += 56;
 
         // KD + 胜率 双卡片
@@ -1219,6 +1241,20 @@
       window.downloadPoster();
     };
   </script>
+  </div>
+
+  <!-- ── 多账号选择弹窗 ── -->
+  <div id="personaOverlay" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+      <div class="px-5 pt-5 pb-3 border-b border-gray-700">
+        <h3 class="text-lg font-semibold text-white">找到多个账号</h3>
+        <p class="text-sm text-gray-400 mt-1">该用户名下存在多个账号，请选择要查询的账号：</p>
+      </div>
+      <div id="personaList" class="px-4 py-3 space-y-2 max-h-80 overflow-y-auto"></div>
+      <div class="px-5 py-3 border-t border-gray-700 flex justify-end">
+        <button id="personaCancel" class="text-sm text-gray-400 hover:text-white px-4 py-2 rounded-lg transition-colors">取消</button>
+      </div>
+    </div>
   </div>
 
   <!-- 页脚 -->

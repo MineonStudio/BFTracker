@@ -66,31 +66,39 @@ async function request(url, timeout = 15000) {
   }
 }
 
+// stats 接口不认 "steam" 平台，需映射成 "pc"（数据存在 pc/ea 下）
+const STATS_PLATFORM = {
+  steam: 'pc',
+  epic: 'pc',
+};
+export function mapStatsPlatform(platform) {
+  return STATS_PLATFORM[platform] || platform;
+}
+
 // 查询玩家战绩
-export async function getStats(game, name, platform) {
-  return request(`${BASE}/${game}/stats/?name=${encodeURIComponent(name)}&platform=${platform}&format_values=false`);
+export async function getStats(game, name, platform, personaId) {
+  const sp = mapStatsPlatform(platform);
+  let url = `${BASE}/${game}/stats/?name=${encodeURIComponent(name)}&platform=${sp}&format_values=false`;
+  if (personaId) url += `&personaid=${personaId}`;
+  return request(url);
+}
+
+
+// BF6 赛季分离数据
+export async function getStatsSeparated(game, name, platform, personaId) {
+  const sp = mapStatsPlatform(platform);
+  let url = `${BASE}/${game}/separatedstats/?name=${encodeURIComponent(name)}&platform=${sp}`;
+  if (personaId) url += `&personaid=${personaId}`;
+  return request(url);
 }
 
 
 
-// BF6 全局在线人数
 // 搜索玩家（获取 playerid）
 export async function searchPlayer(game, name, platform) {
   return request(`${BASE}/${game}/player/?name=${encodeURIComponent(name)}&platform=${platform}`);
 }
 
-
-// BFBan 封禁检测
-export async function checkBan(name) {
-  try {
-    const res = await fetch(`${BASE}/bfban/check/?player=${encodeURIComponent(name)}`);
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data;
-  } catch {
-    return null;
-  }
-}
 
 // BF2042 玩家名片信息
 export async function getInventory(game, name, platform) {
@@ -103,13 +111,3 @@ export async function getInventory(game, name, platform) {
   }
 }
 
-// BF-EAC 封禁检测
-export async function checkEacBan(name) {
-  try {
-    const res = await fetch(`${BASE}/bfeac/check/?player=${encodeURIComponent(name)}`);
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
