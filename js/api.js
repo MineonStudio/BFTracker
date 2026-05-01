@@ -76,27 +76,27 @@ export function mapStatsPlatform(platform) {
 }
 
 // 查询玩家战绩
-export async function getStats(game, name, platform, personaId) {
+export async function getStats(game, name, platform, playerid) {
   const sp = mapStatsPlatform(platform);
   let url = `${BASE}/${game}/stats/?name=${encodeURIComponent(name)}&platform=${sp}&format_values=false`;
-  if (personaId) url += `&personaid=${personaId}`;
+  if (playerid) url += `&playerid=${playerid}`;
   return request(url);
 }
 
 
 // BF6 赛季分离数据
-export async function getStatsSeparated(game, name, platform, personaId) {
+export async function getStatsSeparated(game, name, platform, playerid) {
   const sp = mapStatsPlatform(platform);
   let url = `${BASE}/${game}/separatedstats/?name=${encodeURIComponent(name)}&platform=${sp}`;
-  if (personaId) url += `&personaid=${personaId}`;
+  if (playerid) url += `&playerid=${playerid}`;
   return request(url);
 }
 
 
 
 // 搜索玩家（获取 playerid）
-export async function searchPlayer(game, name, platform) {
-  return request(`${BASE}/${game}/player/?name=${encodeURIComponent(name)}&platform=${platform}`);
+export async function searchPlayer(game, name) {
+  return request(`${BASE}/${game}/player/?name=${encodeURIComponent(name)}`);
 }
 
 
