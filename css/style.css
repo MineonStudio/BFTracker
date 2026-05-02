@@ -22,8 +22,6 @@ nav { background: var(--nav-glass); backdrop-filter: blur(12px); -webkit-backdro
 
 /* 导航激活态 */
 .nav-link.active { color: var(--color-white); border-bottom: 1px solid var(--text-dim); }
-.nav-link:hover { color: var(--text-muted) !important; }
-
 /* 卡片进入动画 */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 .fade-up { animation: fadeUp .3s ease both; }
@@ -93,3 +91,43 @@ button, .bg-accent { border-radius: 0 !important; }
 .tab-panel:not(.hidden) { animation: tabFadeIn 0.25s ease-out; }
 @keyframes countIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 .count-animate { animation: countIn 0.4s ease-out; }
+
+/* 按钮按下态 */
+button:active { transform: scale(0.97); transition: transform 0.1s ease; }
+
+/* 悬停抬升 */
+.hover-lift { transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+.hover-lift:hover { transform: translateY(-1px); border-color: var(--border-strong); box-shadow: 0 1px 8px rgba(59, 130, 246, 0.08); }
+
+/* Logo 悬停 */
+a[href="index.html"].gradient-text:hover { opacity: 0.78; }
+
+/* 选择器悬停 */
+select:hover { border-color: var(--text-dim) !important; }
+
+/* 状态卡片选中环过渡 */
+.status-card { transition: background-color 0.15s ease, box-shadow 0.2s ease; }
+.status-card.ring-1, .status-card.ring-accent { box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / 0.5); transition: box-shadow 0.2s ease; }
+
+/* Chip 按下态 */
+.recent-chip:active { transform: scale(0.97); transition: transform 0.1s ease; }
+
+/* 删除按钮按下态 */
+.remove-btn:active, .remove-compare-btn:active { transform: scale(0.85); transition: transform 0.1s ease; }
+
+/* 详情面板进入动画 */
+@keyframes detailExpand { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+#statusDetail:not(.hidden) { animation: detailExpand 0.25s ease-out; }
+
+/* 模态框淡入淡出 */
+.modal-overlay { transition: opacity 0.25s ease, visibility 0s 0.25s; }
+.modal-overlay.hidden { display: flex !important; opacity: 0; visibility: hidden; pointer-events: none; }
+.modal-overlay:not(.hidden) { display: flex !important; opacity: 1; visibility: visible; transition: opacity 0.25s ease, visibility 0s 0s; }
+
+/* Footer 链接下划线滑入 */
+.footer-link { position: relative; }
+.footer-link::after { content: ''; position: absolute; bottom: -2px; left: 50%; width: 0; height: 1px; background: currentColor; transition: width 0.2s ease, left 0.2s ease; }
+.footer-link:hover::after { width: 100%; left: 0; }
+
+/* 输入框/选择框焦点环过渡 */
+input[type="text"], input[type="search"], select { transition: border-color 0.15s ease, box-shadow 0.15s ease; }

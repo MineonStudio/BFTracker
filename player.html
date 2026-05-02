@@ -75,7 +75,7 @@
     </div>
 
     <!-- 海报预览弹窗 -->
-    <div id="posterPreviewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(31,34,40,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)">
+    <div id="posterPreviewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay" style="background:rgba(31,34,40,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)">
       <div class="bg-card  p-5 sm:p-6 w-full max-w-2xl mx-4 flex flex-col" style="max-height:90vh">
         <h3 class="text-lg font-bold mb-3 shrink-0">🖼️ 海报预览</h3>
         <div class="flex-1 overflow-y-auto mb-4 bg-dark " style="min-height:120px">
@@ -226,7 +226,7 @@
           </div>
           <!-- 第一行：KD + 胜率 等宽 -->
           <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="bg-dark  p-4">
+            <div class="bg-dark p-4 hover-lift">
               <p class="text-2xl sm:text-4xl font-black count-animate" style="color:${kdColor(humanKd)}">${formatDecimal(humanKd)}</p>
               <p class="text-xs text-gray-500 mt-1">K/D</p>
               <div class="flex gap-4 mt-3 text-sm">
@@ -234,7 +234,7 @@
                 <div><p class="text-white font-semibold">${formatNum(stats.deaths)}</p><p class="text-xs text-gray-500">死亡</p></div>
               </div>
             </div>
-            <div class="bg-dark  p-4 flex flex-col justify-between">
+            <div class="bg-dark p-4 flex flex-col justify-between hover-lift">
               <div>
                 <p class="text-2xl sm:text-4xl font-black count-animate" style="color:${winColor(parseFloat(stats.winPercent))}">${formatPct(stats.winPercent)}</p>
                 <p class="text-xs text-gray-500 mt-1">胜率</p>
@@ -247,15 +247,15 @@
           </div>
           <!-- 9 个指标：三行三列 -->
           <div class="grid grid-cols-3 gap-1.5 sm:gap-3">
-            <div class="bg-dark  p-2 sm:p-3"><p class="text-sm sm:text-lg font-bold text-white">${spm ?? '—'}</p><p class="text-xs text-gray-500">每分钟得分</p></div>
-            <div class="bg-dark  p-2 sm:p-3"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.headshots)}</p><p class="text-xs text-gray-500">爆头率</p></div>
-            <div class="bg-dark  p-2 sm:p-3"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.accuracy)}</p><p class="text-xs text-gray-500">命中率</p></div>
-            <div class="bg-dark  p-2 sm:p-3"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(stats.killsPerMinute)}</p><p class="text-xs text-gray-500">KPM</p></div>
-            <div class="bg-dark  p-2 sm:p-3"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(humanKillsPerMatch)}</p><p class="text-xs text-gray-500">场均击杀</p></div>
-            <div class="bg-dark  p-2 sm:p-3"><p class="text-sm sm:text-lg font-bold text-white">${deathsPerMatch ?? '—'}</p><p class="text-xs text-gray-500">场均死亡</p></div>
-            <div class="bg-dark  p-2 sm:p-3"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.headShots)}</p><p class="text-xs text-gray-500">爆头数</p></div>
-            <div class="bg-dark  p-2 sm:p-3"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(assists)}</p><p class="text-xs text-gray-500">助攻数</p></div>
-            <div class="bg-dark  p-2 sm:p-3"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.revives)}</p><p class="text-xs text-gray-500">急救数</p></div>
+            <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${spm ?? '—'}</p><p class="text-xs text-gray-500">每分钟得分</p></div>
+            <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.headshots)}</p><p class="text-xs text-gray-500">爆头率</p></div>
+            <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.accuracy)}</p><p class="text-xs text-gray-500">命中率</p></div>
+            <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(stats.killsPerMinute)}</p><p class="text-xs text-gray-500">KPM</p></div>
+            <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(humanKillsPerMatch)}</p><p class="text-xs text-gray-500">场均击杀</p></div>
+            <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${deathsPerMatch ?? '—'}</p><p class="text-xs text-gray-500">场均死亡</p></div>
+            <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.headShots)}</p><p class="text-xs text-gray-500">爆头数</p></div>
+            <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(assists)}</p><p class="text-xs text-gray-500">助攻数</p></div>
+            <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.revives)}</p><p class="text-xs text-gray-500">急救数</p></div>
           </div>
         </div>
 
@@ -391,7 +391,7 @@
       document.getElementById(`weaponContent-${platform}`).innerHTML = top10.map((w, i) => {
         const pct = Math.round((w.kills / top10[0].kills) * 100);
         const img = w.image ? `<img loading="lazy" src="${w.image}" class="w-8 h-8 lg:w-10 lg:h-10 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(w.weaponName||'?')[0]}</span>`;
-        return `<div class="flex items-start gap-3 bg-dark px-3 py-2 mb-2">
+        return `<div class="flex items-start gap-3 bg-dark px-3 py-2 mb-2 hover-lift">
           <span class="hidden lg:inline text-xs text-gray-500 w-5 text-right shrink-0 pt-1">${i+1}</span>
           <div class="w-8 h-8 lg:w-12 lg:h-12 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden">${img}</div>
           <div class="flex-1 min-w-0">
@@ -416,7 +416,7 @@
       document.getElementById(`vehicleContent-${platform}`).innerHTML = topV.map((v, i) => {
         const pct = Math.round((v.kills / topV[0].kills) * 100);
         const img = v.image ? `<img loading="lazy" src="${v.image}" class="w-8 h-8 lg:w-10 lg:h-10 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(v.vehicleName||'?')[0]}</span>`;
-        return `<div class="flex items-start gap-3 bg-dark px-3 py-2 mb-2">
+        return `<div class="flex items-start gap-3 bg-dark px-3 py-2 mb-2 hover-lift">
           <span class="hidden lg:inline text-xs text-gray-500 w-5 text-right shrink-0 pt-1">${i+1}</span>
           <div class="w-8 h-8 lg:w-12 lg:h-12 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden">${img}</div>
           <div class="flex-1 min-w-0">
@@ -456,7 +456,7 @@
         document.getElementById(`classCards-${platform}`).innerHTML = classes.map(c => {
           const spmVal = c.score && c.secondsPlayed ? (c.score / (c.secondsPlayed / 60)).toFixed(0) : '—';
           return `
-            <div class="bg-dark  p-4">
+            <div class="bg-dark p-4 hover-lift">
               <div class="flex items-center gap-3 mb-3">
                 ${c.image ? `<img loading="lazy" src="${c.image}" class="w-8 h-8 opacity-80" alt="${c.className}">` : ''}
                 <div>
@@ -495,7 +495,7 @@
       if (recordDefs.length) {
         document.getElementById(`recordSection-${platform}`).style.display = '';
         document.getElementById(`recordCards-${platform}`).innerHTML = recordDefs.map(r => `
-          <div class="bg-dark  p-4">
+          <div class="bg-dark p-4 hover-lift">
             <p class="text-lg font-bold text-accent">${r.value}</p>
             <p class="text-xs text-gray-500 mt-1">${r.label}</p>
           </div>`).join('');
@@ -552,7 +552,7 @@
       const seasonCards = document.createElement('div');
       seasonCards.className = 'grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4';
       seasonCards.innerHTML = seasonSummary.map(s => `
-        <div class="bg-dark  p-4">
+        <div class="bg-dark p-4 hover-lift">
           <p class="text-xs text-gray-500 mb-1">${s.season}</p>
           <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
             <div><p class="font-bold text-white">${s.kills}</p><p class="text-xs text-gray-500">击杀</p></div>
@@ -577,7 +577,7 @@
         const pct = Math.max(0, parseFloat(m.winPercent) || 0);
         const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
         const img = m.image ? `<img loading="lazy" src="${m.image}" class="w-8 h-8 lg:w-10 lg:h-10 object-contain shrink-0" alt="">` : `<span class="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">M</span>`;
-        return `<div class="flex items-start gap-3 bg-dark px-3 py-2 mb-2">
+        return `<div class="flex items-start gap-3 bg-dark px-3 py-2 mb-2 hover-lift">
           <span class="hidden lg:inline text-xs text-gray-500 w-5 text-right shrink-0 pt-1">${i+1}</span>
           <div class="w-8 h-8 lg:w-12 lg:h-12 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden">${img}</div>
           <div class="flex-1 min-w-0">
@@ -603,7 +603,7 @@
         const pct = Math.max(0, parseFloat(m.winPercent) || 0);
         const color = pct >= 50 ? '#22c55e' : pct >= 40 ? '#facc15' : '#f87171';
         const img = m.image ? `<img loading="lazy" src="${m.image}" class="w-8 h-8 lg:w-10 lg:h-10 object-cover rounded shrink-0" alt="">` : `<span class="w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center text-xs font-bold text-gray-500 bg-gray-700/50 rounded shrink-0">${(MAP_CN[m.mapName]||m.mapName||'?')[0]}</span>`;
-        return `<div class="flex items-start gap-3 bg-dark px-3 py-2 mb-2">
+        return `<div class="flex items-start gap-3 bg-dark px-3 py-2 mb-2 hover-lift">
           <span class="hidden lg:inline text-xs text-gray-500 w-5 text-right shrink-0 pt-1">${i+1}</span>
           <div class="w-8 h-8 lg:w-12 lg:h-12 rounded bg-gray-700/30 flex items-center justify-center shrink-0 overflow-hidden">${img}</div>
           <div class="flex-1 min-w-0">
@@ -621,7 +621,7 @@
     // ── 支援与目标数据 ──
     function renderSupportSection(stats, platform) {
       function statCell(label, value) {
-        return `<div class="bg-dark  p-3">
+        return `<div class="bg-dark p-3 hover-lift">
           <p class="text-base font-bold text-white">${value}</p>
           <p class="text-xs text-gray-500 mt-0.5">${label}</p>
         </div>`;
@@ -1230,9 +1230,9 @@
           <p class="text-xs text-gray-500 mt-1">战地系列战绩查询 · 全平台数据 · 免费开源</p>
         </div>
         <div class="flex items-center gap-6 text-xs text-gray-500">
-          <a href="index.html" class="hover:text-gray-300 transition-colors">首页</a>
-          <a href="compare.html" class="hover:text-gray-300 transition-colors">多人对比</a>
-          <a href="https://github.com/MineonStudio/BFTracker" target="_blank" class="hover:text-gray-300 transition-colors">GitHub</a>
+          <a href="index.html" class="hover:text-gray-300 transition-colors footer-link">首页</a>
+          <a href="compare.html" class="hover:text-gray-300 transition-colors footer-link">多人对比</a>
+          <a href="https://github.com/MineonStudio/BFTracker" target="_blank" class="hover:text-gray-300 transition-colors footer-link">GitHub</a>
         </div>
       </div>
       <p class="text-center text-xs text-gray-600 mt-6">&copy; 2026 BF Tracker · Powered by GameTools Network</p>
