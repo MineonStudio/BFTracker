@@ -69,7 +69,7 @@ button, .bg-accent { border-radius: 0 !important; }
 .stat-card { transition: transform .2s; }
 
 /* 表格最优值高亮 */
-.best-val { color: #ffffff; font-weight: 500; }
+.best-val { color: #60a5fa; font-weight: 700; font-size: 1.05em; }
 
 /* 加载动画 */
 .spinner { width: 36px; height: 36px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #ffffff; border-radius: 50%; animation: spin .7s linear infinite; }
