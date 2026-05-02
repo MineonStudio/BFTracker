@@ -121,7 +121,7 @@
       document.getElementById('recentList').innerHTML = list.map(r => `
         <div class="group relative flex items-center bg-card border border-gray-700 hover:border-accent rounded-full pl-4 pr-2 py-1.5 text-sm transition-colors">
           <a href="${buildPlayerUrl(r.game, r.name, r.platform)}" class="flex items-center gap-1.5 flex-1 min-w-0">
-            <span class="text-gray-400 font-semibold shrink-0">${GAME_LABELS[r.game] || r.game}</span>
+            <span class="text-accent font-semibold shrink-0">${GAME_LABELS[r.game] || r.game}</span>
             <span class="text-gray-500 text-xs px-1.5 py-0.5 rounded bg-gray-700/50 shrink-0">${formatPlatform(r.platform)}</span>
             <span class="text-gray-300 truncate">${r.name}</span>
           </a>
