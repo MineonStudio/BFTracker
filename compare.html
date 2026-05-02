@@ -48,6 +48,15 @@
       </div>
     </div>
 
+    <!-- 最近对比 -->
+    <div class="max-w-5xl mx-auto px-4 pb-8" id="recentCompareSection" style="display:none">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider">最近对比</h2>
+        <button id="clearCompareBtn" class="text-xs text-gray-500 hover:text-red-400 transition-colors">清除全部</button>
+      </div>
+      <div id="recentCompareList" class="flex flex-wrap gap-2"></div>
+    </div>
+
     <!-- 加载中：骨架屏 -->
     <div id="loadingState" class="hidden px-4 py-8">
       <div class="animate-pulse space-y-4 max-w-5xl mx-auto">
@@ -88,7 +97,7 @@
     import { CanvasRenderer } from 'echarts/renderers';
     echarts.use([PieChart, BarChart, LineChart, RadarChart, LegendComponent, TooltipComponent, GridComponent, CanvasRenderer]);
     import { getStats, GAME_LABELS, PLATFORM_LABELS, PLATFORM_CATEGORIES, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
-    import { saveSnapshot, saveRecentSearch } from './js/storage.js';
+    import { saveSnapshot, saveRecentSearch, saveRecentCompare, getRecentCompares, removeRecentCompare, clearRecentCompares } from './js/storage.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, buildPlayerUrl } from './js/utils.js';
 
     let MAX = 2;
@@ -313,12 +322,80 @@
 
         renderRadar(players, statsArr);
         renderTable(players, statsArr);
+
+        // 保存最近对比记录
+        const slotValues = getSlotValues();
+        if (slotValues.length >= 2) {
+          saveRecentCompare(gameSelect.value, slotValues.map(s => ({ name: s.name, platform: s.platform })));
+          renderRecentCompares();
+        }
       } catch (err) {
         loadingEl.classList.add('hidden');
         loadingEl.classList.remove('flex');
         alert('查询失败：' + err.message);
       }
     });
+
+    // ── 最近对比渲染 ──
+    function renderRecentCompares() {
+      const list = getRecentCompares();
+      const section = document.getElementById('recentCompareSection');
+      if (!list.length) { section.style.display = 'none'; return; }
+      section.style.display = '';
+      const PLATFORM_CATEGORY_MAP = { xbox: 'Xbox', xboxone: 'Xbox', xboxseries: 'Xbox', pc: 'PC', steam: 'PC', ea: 'PC', epic: 'PC', psn: 'PlayStation', ps4: 'PlayStation', ps5: 'PlayStation', playstation: 'PlayStation' };
+      const formatPlatform = p => PLATFORM_CATEGORY_MAP[p?.toLowerCase()] || p?.charAt(0)?.toUpperCase() + p?.slice(1) || '—';
+      document.getElementById('recentCompareList').innerHTML = list.map((r, idx) => {
+        const names = r.players.map(p =>
+          `<span class="text-gray-300">${p.name}</span><span class="text-gray-500 text-xs ml-1">${formatPlatform(p.platform)}</span>`
+        ).join('<span class="text-gray-600 mx-1">vs</span>');
+        return `<div class="group relative flex items-center bg-card border border-gray-700 hover:border-accent rounded-full pl-4 pr-2 py-1.5 text-sm transition-colors cursor-pointer" data-compare-idx="${idx}">
+          <span class="text-accent font-semibold shrink-0 mr-2">${GAME_LABELS[r.game] || r.game}</span>
+          <span class="flex items-center gap-1 flex-1 min-w-0">${names}</span>
+          <button data-remove-idx="${idx}" class="remove-compare-btn ml-2 text-gray-600 hover:text-red-400 transition-colors leading-none text-base px-1">&times;</button>
+        </div>`;
+      }).join('');
+
+      // 点击快速发起对比
+      document.querySelectorAll('[data-compare-idx]').forEach(el => {
+        el.addEventListener('click', e => {
+          if (e.target.closest('.remove-compare-btn')) return;
+          const idx = parseInt(el.dataset.compareIdx);
+          const item = getRecentCompares()[idx];
+          if (!item) return;
+          gameSelect.value = item.game;
+          MAX = Math.min(item.players.length, 4);
+          renderSlots();
+          // 填充玩家数据
+          setTimeout(() => {
+            item.players.forEach((p, i) => {
+              const nameEl = document.querySelector(`[data-slot="${i}"][data-field="name"]`);
+              const platEl = document.querySelector(`[data-slot="${i}"][data-field="platform"]`);
+              if (nameEl) nameEl.value = p.name;
+              if (platEl) {
+                const cat = PLATFORM_CATEGORY_MAP[p.platform.toLowerCase()] || p.platform;
+                platEl.value = cat;
+              }
+            });
+          }, 50);
+        });
+      });
+
+      // 删除按钮
+      document.querySelectorAll('.remove-compare-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          removeRecentCompare(parseInt(btn.dataset.removeIdx));
+          renderRecentCompares();
+        });
+      });
+    }
+
+    document.getElementById('clearCompareBtn').addEventListener('click', () => {
+      clearRecentCompares();
+      renderRecentCompares();
+    });
+
+    renderRecentCompares();
 
     // URL 预填时自动触发对比
     if (preName) {

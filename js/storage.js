@@ -2,9 +2,11 @@ const HISTORY_KEY = (game, platform, name) =>
   `bf_history_${game}_${platform}_${name.toLowerCase()}`;
 
 const RECENT_KEY = 'bf_recent_searches';
+const COMPARE_KEY = 'bf_recent_compares';
 const API_CACHE_KEY = (game, platform, name) =>
   `bf_cache_${game}_${platform}_${name.toLowerCase()}`;
 const MAX_RECENT = 8;
+const MAX_COMPARE = 6;
 const MAX_SNAPSHOTS = 30;
 const CACHE_TTL = 5 * 60 * 1000; // 5分钟缓存
 
@@ -95,4 +97,38 @@ export function removeRecentSearch(game, platform, name) {
 // 清空全部最近搜索
 export function clearRecentSearches() {
   localStorage.removeItem(RECENT_KEY);
+}
+
+// 保存最近对比记录
+export function saveRecentCompare(game, players) {
+  const list = getRecentCompares();
+  const item = { game, players, ts: Date.now() };
+  // 去重（相同游戏+相同玩家名）
+  const key = (e) => e.game + '|' + e.players.map(p => p.name.toLowerCase()).sort().join(',');
+  const itemKey = key(item);
+  const filtered = list.filter(r => key(r) !== itemKey);
+  filtered.unshift(item);
+  if (filtered.length > MAX_COMPARE) filtered.length = MAX_COMPARE;
+  localStorage.setItem(COMPARE_KEY, JSON.stringify(filtered));
+}
+
+// 获取最近对比记录
+export function getRecentCompares() {
+  try {
+    return JSON.parse(localStorage.getItem(COMPARE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+// 删除单条最近对比
+export function removeRecentCompare(index) {
+  const list = getRecentCompares();
+  list.splice(index, 1);
+  localStorage.setItem(COMPARE_KEY, JSON.stringify(list));
+}
+
+// 清空全部最近对比
+export function clearRecentCompares() {
+  localStorage.removeItem(COMPARE_KEY);
 }
