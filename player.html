@@ -234,7 +234,7 @@
                 <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight truncate">${stats.userName || name}</h1>
                 <div class="flex items-center gap-2 ml-auto shrink-0">
                   <span class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-accent/10 h-6 flex items-center">${(GAME_LABELS[game] || game).replace('Battlefield ','BF')}</span>
-                  <span id="banStatus"></span>
+                  
                   <button onclick="window.doSharePoster()" class="text-gray-400 hover:text-white transition-colors" title="分享"><svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
                 </div>
               </div>
@@ -812,7 +812,6 @@
         headShots: formatNum(stats.headShots),
         assists: formatNum(allClass?.assists ?? stats.killAssists),
         revives: formatNum(stats.revives),
-        isBanned: false,
       };
       // 缓存板块数据供分享文本使用
       window.__shareOps = {
@@ -821,26 +820,6 @@
         maps: (first.allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0).sort((a, b) => (parseFloat(b.winPercent) || 0) - (parseFloat(a.winPercent) || 0)).slice(0, 5).map(m => ({ name: MAP_CN[m.mapName] || m.mapName, wr: parseFloat(m.winPercent).toFixed(1) })),
         classes: (first.allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 4).map(c => ({ name: CLASS_CN[c.className] || c.className, kills: formatNum(c.kills) })),
       };
-
-      // ── 封禁检测 ──
-      (async () => {
-        try {
-          const [banData, eacData] = await Promise.all([
-            checkBan(name).catch(() => null),
-            checkEacBan(name).catch(() => null),
-          ]);
-          const el = document.getElementById('banStatus');
-          const banned = banData?.isBanned || eacData?.isBanned;
-          if (el) {
-            if (banned) {
-              el.innerHTML = '<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-900/50 text-red-400 h-6 flex items-center">已封禁</span>';
-            } else {
-              el.innerHTML = '<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-900/50 text-green-400 h-6 flex items-center">绿玩</span>';
-            }
-          }
-          if (window.__shareData) window.__shareData.isBanned = banned;
-        } catch {}
-      })();
 
       // ── BF6 赛季分离数据 ──
       if (game === 'bf6') {
@@ -1082,20 +1061,11 @@
         ctx.fillText(d.name || '—', P + 86, y + 60);
         y += 80;
 
-        // 游戏名 · 时长 · 封禁
+        // 游戏名 · 时长
         ctx.font = '26px system-ui, -apple-system, sans-serif';
         ctx.fillStyle = '#9ca3af';
         const meta = `${d.game} · ${d.time}`;
         ctx.fillText(meta, P + 86, y + 28);
-        const mw = ctx.measureText(meta).width;
-        const ban = d.isBanned ? '已封禁' : '绿玩';
-        ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-        const bw = ctx.measureText(ban).width + 28;
-        const bx = P + 86 + mw + 24;
-        ctx.fillStyle = d.isBanned ? 'rgba(239,68,68,0.18)' : 'rgba(74,222,128,0.18)';
-        ctx.beginPath(); ctx.roundRect(bx, y + 4, bw, 36, 18); ctx.fill();
-        ctx.fillStyle = d.isBanned ? '#f87171' : '#4ade80';
-        ctx.fillText(ban, bx + 14, y + 30);
         y += 56;
 
         // KD + 胜率 双卡片
