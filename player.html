@@ -213,10 +213,10 @@
         <!-- 玩家总览 -->
         <div class="bg-card  p-5 mb-8 fade-up">
           ${rankVal != null ? `
-          <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-700/50">
-            <div class="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+          <div class="flex items-center gap-4 mb-4 pb-4 border-b border-gray-700/50">
+            ${allData?.rankImage?.small ? `<img src="${allData.rankImage.small}" class="w-12 h-12 object-contain" alt="">` : `<div class="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
               <span class="text-lg font-black text-accent">${rankVal}</span>
-            </div>
+            </div>`}
             <div>
               <p class="text-sm font-bold text-accent">${rankName ? rankName : '玩家等级'}</p>
               <p class="text-xs text-gray-500">Level ${rankVal}</p>
@@ -732,10 +732,12 @@
           // 从 profile 提取等级信息
           const rankData = profileData?.playerProfiles?.[0]?.playerCard?.rank;
           const rankNameData = profileData?.playerProfiles?.[0]?.rankName;
+          const rankImageData = profileData?.playerProfiles?.[0]?.playerCard?.rankImage;
           // 等级数据存到 allData 供渲染用，allData 为 null 时忽略
-          if (allData && (rankData != null || rankNameData != null)) {
+          if (allData && (rankData != null || rankNameData != null || rankImageData != null)) {
             if (rankData != null) allData.rank = rankData;
             if (rankNameData != null) allData.rankName = rankNameData;
+            if (rankImageData != null) allData.rankImage = rankImageData;
           }
           // 保存 API 数据到缓存
           if (allData) saveApiCache(game, p, name, allData);
