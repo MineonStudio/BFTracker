@@ -226,7 +226,7 @@
             <div class="flex-1 min-w-0">
               <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight truncate">${stats.userName || name}</h1>
               <div class="flex items-center gap-2 mt-1 text-sm text-gray-400">
-                <span class="text-accent font-semibold">${rankName ?? 'Level ' + (rankVal ?? '—')}</span>
+                <span class="text-accent font-semibold">Lv.${rankVal ?? '—'}</span>
                 <span class="text-gray-600">·</span>
                 <span>${formatSeconds(stats.secondsPlayed)}</span>
               </div>

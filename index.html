@@ -69,3 +69,22 @@
     const nameInput  = document.getElementById('nameInput');
     const searchBtn  = document.getElementById('searchBtn');
 
+    // 填充平台下拉
+    PLATFORM_CATEGORIES.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
+      platformSelect.appendChild(opt);
+    });
+
+    function doSearch() {
+      const name = nameInput.value.trim();
+      if (!name) { nameInput.focus(); return; }
+      const game = 'bf6';
+      const platform = platformSelect.value;
+      saveRecentSearch(game, platform, name);
+      window.location.href = buildPlayerUrl(game, name, platform);
+    }
+    searchBtn.addEventListener('click', doSearch);
+    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
