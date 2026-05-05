@@ -277,10 +277,12 @@
                   </div>
                 </div>
               </div>
-              <!-- 详细指标 -->
-              <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 text-center">
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(humanKd)}</p><p class="text-xs text-gray-500">K/D</p></div>
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${spm ?? '—'}</p><p class="text-xs text-gray-500">SPM</p></div>
+              <!-- 9 个指标：三行三列 -->
+              <div class="grid grid-cols-3 gap-1.5 sm:gap-3">
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${spm ?? '—'}</p><p class="text-xs text-gray-500">每分钟得分</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.headshots)}</p><p class="text-xs text-gray-500">爆头率</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.accuracy)}</p><p class="text-xs text-gray-500">命中率</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(stats.killsPerMinute)}</p><p class="text-xs text-gray-500">KPM</p></div>
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(humanKillsPerMatch)}</p><p class="text-xs text-gray-500">场均击杀</p></div>
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${deathsPerMatch ?? '—'}</p><p class="text-xs text-gray-500">场均死亡</p></div>
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.headShots)}</p><p class="text-xs text-gray-500">爆头数</p></div>
