@@ -26,29 +26,21 @@ export function formatDecimal(v, digits = 2) {
   return parseFloat(v).toFixed(digits);
 }
 
-// 时间戳转日期字符串
-export function formatDate(ts) {
-  const d = new Date(ts);
-  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
 
-// KD 颜色分级
+// KD 颜色分级（红 = 高 = 危险）
 export function kdColor(kd) {
   const v = parseFloat(kd);
-  if (v >= 3)   return '#22c55e';  // 绿
-  if (v >= 2)   return '#86efac';  // 浅绿
+  if (v >= 2)   return '#60a5fa';  // 红
   if (v >= 1)   return '#facc15';  // 黄
-  if (v >= 0.5) return '#fb923c';  // 橙
-  return '#f87171';                // 红
+  return '#22c55e';                // 绿
 }
 
-// 胜率颜色分级
+// 胜率颜色分级（红 = 高胜率 = 强）
 export function winColor(pct) {
   const v = parseFloat(pct);
-  if (v >= 60) return '#22c55e';
-  if (v >= 50) return '#86efac';
-  if (v >= 40) return '#facc15';
-  return '#fb923c';
+  if (v >= 60) return '#60a5fa';
+  if (v >= 30) return '#facc15';
+  return '#22c55e';
 }
 
 // 从 URL 参数获取查询参数
@@ -57,10 +49,14 @@ export function getUrlParams() {
   return {
     game: p.get('game') || 'bf6',
     name: p.get('name') || '',
+    platform: p.get('platform') || 'Xbox',
   };
 }
 
 // 构建跳转 URL
-export function buildPlayerUrl(game, name) {
-  return `player.html?game=${encodeURIComponent(game)}&name=${encodeURIComponent(name)}`;
+export function buildPlayerUrl(game, name, platform = 'Xbox') {
+  return `player.html?game=${encodeURIComponent(game)}&platform=${encodeURIComponent(platform)}&name=${encodeURIComponent(name)}`;
 }
+
+// 防抖函数
+

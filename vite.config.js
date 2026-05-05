@@ -1,7 +1,10 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+  base: '/BFTracker/',
+  plugins: [tailwindcss()],
   root: '.',
   build: {
     rollupOptions: {
@@ -9,7 +12,6 @@ export default defineConfig({
         main:    resolve(__dirname, 'index.html'),
         player:  resolve(__dirname, 'player.html'),
         compare: resolve(__dirname, 'compare.html'),
-        detail:  resolve(__dirname, 'detail.html'),
       },
     },
   },

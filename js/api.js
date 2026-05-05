@@ -1,23 +1,37 @@
 const BASE = 'https://api.gametools.network';
 
 // 各游戏支持的平台
-export const GAME_PLATFORMS = {
-  bf6:    ['xbox', 'pc', 'xboxone', 'xboxseries', 'psn', 'ps4', 'ps5'],
-  bf2042: ['xbox', 'pc', 'xboxone', 'xboxseries', 'psn', 'ps4', 'ps5'],
-  bfv:    ['xboxone', 'pc', 'ps4'],
-  bf1:    ['xboxone', 'pc', 'ps4'],
-  bf4:    ['pc', 'ps4'],
-  bf3:    ['pc', 'ps4'],
-};
-
 export const PLATFORM_LABELS = {
-  pc:         'PC',
+  steam:      'Steam',
+  ea:         'EA App',
+  epic:       'Epic',
   xbox:       'Xbox（通用）',
   xboxone:    'Xbox One',
   xboxseries: 'Xbox Series',
   psn:        'PlayStation（通用）',
   ps4:        'PS4',
   ps5:        'PS5',
+};
+
+
+// 三大平台分类
+export const PLATFORM_CATEGORIES = ['Xbox', 'PlayStation', 'PC'];
+
+// 三大平台 → 细分平台的映射
+export const CATEGORY_PLATFORMS = {
+  'PC': ['steam', 'ea', 'epic'],
+  'Xbox': ['xbox', 'xboxone', 'xboxseries'],
+  'PlayStation': ['psn', 'ps4', 'ps5'],
+};
+
+// 各游戏在三大分类下支持的细分平台
+export const GAME_CATEGORY_PLATFORMS = {
+  bf6:    { 'PC': ['steam', 'ea', 'epic'], 'Xbox': ['xbox', 'xboxone', 'xboxseries'], 'PlayStation': ['psn', 'ps4', 'ps5'] },
+  bf2042: { 'PC': ['steam', 'ea', 'epic'], 'Xbox': ['xbox', 'xboxone', 'xboxseries'], 'PlayStation': ['psn', 'ps4', 'ps5'] },
+  bfv:    { 'PC': ['steam', 'ea', 'epic'], 'Xbox': ['xboxone'],                      'PlayStation': ['ps4'] },
+  bf1:    { 'PC': ['steam', 'ea', 'epic'], 'Xbox': ['xboxone'],                      'PlayStation': ['ps4'] },
+  bf4:    { 'PC': ['steam', 'ea', 'epic'],                                             'PlayStation': ['ps4'] },
+  bf3:    { 'PC': ['steam', 'ea', 'epic'],                                             'PlayStation': ['ps4'] },
 };
 
 export const GAME_LABELS = {
@@ -57,29 +71,45 @@ export async function getStats(game, name, platform) {
   return request(`${BASE}/${game}/stats/?name=${encodeURIComponent(name)}&platform=${platform}&format_values=false`);
 }
 
-// 查询玩家档案
-export async function getProfile(game, name, platform) {
-  return request(`${BASE}/${game}/profile/?name=${encodeURIComponent(name)}&platform=${platform}`);
-}
 
-// 批量查询（多人对比，传 playerid 数组）
-export async function getMultiple(game, playerids) {
-  const res = await fetch(`${BASE}/${game}/multiple/`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ playerids }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.message || '批量查询失败');
-  return data;
-}
 
 // BF6 全局在线人数
-export async function getBF6Status() {
-  return request(`${BASE}/bf6/status/`);
-}
-
 // 搜索玩家（获取 playerid）
 export async function searchPlayer(game, name, platform) {
   return request(`${BASE}/${game}/player/?name=${encodeURIComponent(name)}&platform=${platform}`);
+}
+
+
+// BFBan 封禁检测
+export async function checkBan(name) {
+  try {
+    const res = await fetch(`${BASE}/bfban/check/?player=${encodeURIComponent(name)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+// BF2042 玩家名片信息
+export async function getInventory(game, name, platform) {
+  try {
+    const res = await fetch(`${BASE}/${game}/inventory/?name=${encodeURIComponent(name)}&platform=${platform}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+// BF-EAC 封禁检测
+export async function checkEacBan(name) {
+  try {
+    const res = await fetch(`${BASE}/bfeac/check/?player=${encodeURIComponent(name)}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
 }

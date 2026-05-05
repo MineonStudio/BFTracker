@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@theme {
+  --color-accent: #3b82f6;
+  --color-accent-light: #60a5fa;
+  --color-dark: #1f2228;
+  --color-card: transparent;
+  --radius-2xl: 0;
+  --radius-xl: 0;
+  --radius-lg: 0;
+}
+
+:root {
+  --accent-rgb: 59 130 246;
+  --surface: rgba(255, 255, 255, 0.03);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --text-dim: rgba(255, 255, 255, 0.3);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --bg-raised: rgba(255, 255, 255, 0.06);
+  --bg-subtle: rgba(255, 255, 255, 0.04);
+  --nav-glass: rgba(31, 34, 40, 0.9);
+  --chart-end: #8b5cf6;
+}
