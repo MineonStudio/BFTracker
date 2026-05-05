@@ -234,7 +234,7 @@
             <!-- 右侧：平台 + 分享 -->
             <div class="shrink-0 self-end flex items-end gap-2">
               ${(() => { const p = (platform || '').toLowerCase(); const iconMap = {xbox:'xbox',xboxone:'xbox',xboxseries:'xbox',steam:'steam',ea:'ea',epic:'ea',psn:'playstation',ps4:'playstation',ps5:'playstation',playstation:'playstation',pc:'ea'}; const labelMap = {xbox:'Xbox',steam:'Steam',ea:'EA',playstation:'PlayStation'}; const icon = iconMap[p] || 'pc'; const label = labelMap[icon] || 'PC'; return `<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-accent/10 text-accent"><img src="icons/${icon}.svg" class="w-4 h-4" alt="">${label}</span>`; })()}
-              <button onclick="window.doSharePoster()" class="text-gray-400 hover:text-white transition-colors" title="分享">
+              <button onclick="window.doSharePoster()" class="text-gray-400 hover:text-white transition-colors self-end flex items-end" title="分享">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
                   <polyline points="16 6 12 2 8 6"/>
@@ -847,6 +847,8 @@
         headShots: formatNum(stats.headShots),
         assists: formatNum(allClass?.assists ?? stats.killAssists),
         revives: formatNum(stats.revives),
+        rankValue: first.allData?.rank ?? '',
+        rankName: first.allData?.rankName ?? '',
       };
       // 缓存板块数据供分享文本使用
       window.__shareOps = {
@@ -1035,135 +1037,125 @@
       window.__posterLoading = true;
       try {
         const d = window.__shareData || {};
-        const W = 840, P = 48, BG = '#12151c', CARD = 'rgba(255,255,255,0.03)';
+        const ACCENT = '#ff4655', W = 840, P = 40, BG = '#1a1e26', CARD = '#242933';
+        const fnt = (w, s, c = '#fff') => `${w} ${s}px system-ui, -apple-system, sans-serif`;
 
+        // 准备指标数据
         const stats = [
           ['每分钟得分', d.spm], ['爆头率', d.headshots], ['命中率', d.accuracy],
           ['KPM', d.kpm], ['场均击杀', d.killsPerMatch], ['场均死亡', d.deathsPerMatch],
           ['爆头数', d.headShots], ['助攻数', d.assists], ['急救数', d.revives],
         ].filter(s => s[1] != null && s[1] !== '—');
-
         const rows = Math.ceil(stats.length / 3);
-        const FOOTER_H = 196;
-        const H = P + 80 + 72 + 56 + 32 + 200 + 32 + rows * 120 + 24 + 32 + FOOTER_H + P;
+        const GRID_H = rows * 86 + (rows - 1) * 10;
+        const H = P + 70 + 90 + 80 + 200 + 28 + GRID_H + 40 + 140 + P;
 
         const canvas = document.createElement('canvas');
         canvas.width = W; canvas.height = H;
         const ctx = canvas.getContext('2d');
+
+        // 背景
         ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
 
-        // 顶部渐变条
-        // xAI: no gradient bar
+        // 顶部装饰线
+        ctx.fillStyle = ACCENT;
+        ctx.fillRect(0, 0, W, 4);
 
-        let y = P;
+        let y = P + 10;
 
-        // 标题
+        // ── 标题区 ──
         ctx.fillStyle = '#ffffff';
-        ctx.font = '400 44px system-ui, -apple-system, sans-serif';
-        ctx.fillText('BF Tracker 战绩', P, y + 44);
-        y += 80;
-        ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke();
-        y += 40;
-
-        // 玩家名 + 平台图标（圆形头像位）
-        const pVal2 = d.platform ? d.platform.toLowerCase() : '';
-        const iconSvg = pVal2.includes('steam') ? 'icons/steam.svg' : pVal2.includes('ea') ? 'icons/ea.svg' : pVal2.includes('epic') ? 'icons/epic.svg' : pVal2.includes('xbox') ? 'icons/xbox.svg' : (pVal2.includes('ps') || pVal2.includes('playstation')) ? 'icons/playstation.svg' : null;
-        const iconSize = 44, avatarR = 36;
-        if (iconSvg) {
-          try {
-            const icon = await new Promise((rs, rj) => { const im = new Image(); im.onload = () => rs(im); im.onerror = rj; im.src = iconSvg; });
-            ctx.fillStyle = 'rgba(55,65,81,0.5)';
-            ctx.beginPath(); ctx.arc(P + avatarR, y + 56, avatarR, 0, Math.PI * 2); ctx.fill();
-            ctx.drawImage(icon, P + avatarR - iconSize / 2, y + 56 - iconSize / 2, iconSize, iconSize);
-          } catch {}
+        ctx.font = fnt('700', 36);
+        ctx.fillText('BF Tracker', P, y + 36);
+        // 右侧小标签
+        ctx.fillStyle = ACCENT;
+        ctx.font = fnt('600', 18);
+        if (d.rankName) {
+          ctx.fillText('Lv.' + d.rankValue, W - P - 180, y + 20);
+          ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 14);
+          ctx.fillText(d.rankName, W - P - 180, y + 38);
         }
+        y += 70;
+
+        // ── 玩家信息卡片 ──
+        ctx.fillStyle = CARD;
+        ctx.beginPath(); ctx.roundRect(P, y, W - P * 2, 80, 14); ctx.fill();
+
+        // 等级图标
+        const lv = d.rankValue || 0;
+        ctx.fillStyle = lv >= 250 ? '#f87171' : '#60a5fa';
+        ctx.font = fnt('700', 28);
+        ctx.fillText('Lv.' + lv, P + 20, y + 50);
+        // 玩家名
         ctx.fillStyle = '#f3f4f6';
-        ctx.font = 'bold 48px system-ui, -apple-system, sans-serif';
-        ctx.fillText(d.name || '—', P + 86, y + 60);
-        y += 80;
-
-        // 游戏名 · 时长
-        ctx.font = '26px system-ui, -apple-system, sans-serif';
+        ctx.font = fnt('700', 32);
+        ctx.fillText(d.name || '—', P + 120, y + 50);
+        // 平台
+        const pStr = d.platform || '';
         ctx.fillStyle = '#9ca3af';
-        const meta = `${d.game} · ${d.time}`;
-        ctx.fillText(meta, P + 86, y + 28);
-        y += 56;
+        ctx.font = fnt('400', 18);
+        ctx.fillText(pStr, W - P - 80 - ctx.measureText(pStr).width, y + 50);
+        y += 100;
 
-        // KD + 胜率 双卡片
-        const gap = 20, ch = 200, cw = (W - P * 2 - gap) / 2;
+        // ── KD + 胜率 ──
+        const gap = 16, cw = (W - P * 2 - gap) / 2, ch = 200;
         const drawCard = (x, val, lb, color, s1, s1l, s2, s2l) => {
           ctx.fillStyle = CARD;
-          ctx.beginPath(); ctx.roundRect(x, y, cw, ch, 20); ctx.fill();
-          // 大数值
+          ctx.beginPath(); ctx.roundRect(x, y, cw, ch, 16); ctx.fill();
           ctx.fillStyle = color;
-          ctx.font = 'bold 80px system-ui, -apple-system, sans-serif';
-          ctx.fillText(val, x + 28, y + 80);
-          // 标签
+          ctx.font = fnt('800', 72);
+          ctx.fillText(val, x + 24, y + 86);
           ctx.fillStyle = '#6b7280';
-          ctx.font = '22px system-ui, -apple-system, sans-serif';
-          ctx.fillText(lb, x + 28, y + 112);
-          // 子数据 - 每个占一列，值上标签下，避免重叠
-          const subX1 = x + 28, subX2 = x + cw / 2 + 8;
-          const subText = (sx, v, l) => {
-            ctx.fillStyle = '#f3f4f6';
-            ctx.font = 'bold 26px system-ui, -apple-system, sans-serif';
-            ctx.fillText(v, sx, y + 160);
-            ctx.fillStyle = '#6b7280';
-            ctx.font = '20px system-ui, -apple-system, sans-serif';
-            ctx.fillText(l, sx, y + 186);
-          };
-          subText(subX1, s1, s1l);
-          subText(subX2, s2, s2l);
+          ctx.font = fnt('400', 20);
+          ctx.fillText(lb, x + 24, y + 114);
+          const sx = x + 24, sx2 = x + cw / 2 + 4;
+          ctx.fillStyle = '#f3f4f6'; ctx.font = fnt('700', 24);
+          ctx.fillText(s1, sx, y + 160);
+          ctx.fillText(s2, sx2, y + 160);
+          ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 18);
+          ctx.fillText(s1l, sx, y + 184);
+          ctx.fillText(s2l, sx2, y + 184);
         };
         drawCard(P, d.kd, 'K/D', d.kdColor, d.kills, '击杀', d.deaths, '死亡');
         drawCard(P + cw + gap, d.wr, '胜率', d.wrColor, d.matches, '总场次', d.wins, '胜场');
-        y += ch + 36;
+        y += ch + 28;
 
-        // 指标网格（3列）
+        // ── 指标网格 ──
         if (stats.length) {
-          const COLS = 3, cg = 16, scw = (W - P * 2 - (COLS - 1) * cg) / COLS, sch = 108;
+          const COLS = 3, cg = 10, scw = (W - P * 2 - (COLS - 1) * cg) / COLS, sch = 86;
           for (let r = 0; r < rows; r++) {
             for (let c = 0; c < COLS; c++) {
               const i = r * COLS + c;
               if (i >= stats.length) break;
               const [lb, vl] = stats[i];
-              const cx = P + c * (scw + cg), cy = y + r * (sch + 12);
+              const cx = P + c * (scw + cg), cy = y + r * (sch + cg);
               ctx.fillStyle = CARD;
-              ctx.beginPath(); ctx.roundRect(cx, cy, scw, sch, 16); ctx.fill();
-              ctx.fillStyle = '#f3f4f6';
-              ctx.font = 'bold 34px system-ui, -apple-system, sans-serif';
-              ctx.fillText(vl, cx + 20, cy + 52);
-              ctx.fillStyle = '#6b7280';
-              ctx.font = '20px system-ui, -apple-system, sans-serif';
-              ctx.fillText(lb, cx + 20, cy + 86);
+              ctx.beginPath(); ctx.roundRect(cx, cy, scw, sch, 12); ctx.fill();
+              ctx.fillStyle = '#f3f4f6'; ctx.font = fnt('700', 30);
+              ctx.fillText(vl, cx + 16, cy + 48);
+              ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 16);
+              ctx.fillText(lb, cx + 16, cy + 74);
             }
           }
-          y += rows * (sch + 12) + 28;
+          y += rows * (sch + cg) + 10;
         }
 
-        // 分隔线
-        ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke();
-        y += 32;
+        // ── 分隔线 ──
+        ctx.fillStyle = 'rgba(255,255,255,0.06)';
+        ctx.fillRect(P, y, W - P * 2, 1);
+        y += 24;
 
-        // 底部：左侧文字 + 右侧二维码，底部对齐
-        const ftH = 150;
-        const ftBase = y + ftH; // footer区域底部基线
-
-        // 左侧文字
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '400 36px system-ui, -apple-system, sans-serif';
+        // ── 底部 ──
+        const ftBase = H - P - 8;
+        ctx.fillStyle = '#ffffff'; ctx.font = fnt('700', 28);
         ctx.fillText('BF Tracker', P, ftBase - 70);
-        ctx.fillStyle = '#9ca3af';
-        ctx.font = '24px system-ui, -apple-system, sans-serif';
-        ctx.fillText('战地系列战绩查询 · 全平台 · 免费开源', P, ftBase - 36);
-        ctx.fillStyle = '#6b7280';
-        ctx.font = '20px system-ui, -apple-system, sans-serif';
-        ctx.fillText('mineonstudio.github.io/BFTracker', P, ftBase - 6);
+        ctx.fillStyle = '#9ca3af'; ctx.font = fnt('400', 18);
+        ctx.fillText('mineonstudio.github.io/BFTracker', P, ftBase - 38);
+        ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 16);
+        ctx.fillText('Battlefield 6 · Powered by GameTools Network', P, ftBase - 12);
 
-        // 右侧二维码 - 底部与文字底部对齐
-        const qr = 120;
+        // 右侧二维码
+        const qr = 100;
         try {
           const qi = await new Promise((rs, rj) => {
             const im = new Image(); im.crossOrigin = 'anonymous';
@@ -1171,21 +1163,17 @@
             im.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + qr + 'x' + qr + '&data=' + encodeURIComponent('https://mineonstudio.github.io/BFTracker/') + '&margin=2';
           });
           const qx = W - P - qr;
-          const qy = ftBase - qr; // 底部对齐
+          const qy = ftBase - qr;
           ctx.fillStyle = CARD;
-          ctx.beginPath(); ctx.roundRect(qx - 6, qy - 6, qr + 12, qr + 12, 16); ctx.fill();
+          ctx.beginPath(); ctx.roundRect(qx - 8, qy - 8, qr + 16, qr + 16, 12); ctx.fill();
           ctx.drawImage(qi, qx, qy, qr, qr);
-          ctx.fillStyle = '#9ca3af';
-          ctx.font = '16px system-ui, -apple-system, sans-serif';
-          ctx.fillText('扫码访问', qx + qr / 2 - 32, qy + qr + 22);
         } catch {}
-        y += ftH + 10;
 
         // 预览
         window.__posterCanvas = canvas;
         document.getElementById('posterPreviewImg').src = canvas.toDataURL('image/png');
         canvas.toBlob(blob => {
-          window.__posterFile = new File([blob], `bf-tracker-${d.name}.png`, { type: 'image/png' });
+          window.__posterFile = new File([blob], 'bf-tracker-' + d.name + '.png', { type: 'image/png' });
         }, 'image/png');
         document.getElementById('posterPreviewModal').classList.remove('hidden');
       } catch (err) {
