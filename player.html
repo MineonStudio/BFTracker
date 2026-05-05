@@ -204,9 +204,28 @@
       const humanKd    = stats.deaths ? (humanKills / stats.deaths) : 0;
       const humanKillsPerMatch = matchesPlayed ? (humanKills / matchesPlayed) : 0;
 
+      // 提取等级数据
+      const rankVal = stats.rank ?? stats.level ?? stats.currentRank ?? stats.rankNumber ?? stats.prestige ??
+                      allData?.rank ?? null;
+
+            // 提取等级数据
+      const rankVal = stats.rank ?? stats.level ?? stats.currentRank ?? stats.rankNumber ?? stats.prestige ??
+                      allData?.rank ?? null;
+
       container.innerHTML = `
         <!-- 玩家总览 -->
         <div class="bg-card  p-5 mb-8 fade-up">
+          ${rankVal != null ? `
+          <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-700/50">
+            <div class="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+              <span class="text-lg font-black text-accent">${rankVal}</span>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-accent">玩家等级</p>
+              <p class="text-xs text-gray-500">Level ${rankVal}</p>
+            </div>
+          </div>
+          ` : ''}
           <!-- 玩家信息 -->
           <div class="flex items-end gap-3 mb-4">
             ${(() => { const p = platform?.toLowerCase() || ''; const key = p.includes('steam')?'steam':p.includes('ea')?'ea':p.includes('epic')?'epic':p.includes('xbox')?'xbox':p.includes('ps')||p.includes('playstation')?'playstation':null; const map = {steam:'steam',ea:'ea',epic:'epic',xbox:'xbox',playstation:'playstation'}; return key ? `<div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gray-700/50 flex items-center justify-center shrink-0"><img loading="lazy" src="icons/${map[key]}.svg" class="w-8 h-8 sm:w-9 sm:h-9" alt=""></div>` : (stats.avatar && !stats.avatar.includes('default-avatar') ? `<img loading="lazy" src="${stats.avatar}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 object-cover" alt="">` : ''); })()}
