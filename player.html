@@ -232,7 +232,7 @@
               </div>
             </div>
             <!-- 右侧：平台 + 分享 -->
-            <div class="shrink-0 flex items-center gap-2">
+            <div class="shrink-0 self-end flex items-end gap-2">
               ${(() => { const p = (platform || '').toLowerCase(); const iconMap = {xbox:'xbox',xboxone:'xbox',xboxseries:'xbox',steam:'steam',ea:'ea',epic:'ea',psn:'playstation',ps4:'playstation',ps5:'playstation',playstation:'playstation',pc:'ea'}; const labelMap = {xbox:'Xbox',steam:'Steam',ea:'EA',playstation:'PlayStation'}; const icon = iconMap[p] || 'pc'; const label = labelMap[icon] || 'PC'; return `<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-accent/10 text-accent"><img src="icons/${icon}.svg" class="w-4 h-4" alt="">${label}</span>`; })()}
               <button onclick="window.doSharePoster()" class="text-gray-400 hover:text-white transition-colors" title="分享">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -298,7 +298,7 @@
                   const cs = (allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0);
                   if (!cs.length) return '—';
                   const scored = cs.map(c => ({ ...c, score: (c.kills || 0) / ((c.deaths || 1) * ((c.secondsPlayed || 3600) / 3600)) })).sort((a, b) => b.score - a.score);
-                  return scored[0]?.className || '—';
+                  const best = scored[0]; return best ? (CLASS_CN[best.className] || best.className) : '—';
                 })()}</p>
               </div>
               <div class="bg-dark p-3 hover-lift">
