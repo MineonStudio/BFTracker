@@ -849,6 +849,24 @@
         revives: formatNum(stats.revives),
         rankValue: first.allData?.rank ?? '',
         rankName: first.allData?.rankName ?? '',
+        // 偏好数据
+        bestClass: (() => {
+          const cs = (first.allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0);
+          if (!cs.length) return '—';
+          return cs.map(c => ({ ...c, score: (c.kills || 0) / ((c.deaths || 1) * ((c.secondsPlayed || 3600) / 3600)) })).sort((a, b) => b.score - a.score)[0]?.className || '—';
+        })(),
+        bestWeapon: (() => {
+          const ws = (first.allData?.weapons || []).filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills);
+          return ws[0]?.name || ws[0]?.weaponName || '—';
+        })(),
+        favMap: (() => {
+          const ms = (first.allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0).sort((a, b) => (b.secondsPlayed || 0) - (a.secondsPlayed || 0));
+          return MAP_CN[ms[0]?.mapName] || ms[0]?.mapName || '—';
+        })(),
+        favMode: (() => {
+          const gms = (first.allData?.gameModes || first.allData?.gamemodes || []).filter(m => m.matches > 0 && m.gamemodeName !== 'Official').sort((a, b) => (b.secondsPlayed || 0) - (a.secondsPlayed || 0));
+          return getModeName(gms[0]?.gamemodeName) || '—';
+        })(),
       };
       // 缓存板块数据供分享文本使用
       window.__shareOps = {
@@ -1037,8 +1055,11 @@
       window.__posterLoading = true;
       try {
         const d = window.__shareData || {};
-        const ACCENT = '#ff4655', W = 840, P = 40, BG = '#1a1e26', CARD = '#242933';
-        const fnt = (w, s, c = '#fff') => `${w} ${s}px system-ui, -apple-system, sans-serif`;
+        const ACCENT = '#FF4D5F', HIGHLIGHT = '#FFD21F';
+        const W = 1080, H = 1350, P = 48;
+        const fnt = (w, s, c) => `${w} ${s}px system-ui, -apple-system, sans-serif`;
+        const CLASS_CN_MAP = { 'Assault':'突击兵','Engineer':'工程师','Support':'支援兵','Recon':'侦察兵','Commander':'指挥官','Specialist':'特种兵' };
+        const bestClassCN = CLASS_CN_MAP[d.bestClass] || d.bestClass || '—';
 
         // 准备指标数据
         const stats = [
@@ -1046,116 +1067,185 @@
           ['KPM', d.kpm], ['场均击杀', d.killsPerMatch], ['场均死亡', d.deathsPerMatch],
           ['爆头数', d.headShots], ['助攻数', d.assists], ['急救数', d.revives],
         ].filter(s => s[1] != null && s[1] !== '—');
-        const rows = Math.ceil(stats.length / 3);
-        const GRID_H = rows * 86 + (rows - 1) * 10;
-        const H = P + 70 + 90 + 80 + 200 + 28 + GRID_H + 40 + 140 + P;
 
         const canvas = document.createElement('canvas');
         canvas.width = W; canvas.height = H;
         const ctx = canvas.getContext('2d');
 
-        // 背景
-        ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
+        // ── 1. 背景：深色 + 渐变遮罩 ──
+        ctx.fillStyle = '#0a0c10';
+        ctx.fillRect(0, 0, W, H);
+        // 径向渐变 - 营造战场氛围
+        const grad = ctx.createRadialGradient(W/2, H*0.3, 100, W/2, H*0.3, W*0.7);
+        grad.addColorStop(0, 'rgba(20,25,35,0.8)');
+        grad.addColorStop(0.5, 'rgba(10,12,16,0.95)');
+        grad.addColorStop(1, '#0a0c10');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+        // 底部加深
+        const bgGrad = ctx.createLinearGradient(0, H*0.7, 0, H);
+        bgGrad.addColorStop(0, 'rgba(10,12,16,0)');
+        bgGrad.addColorStop(1, 'rgba(0,0,0,0.6)');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, H*0.7, W, H*0.3);
 
-        // 顶部装饰线
+        // ── 2. 顶部红色强调线 ──
         ctx.fillStyle = ACCENT;
-        ctx.fillRect(0, 0, W, 4);
+        ctx.fillRect(0, 0, W, 5);
 
-        let y = P + 10;
+        let y = 52;
 
-        // ── 标题区 ──
+        // ── 3. 顶部区域 ──
         ctx.fillStyle = '#ffffff';
-        ctx.font = fnt('700', 36);
-        ctx.fillText('BF Tracker', P, y + 36);
-        // 右侧小标签
+        ctx.font = fnt('800', 42);
+        ctx.fillText('BF Tracker', P, y + 42);
+        y += 58;
+
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = fnt('400', 22);
+        ctx.fillText('我的战场数据一览', P, y + 22);
+        y += 18;
+
+        // 短红色横线
         ctx.fillStyle = ACCENT;
-        ctx.font = fnt('600', 18);
-        if (d.rankName) {
-          ctx.fillText('Lv.' + d.rankValue, W - P - 180, y + 20);
-          ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 14);
-          ctx.fillText(d.rankName, W - P - 180, y + 38);
-        }
-        y += 70;
+        ctx.fillRect(P, y, 60, 3);
+        y += 28;
 
-        // ── 玩家信息卡片 ──
-        ctx.fillStyle = CARD;
-        ctx.beginPath(); ctx.roundRect(P, y, W - P * 2, 80, 14); ctx.fill();
+        ctx.fillStyle = '#6b7280';
+        ctx.font = fnt('400', 18);
+        ctx.fillText('精准记录每一场战斗，见证你的成长与荣耀！', P, y + 18);
+        y += 52;
 
-        // 等级图标
+        // ── 4. 用户信息卡片 ──
+        const cardH = 100;
+        ctx.fillStyle = 'rgba(36,41,51,0.85)';
+        ctx.beginPath(); ctx.roundRect(P, y, W - P * 2, cardH, 16); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.roundRect(P, y, W - P * 2, cardH, 16); ctx.stroke();
+
+        // 左侧等级
         const lv = d.rankValue || 0;
-        ctx.fillStyle = lv >= 250 ? '#f87171' : '#60a5fa';
-        ctx.font = fnt('700', 28);
-        ctx.fillText('Lv.' + lv, P + 20, y + 50);
-        // 玩家名
-        ctx.fillStyle = '#f3f4f6';
+        ctx.fillStyle = lv >= 250 ? ACCENT : '#60a5fa';
+        ctx.font = fnt('800', 36);
+        ctx.fillText('Lv.' + lv, P + 24, y + 62);
+
+        // 中间：昵称 + 等级 + 时长
+        ctx.fillStyle = '#ffffff';
         ctx.font = fnt('700', 32);
-        ctx.fillText(d.name || '—', P + 120, y + 50);
-        // 平台
-        const pStr = d.platform || '';
+        ctx.fillText(d.name || '—', P + 160, y + 56);
         ctx.fillStyle = '#9ca3af';
         ctx.font = fnt('400', 18);
-        ctx.fillText(pStr, W - P - 80 - ctx.measureText(pStr).width, y + 50);
-        y += 100;
+        ctx.fillText(d.rankName || ('Level ' + lv) + ' · ' + d.time, P + 160, y + 82);
 
-        // ── KD + 胜率 ──
-        const gap = 16, cw = (W - P * 2 - gap) / 2, ch = 200;
+        // 右侧：平台标签
+        const pStr = d.platform || '';
+        ctx.fillStyle = ACCENT;
+        ctx.font = fnt('600', 20);
+        ctx.fillText(pStr, W - P - 24 - ctx.measureText(pStr).width, y + 62);
+        y += cardH + 32;
+
+        // ── 5. 核心数据区 ──
+        // 第一行：双卡片
+        const gap = 20, cw = (W - P * 2 - gap) / 2, ch = 240;
+
         const drawCard = (x, val, lb, color, s1, s1l, s2, s2l) => {
-          ctx.fillStyle = CARD;
+          ctx.fillStyle = 'rgba(36,41,51,0.85)';
           ctx.beginPath(); ctx.roundRect(x, y, cw, ch, 16); ctx.fill();
-          ctx.fillStyle = color;
-          ctx.font = fnt('800', 72);
-          ctx.fillText(val, x + 24, y + 86);
+          ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.roundRect(x, y, cw, ch, 16); ctx.stroke();
+          // 大数字 - 核心数据用黄色高亮
+          const txtColor = (lb === 'K/D' || lb === '胜率') ? HIGHLIGHT : color;
+          ctx.fillStyle = txtColor;
+          ctx.font = fnt('800', 86);
+          ctx.fillText(val, x + 28, y + 100);
           ctx.fillStyle = '#6b7280';
-          ctx.font = fnt('400', 20);
-          ctx.fillText(lb, x + 24, y + 114);
-          const sx = x + 24, sx2 = x + cw / 2 + 4;
-          ctx.fillStyle = '#f3f4f6'; ctx.font = fnt('700', 24);
-          ctx.fillText(s1, sx, y + 160);
-          ctx.fillText(s2, sx2, y + 160);
+          ctx.font = fnt('400', 22);
+          ctx.fillText(lb, x + 28, y + 132);
+          // 子数据
+          const sx = x + 28, sx2 = x + cw / 2 + 4;
+          ctx.fillStyle = '#f3f4f6'; ctx.font = fnt('700', 26);
+          ctx.fillText(s1, sx, y + 182);
+          ctx.fillText(s2, sx2, y + 182);
           ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 18);
-          ctx.fillText(s1l, sx, y + 184);
-          ctx.fillText(s2l, sx2, y + 184);
+          ctx.fillText(s1l, sx, y + 210);
+          ctx.fillText(s2l, sx2, y + 210);
         };
+
         drawCard(P, d.kd, 'K/D', d.kdColor, d.kills, '击杀', d.deaths, '死亡');
         drawCard(P + cw + gap, d.wr, '胜率', d.wrColor, d.matches, '总场次', d.wins, '胜场');
         y += ch + 28;
 
-        // ── 指标网格 ──
+        // 九宫格
         if (stats.length) {
-          const COLS = 3, cg = 10, scw = (W - P * 2 - (COLS - 1) * cg) / COLS, sch = 86;
-          for (let r = 0; r < rows; r++) {
+          const COLS = 3, cg = 12, scw = (W - P * 2 - (COLS - 1) * cg) / COLS, sch = 90;
+          for (let r = 0; r < 3; r++) {
             for (let c = 0; c < COLS; c++) {
               const i = r * COLS + c;
               if (i >= stats.length) break;
               const [lb, vl] = stats[i];
               const cx = P + c * (scw + cg), cy = y + r * (sch + cg);
-              ctx.fillStyle = CARD;
-              ctx.beginPath(); ctx.roundRect(cx, cy, scw, sch, 12); ctx.fill();
-              ctx.fillStyle = '#f3f4f6'; ctx.font = fnt('700', 30);
-              ctx.fillText(vl, cx + 16, cy + 48);
+              ctx.fillStyle = 'rgba(36,41,51,0.85)';
+              ctx.beginPath(); ctx.roundRect(cx, cy, scw, sch, 14); ctx.fill();
+              ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+              ctx.lineWidth = 1;
+              ctx.beginPath(); ctx.roundRect(cx, cy, scw, sch, 14); ctx.stroke();
+              ctx.fillStyle = '#f3f4f6'; ctx.font = fnt('700', 32);
+              ctx.fillText(vl, cx + 18, cy + 50);
               ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 16);
-              ctx.fillText(lb, cx + 16, cy + 74);
+              ctx.fillText(lb, cx + 18, cy + 76);
             }
           }
-          y += rows * (sch + cg) + 10;
+          y += 3 * (sch + cg) + 24;
         }
 
-        // ── 分隔线 ──
+        // ── 6. 偏好数据区 ──
+        ctx.fillStyle = '#6b7280';
+        ctx.font = fnt('600', 18);
+        ctx.fillText('战斗偏好', P, y + 18);
+        y += 32;
+
+        const prefs = [
+          ['最擅长兵种', bestClassCN],
+          ['最擅长武器', d.bestWeapon || '—'],
+          ['最喜欢地图', d.favMap || '—'],
+          ['最喜欢模式', d.favMode || '—'],
+        ];
+        const pgap = 12, pcw = (W - P * 2 - pgap * 3) / 4, pch = 76;
+        prefs.forEach(([lb, vl], i) => {
+          const cx = P + i * (pcw + pgap);
+          ctx.fillStyle = 'rgba(36,41,51,0.85)';
+          ctx.beginPath(); ctx.roundRect(cx, y, pcw, pch, 12); ctx.fill();
+          ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.roundRect(cx, y, pcw, pch, 12); ctx.stroke();
+          // 红色小图标 - 菱形
+          ctx.fillStyle = ACCENT;
+          ctx.fillRect(cx + 12, y + 14, 6, 6);
+          ctx.fillStyle = '#f3f4f6'; ctx.font = fnt('600', 20);
+          ctx.fillText(vl, cx + 28, y + 46);
+          ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 14);
+          ctx.fillText(lb, cx + 28, y + 66);
+        });
+        y += pch + 40;
+
+        // ── 7. 底部品牌区 ──
+        // 分隔线
         ctx.fillStyle = 'rgba(255,255,255,0.06)';
         ctx.fillRect(P, y, W - P * 2, 1);
-        y += 24;
+        y += 32;
 
-        // ── 底部 ──
-        const ftBase = H - P - 8;
-        ctx.fillStyle = '#ffffff'; ctx.font = fnt('700', 28);
+        const ftBase = H - 56;
+        ctx.fillStyle = '#ffffff'; ctx.font = fnt('700', 30);
         ctx.fillText('BF Tracker', P, ftBase - 70);
-        ctx.fillStyle = '#9ca3af'; ctx.font = fnt('400', 18);
-        ctx.fillText('mineonstudio.github.io/BFTracker', P, ftBase - 38);
+        ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 18);
+        ctx.fillText('mineonstudio.github.io/BFTracker', P, ftBase - 40);
         ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 16);
-        ctx.fillText('Battlefield 6 · Powered by GameTools Network', P, ftBase - 12);
+        ctx.fillText('Battlefield 6  ·  Powered by GameTools Network', P, ftBase - 14);
 
         // 右侧二维码
-        const qr = 100;
+        const qr = 110;
         try {
           const qi = await new Promise((rs, rj) => {
             const im = new Image(); im.crossOrigin = 'anonymous';
@@ -1163,10 +1253,16 @@
             im.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + qr + 'x' + qr + '&data=' + encodeURIComponent('https://mineonstudio.github.io/BFTracker/') + '&margin=2';
           });
           const qx = W - P - qr;
-          const qy = ftBase - qr;
-          ctx.fillStyle = CARD;
-          ctx.beginPath(); ctx.roundRect(qx - 8, qy - 8, qr + 16, qr + 16, 12); ctx.fill();
+          const qy = ftBase - qr - 10;
+          ctx.fillStyle = 'rgba(36,41,51,0.85)';
+          ctx.beginPath(); ctx.roundRect(qx - 12, qy - 12, qr + 24, qr + 36, 12); ctx.fill();
           ctx.drawImage(qi, qx, qy, qr, qr);
+          ctx.fillStyle = '#9ca3af'; ctx.font = fnt('400', 14);
+          ctx.fillText('扫码查看我的详细数据', qx - 18, qy + qr + 24);
+          // 红色箭头引导
+          ctx.fillStyle = ACCENT;
+          ctx.font = fnt('700', 16);
+          ctx.fillText('→', qx + qr + 4, qy + qr / 2 + 6);
         } catch {}
 
         // 预览
@@ -1183,6 +1279,8 @@
         window.__posterLoading = false;
       }
     };
+    
+    window.closePosterPreview = () => {
 
     window.closePosterPreview = () => {
       document.getElementById('posterPreviewModal')?.classList.add('hidden');
