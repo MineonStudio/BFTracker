@@ -207,6 +207,7 @@
       // 提取等级数据
       const rankVal = stats.rank ?? stats.level ?? stats.currentRank ?? stats.rankNumber ?? stats.prestige ??
                       allData?.rank ?? null;
+      const rankName = allData?.rankName ?? null;
 
       container.innerHTML = `
         <!-- 玩家总览 -->
@@ -217,7 +218,7 @@
               <span class="text-lg font-black text-accent">${rankVal}</span>
             </div>
             <div>
-              <p class="text-sm font-bold text-accent">玩家等级</p>
+              <p class="text-sm font-bold text-accent">${rankName ? rankName : '玩家等级'}</p>
               <p class="text-xs text-gray-500">Level ${rankVal}</p>
             </div>
           </div>
@@ -721,11 +722,21 @@
       // 并发查询（只查检测到的平台）
       const settled = await Promise.allSettled(
         platforms.map(async p => {
-          const [stats, allData] = await Promise.all([
+          const [stats, allData, profileData] = await Promise.all([
             getStats(game, name, p),
             fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${p}`, { signal: AbortSignal.timeout?.(15000) })
               .then(r => r.json()).catch(() => null),
+            fetch(`${BASE}/${game}/profile/?name=${encodeURIComponent(name)}&platform=${p}`, { signal: AbortSignal.timeout?.(10000) })
+              .then(r => r.json()).catch(() => null),
           ]);
+          // 从 profile 提取等级信息
+          const rankData = profileData?.playerProfiles?.[0]?.playerCard?.rank;
+          const rankNameData = profileData?.playerProfiles?.[0]?.rankName;
+          if (rankData != null || rankNameData != null) {
+            if (!allData) allData = {};
+            if (rankData != null) allData.rank = rankData;
+            if (rankNameData != null) allData.rankName = rankNameData;
+          }
           // 保存 API 数据到缓存
           if (allData) saveApiCache(game, p, name, allData);
           return { platform: p, stats, allData };
