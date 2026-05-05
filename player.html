@@ -290,6 +290,39 @@
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.revives)}</p><p class="text-xs text-gray-500">急救数</p></div>
               </div>
             </div>
+            <!-- 最擅长/最喜欢 -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+              <div class="bg-dark p-3 hover-lift">
+                <p class="text-xs text-gray-500 mb-1">最擅长兵种</p>
+                <p class="text-sm font-semibold text-white truncate">${(() => {
+                  const cs = (allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0);
+                  if (!cs.length) return '—';
+                  const scored = cs.map(c => ({ ...c, score: (c.kills || 0) / ((c.deaths || 1) * ((c.secondsPlayed || 3600) / 3600)) })).sort((a, b) => b.score - a.score);
+                  return scored[0]?.className || '—';
+                })()}</p>
+              </div>
+              <div class="bg-dark p-3 hover-lift">
+                <p class="text-xs text-gray-500 mb-1">最擅长武器</p>
+                <p class="text-sm font-semibold text-white truncate">${(() => {
+                  const ws = (allData?.weapons || []).filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills);
+                  return ws[0]?.name || ws[0]?.weaponName || '—';
+                })()}</p>
+              </div>
+              <div class="bg-dark p-3 hover-lift">
+                <p class="text-xs text-gray-500 mb-1">最喜欢地图</p>
+                <p class="text-sm font-semibold text-white truncate">${(() => {
+                  const ms = (allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0).sort((a, b) => (b.secondsPlayed || 0) - (a.secondsPlayed || 0));
+                  return MAP_CN[ms[0]?.mapName] || ms[0]?.mapName || '—';
+                })()}</p>
+              </div>
+              <div class="bg-dark p-3 hover-lift">
+                <p class="text-xs text-gray-500 mb-1">最喜欢模式</p>
+                <p class="text-sm font-semibold text-white truncate">${(() => {
+                  const gms = (allData?.gameModes || allData?.gamemodes || []).filter(m => m.matches > 0 && m.gamemodeName !== 'Official').sort((a, b) => (b.secondsPlayed || 0) - (a.secondsPlayed || 0));
+                  return getModeName(gms[0]?.gamemodeName) || '—';
+                })()}</p>
+              </div>
+            </div>
           </div>
           <!-- 兵种 -->
           <div id="tab-class-${platform}" class="tab-panel hidden">
