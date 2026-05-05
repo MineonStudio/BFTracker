@@ -2,9 +2,7 @@
 export function formatSeconds(seconds) {
   if (!seconds) return '0小时';
   const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}小时 ${m}分`;
-  return `${m}分钟`;
+  return `${h}小时`;
 }
 
 // 格式化大数字（加千分位）

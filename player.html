@@ -213,7 +213,7 @@
         <!-- 玩家总览 -->
         <div class="bg-card  p-5 mb-8 fade-up">
 <!-- 玩家信息：左中右三栏布局 -->
-          <div class="flex items-center gap-4 mb-6">
+          <div class="flex items-end gap-4 mb-6">
             <!-- 左侧：等级图标 -->
             <div class="shrink-0 w-16 h-16 flex items-center justify-center">
               ${allData?.rankImage?.small
@@ -226,14 +226,14 @@
             <div class="flex-1 min-w-0">
               <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight truncate">${stats.userName || name}</h1>
               <div class="flex items-center gap-2 mt-1 text-sm text-gray-400">
-                <span class="text-accent font-semibold">Lv.${rankVal ?? '—'}</span>
+                <span class="font-semibold" style="color:${rankVal != null ? (rankVal >= 250 ? '#f87171' : '#60a5fa') : '#9ca3af'}">Lv.${rankVal ?? '—'}</span>
                 <span class="text-gray-600">·</span>
                 <span>${formatSeconds(stats.secondsPlayed)}</span>
               </div>
             </div>
             <!-- 右侧：平台 + 分享 -->
             <div class="shrink-0 flex items-center gap-2">
-              ${(() => { const p = (platform || '').toLowerCase(); const icons = {xbox:'xbox',xboxone:'xbox',xboxseries:'xbox',pc:'pc',steam:'pc',ea:'pc',epic:'pc',psn:'playstation',ps4:'playstation',ps5:'playstation',playstation:'playstation'}; const labels = {xbox:'Xbox',xboxone:'Xbox One',xboxseries:'Xbox Series',pc:'PC',steam:'Steam',ea:'EA App',epic:'Epic',psn:'PSN',ps4:'PS4',ps5:'PS5',playstation:'PlayStation'}; const icon = icons[p] || 'pc'; const label = labels[p] || platform; return `<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-accent/10 text-accent"><img src="icons/${icon}.svg" class="w-4 h-4" alt="">${label}</span>`; })()}
+              ${(() => { const p = (platform || '').toLowerCase(); const iconMap = {xbox:'xbox',xboxone:'xbox',xboxseries:'xbox',steam:'steam',ea:'ea',epic:'ea',psn:'playstation',ps4:'playstation',ps5:'playstation',playstation:'playstation',pc:'ea'}; const labelMap = {xbox:'Xbox',steam:'Steam',ea:'EA',playstation:'PlayStation'}; const icon = iconMap[p] || 'pc'; const label = labelMap[icon] || 'PC'; return `<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-accent/10 text-accent"><img src="icons/${icon}.svg" class="w-4 h-4" alt="">${label}</span>`; })()}
               <button onclick="window.doSharePoster()" class="text-gray-400 hover:text-white transition-colors" title="分享">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
@@ -244,7 +244,7 @@
             </div>
           </div>
         <!-- Tab导航（始终显示） -->
-        <div class="mb-8">
+        <div id="detailTabs-${platform}" class="mb-8">
           <div class="flex gap-1 mb-4 border-b border-gray-700" id="tabNav-${platform}">
             <button class="tab-btn active" data-tab="overview" onclick="window._switchTab('overview','${platform}')">概览</button>
             <button class="tab-btn" data-tab="class" onclick="window._switchTab('class','${platform}')">兵种</button>
