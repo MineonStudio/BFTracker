@@ -394,9 +394,25 @@
       const humanKd    = stats.deaths ? (humanKills / stats.deaths) : 0;
       const humanKillsPerMatch = matchesPlayed ? (humanKills / matchesPlayed) : 0;
 
+      // 提取等级数据
+      const rankVal = stats.rank ?? stats.level ?? stats.currentRank ?? stats.rankNumber ?? stats.prestige ??
+                      allData?.rank ?? null;
+
       container.innerHTML = `
         <!-- 玩家总览 -->
         <div class="bg-card rounded-2xl p-5 mb-8 fade-up">
+          ${rankVal != null ? `
+          <!-- 等级展示 -->
+          <div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-700/50">
+            <div class="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
+              <span class="text-2xl font-black text-accent">${rankVal}</span>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-accent uppercase tracking-wider">玩家等级</p>
+              <p class="text-xs text-gray-500">Level ${rankVal}</p>
+            </div>
+          </div>
+          ` : ''}
           <!-- 第一行：KD + 胜率 等宽 -->
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="bg-dark rounded-xl p-4">
@@ -890,8 +906,22 @@
       const first = results[0];
       document.getElementById('playerAvatar').src = first.stats.avatar || '';
       document.getElementById('playerName').textContent = first.stats.userName || name;
-      document.getElementById('playerMeta').textContent =
-        `${GAME_LABELS[game] || game} · ${formatSeconds(first.stats.secondsPlayed)} 游戏时长`;
+      
+      // 等级：兼容多种字段名
+      const rankVal = first.stats.rank ?? first.stats.level ?? first.stats.currentRank ?? first.stats.rankNumber ?? first.stats.prestige ?? null;
+      let rankHtml = '';
+      if (rankVal != null) {
+        rankHtml = `<span class="inline-flex items-center gap-1 bg-accent/20 text-accent text-xs font-bold px-2.5 py-0.5 rounded-full ml-2">Lv.${rankVal}</span>`;
+      }
+      document.getElementById('playerMeta').innerHTML =
+        `${GAME_LABELS[game] || game} · ${formatSeconds(first.stats.secondsPlayed)} 游戏时长${rankHtml}`;
+      
+      // 如果等级在 allData 里，也尝试获取
+      if (rankVal == null && first.allData?.rank != null) {
+        document.getElementById('playerMeta').innerHTML =
+          `${GAME_LABELS[game] || game} · ${formatSeconds(first.stats.secondsPlayed)} 游戏时长` +
+          `<span class="inline-flex items-center gap-1 bg-accent/20 text-accent text-xs font-bold px-2.5 py-0.5 rounded-full ml-2">Lv.${first.allData.rank}</span>`;
+      }
 
       // 构建 Tabs
       const tabsBar   = document.getElementById('tabsBar');
