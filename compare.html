@@ -337,20 +337,22 @@
     });
 
     // ── 最近对比渲染 ──
+    const PLATFORM_ICON_MAP = { xbox:'xbox', xboxone:'xbox', xboxseries:'xbox', steam:'steam', ea:'ea', epic:'ea', psn:'playstation', ps4:'playstation', ps5:'playstation', playstation:'playstation', pc:'ea' };
+    const PLATFORM_LABEL_MAP = { xbox:'Xbox', xboxone:'Xbox', xboxseries:'Xbox', steam:'Steam', ea:'EA', epic:'EA', psn:'PlayStation', ps4:'PlayStation', ps5:'PlayStation', playstation:'PlayStation', pc:'EA' };
+
     function renderRecentCompares() {
       const list = getRecentCompares();
       const section = document.getElementById('recentCompareSection');
       if (!list.length) { section.style.display = 'none'; return; }
       section.style.display = '';
-      const PLATFORM_CATEGORY_MAP = { xbox: 'Xbox', xboxone: 'Xbox', xboxseries: 'Xbox', pc: 'PC', steam: 'PC', ea: 'PC', epic: 'PC', psn: 'PlayStation', ps4: 'PlayStation', ps5: 'PlayStation', playstation: 'PlayStation' };
-      const formatPlatform = p => PLATFORM_CATEGORY_MAP[p?.toLowerCase()] || p?.charAt(0)?.toUpperCase() + p?.slice(1) || '—';
       document.getElementById('recentCompareList').innerHTML = list.map((r, idx) => {
-        const names = r.players.map(p =>
-          `<span class="text-gray-300">${p.name}</span><span class="text-gray-500 text-xs ml-1">${formatPlatform(p.platform)}</span>`
-        ).join('<span class="text-gray-600 mx-1">vs</span>');
-        return `<div class="group relative flex items-center bg-card border border-gray-700 hover:border-accent recent-chip rounded-full pl-4 pr-2 py-1.5 text-sm transition-colors cursor-pointer" data-compare-idx="${idx}">
-          <span class="text-accent font-semibold shrink-0 mr-2">${GAME_LABELS[r.game] || r.game}</span>
-          <span class="flex items-center gap-1 flex-1 min-w-0">${names}</span>
+        const names = r.players.map(p => {
+          const icon = PLATFORM_ICON_MAP[p.platform?.toLowerCase()] || 'pc';
+          const label = PLATFORM_LABEL_MAP[p.platform?.toLowerCase()] || p.platform || '—';
+          return `<span class="inline-flex items-center gap-1"><img src="icons/${icon}.svg" class="w-4 h-4"><span class="text-gray-300">${p.name}</span><span class="text-gray-500 text-xs">${label}</span></span>`;
+        }).join('<span class="text-gray-600 mx-1">vs</span>');
+        return `<div class="group relative flex items-center bg-card border border-gray-700 hover:border-accent recent-chip rounded-full pl-3 pr-2 py-1 text-sm transition-colors cursor-pointer" data-compare-idx="${idx}">
+          <span class="flex items-center gap-1 flex-1 min-w-0 flex-wrap">${names}</span>
           <button data-remove-idx="${idx}" class="remove-compare-btn ml-2 text-gray-600 hover:text-red-400 transition-colors leading-none text-base px-1">&times;</button>
         </div>`;
       }).join('');

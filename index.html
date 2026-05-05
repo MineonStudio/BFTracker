@@ -2,74 +2,90 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-    <meta property="og:title" content="战地战绩查询 - BF Tracker">
-  <meta property="og:description" content="支持 BF6 / BF2042 / BFV / BF1 / BF4 全平台战绩查询与数据分析">
+  <meta property="og:title" content="BF6 战绩查询 - BF Tracker">
+  <meta property="og:description" content="BF6 全平台战绩查询与数据分析">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://mineonstudio.github.io/BFTracker/">
-  <meta name="description" content="战地系列战绩查询网站，支持 BF6/BF2042/BFV/BF1/BF4 全平台查询">
+  <meta name="description" content="BF6 全平台战绩查询与数据分析">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>战地战绩查询</title>
+  <title>BF6 战绩查询</title>
   <link rel="stylesheet" href="css/input.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-dark text-gray-200 min-h-screen flex flex-col">
   <script>(function(){if(localStorage.theme==='light')document.body.classList.add('light')})()</script>
 
-  <!-- 导航 -->
   <nav class="border-b border-gray-700 bg-card relative">
     <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
       <a href="index.html" class="text-xl font-bold gradient-text">BF Tracker</a>
       <div class="flex gap-6 text-sm text-gray-400">
         <a href="index.html" aria-label="首页" class="nav-link active pb-1">首页</a>
         <a href="compare.html" aria-label="多人对比" class="nav-link hover:text-white pb-1">多人对比</a>
-      
       </div>
     </div>
   </nav>
 
   <div class="flex-1">
-
-  <!-- Hero -->
-  <div class="max-w-5xl mx-auto px-4 pt-8 sm:pt-16 pb-6 sm:pb-10 text-center">
-    <h1 class="text-2xl sm:text-4xl font-bold mb-3">
-      <span class="gradient-text">战地战绩查询</span>
-    </h1>
-    <p class="text-gray-400 mb-10">BF6 全平台战绩查询与数据分析</p>
-
-    <!-- 搜索卡片 -->
-    <div class="bg-card  p-4 sm:p-6 shadow-xl max-w-2xl mx-auto">
-      <div class="flex flex-col sm:flex-row gap-3">
-        <input type="hidden" id="gameSelect" value="bf6">
-        <select id="platformSelect" class="bg-transparent border border-gray-700 text-white px-3 py-2 text-sm focus:outline-none focus:border-blue-500 w-full sm:flex-1"></select>
-        <input id="nameInput" type="text" placeholder="输入玩家用户名..." class="search-input w-full sm:flex-1 bg-transparent border border-gray-700 text-white px-4 py-2 text-sm focus:outline-none focus:border-blue-500" />
-        <button id="searchBtn" class="bg-white text-black px-6 py-2 text-sm hover:opacity-85 transition-opacity w-full sm:w-auto">查询</button>
+    <div class="max-w-5xl mx-auto px-4 pt-8 sm:pt-16 pb-6 sm:pb-10 text-center">
+      <h1 class="text-2xl sm:text-4xl font-bold mb-3">
+        <span class="gradient-text">BF6 战绩查询</span>
+      </h1>
+      <p class="text-gray-400 mb-10">Battlefield 6 全平台战绩查询与数据分析</p>
+      <div class="bg-card p-4 sm:p-6 shadow-xl max-w-2xl mx-auto">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input type="hidden" id="gameSelect" value="bf6">
+          <select id="platformSelect" class="bg-transparent border border-gray-700 text-white px-3 py-2 text-sm focus:outline-none focus:border-blue-500 w-full sm:w-36"></select>
+          <input id="nameInput" type="text" placeholder="输入玩家用户名..." class="search-input w-full sm:flex-1 bg-transparent border border-gray-700 text-white px-4 py-2 text-sm focus:outline-none focus:border-blue-500" />
+          <button id="searchBtn" class="bg-white text-black px-6 py-2 text-sm hover:opacity-85 transition-opacity w-full sm:w-auto">查询</button>
+        </div>
       </div>
+      <datalist id="recentPlayers"></datalist>
     </div>
-    <datalist id="recentPlayers"></datalist>
+
+    <div class="max-w-5xl mx-auto px-4 pb-16" id="recentSection" style="display:none">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider">最近搜索</h2>
+        <button id="clearAllBtn" class="text-xs text-gray-500 hover:text-red-400 transition-colors">清除全部</button>
+      </div>
+      <div id="recentList" class="flex flex-wrap gap-2"></div>
+    </div>
+
+    <div id="statusBar" class="max-w-5xl mx-auto px-4 pb-8 flex gap-4"></div>
   </div>
 
-
-
-  <!-- 最近搜索 -->
-  <div class="max-w-5xl mx-auto px-4 pb-16" id="recentSection" style="display:none">
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider">最近搜索</h2>
-      <button id="clearAllBtn" class="text-xs text-gray-500 hover:text-red-400 transition-colors">清除全部</button>
+  <footer class="border-t border-gray-700 mt-12">
+    <div class="max-w-5xl mx-auto px-4 py-8">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-center sm:text-left">
+          <a href="index.html" class="text-lg font-bold gradient-text">BF Tracker</a>
+          <p class="text-xs text-gray-500 mt-1">Battlefield 6 战绩查询 · 全平台数据 · 免费开源</p>
+        </div>
+        <div class="flex items-center gap-6 text-xs text-gray-500">
+          <a href="index.html" class="hover:text-gray-300 transition-colors footer-link">首页</a>
+          <a href="compare.html" class="hover:text-gray-300 transition-colors footer-link">多人对比</a>
+          <a href="https://github.com/MineonStudio/BFTracker" target="_blank" class="hover:text-gray-300 transition-colors footer-link">GitHub</a>
+        </div>
+      </div>
+      <p class="text-center text-xs text-gray-600 mt-6">&copy; 2026 BF Tracker &middot; Powered by GameTools Network</p>
     </div>
-    <div id="recentList" class="flex flex-wrap gap-2"></div>
-  </div>
+  </footer>
 
   <script type="module">
     import { PLATFORM_CATEGORIES } from './js/api.js';
     import { getRecentSearches, saveRecentSearch, removeRecentSearch, clearRecentSearches } from './js/storage.js';
     import { buildPlayerUrl, formatNum } from './js/utils.js';
 
+    const PLATFORM_ICON = { xbox:'xbox', xboxone:'xbox', xboxseries:'xbox', steam:'steam', ea:'ea', epic:'ea', psn:'playstation', ps4:'playstation', ps5:'playstation', playstation:'playstation', pc:'ea' };
+    const PLATFORM_LABEL = { xbox:'Xbox', xboxone:'Xbox', xboxseries:'Xbox', steam:'Steam', ea:'EA', epic:'EA', psn:'PlayStation', ps4:'PlayStation', ps5:'PlayStation', playstation:'PlayStation', pc:'EA' };
+
+    function getIcon(p) { return PLATFORM_ICON[p?.toLowerCase()] || 'pc'; }
+    function getLabel(p) { return PLATFORM_LABEL[p?.toLowerCase()] || p || '—'; }
+
     const gameSelect = document.getElementById('gameSelect');
     const platformSelect = document.getElementById('platformSelect');
-    const nameInput  = document.getElementById('nameInput');
-    const searchBtn  = document.getElementById('searchBtn');
+    const nameInput = document.getElementById('nameInput');
+    const searchBtn = document.getElementById('searchBtn');
 
-    // 填充平台下拉
     PLATFORM_CATEGORIES.forEach(cat => {
       const opt = document.createElement('option');
       opt.value = cat;
@@ -88,3 +104,62 @@
     searchBtn.addEventListener('click', doSearch);
     nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
 
+    nameInput.addEventListener('focus', () => {
+      const section = document.getElementById('recentSection');
+      if (section && section.style.display !== 'none') return;
+      if (getRecentSearches().length) {
+        document.getElementById('recentSection').style.display = '';
+        renderRecent();
+      }
+    });
+
+    function renderRecent() {
+      const list = getRecentSearches();
+      const dl = document.getElementById('recentPlayers');
+      if (dl && list.length) dl.innerHTML = list.map(r => `<option value="${r.name}">`).join('');
+      const section = document.getElementById('recentSection');
+      if (!list.length) { section.style.display = 'none'; return; }
+      section.style.display = '';
+      document.getElementById('recentList').innerHTML = list.map(r => `
+        <div class="group relative flex items-center bg-card border border-gray-700 hover:border-accent recent-chip rounded-full pl-3 pr-2 py-1 text-sm transition-colors">
+          <a href="${buildPlayerUrl(r.game, r.name, r.platform)}" class="flex items-center gap-1.5 flex-1 min-w-0">
+            <img src="icons/${getIcon(r.platform)}.svg" class="w-4 h-4 shrink-0" alt="">
+            <span class="text-gray-300 truncate">${r.name}</span>
+            <span class="text-gray-500 text-xs px-1.5 py-0.5 rounded bg-gray-700/50 shrink-0">${getLabel(r.platform)}</span>
+          </a>
+          <button data-game="${r.game}" data-platform="${r.platform}" data-name="${r.name}"
+            class="remove-btn ml-1 text-gray-600 hover:text-red-400 transition-colors leading-none text-base px-1">&times;</button>
+        </div>
+      `).join('');
+      document.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          removeRecentSearch(btn.dataset.game, btn.dataset.platform, btn.dataset.name);
+          renderRecent();
+        });
+      });
+    }
+    renderRecent();
+
+    document.getElementById('clearAllBtn').addEventListener('click', () => { clearRecentSearches(); renderRecent(); });
+
+    fetch('https://api.gametools.network/bf6/status/').then(r=>r.json()).then(d => {
+      const r = d.regions || {};
+      const a = (r.ALL || r.all || Object.values(r)[0] || {}).amounts || {};
+      const bar = document.getElementById('statusBar');
+      if (bar) bar.innerHTML = `<div class="flex flex-col gap-1 px-2 py-1 bg-card rounded-lg">
+        <span class="text-xs font-semibold text-accent">BF6</span>
+        <span class="text-white font-bold">${formatNum(a.soldierAmount ?? a.playerAmount ?? 0)}<span class="text-gray-500 font-normal text-xs ml-1">人在线</span></span>
+      </div>`;
+    }).catch(() => {});
+  </script>
+  <script>
+    document.addEventListener('keydown', e => {
+      if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+        e.preventDefault();
+        document.querySelector('#nameInput')?.focus();
+      }
+    });
+  </script>
+</body>
+</html>
