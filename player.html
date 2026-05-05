@@ -223,21 +223,35 @@
             </div>
           </div>
           ` : ''}
-          <!-- 玩家信息 -->
-          <div class="flex items-end gap-3 mb-4">
-            ${(() => { const p = platform?.toLowerCase() || ''; const key = p.includes('steam')?'steam':p.includes('ea')?'ea':p.includes('epic')?'epic':p.includes('xbox')?'xbox':p.includes('ps')||p.includes('playstation')?'playstation':null; const map = {steam:'steam',ea:'ea',epic:'epic',xbox:'xbox',playstation:'playstation'}; return key ? `<div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gray-700/50 flex items-center justify-center shrink-0"><img loading="lazy" src="icons/${map[key]}.svg" class="w-8 h-8 sm:w-9 sm:h-9" alt=""></div>` : (stats.avatar && !stats.avatar.includes('default-avatar') ? `<img loading="lazy" src="${stats.avatar}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-700 object-cover" alt="">` : ''); })()}
+          <!-- 玩家信息：左中右三栏布局 -->
+          <div class="flex items-center gap-4 mb-6">
+            <!-- 左侧：等级图标 -->
+            <div class="shrink-0 w-16 h-16 flex items-center justify-center">
+              ${allData?.rankImage?.small
+                ? `<img src="${allData.rankImage.small}" class="w-16 h-16 object-contain" alt="">`
+                : `<div class="w-14 h-14 rounded-full bg-gray-700/50 flex items-center justify-center">
+                     <span class="text-lg font-black text-gray-400">${rankVal ?? '?'}</span>
+                   </div>`}
+            </div>
+            <!-- 中间：玩家名 + 等级/时长 -->
             <div class="flex-1 min-w-0">
-              <div class="flex justify-end">
-                <span class="text-gray-400 text-xs sm:text-sm">${formatSeconds(stats.secondsPlayed)}</span>
+              <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight truncate">${stats.userName || name}</h1>
+              <div class="flex items-center gap-2 mt-1 text-sm text-gray-400">
+                <span class="text-accent font-semibold">${rankName ?? 'Level ' + (rankVal ?? '—')}</span>
+                <span class="text-gray-600">·</span>
+                <span>${formatSeconds(stats.secondsPlayed)}</span>
               </div>
-              <div class="flex items-center gap-2 mt-1">
-                <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight truncate">${stats.userName || name}</h1>
-                <div class="flex items-center gap-2 ml-auto shrink-0">
-                  <span class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-accent/10 h-6 flex items-center">${(GAME_LABELS[game] || game).replace('Battlefield ','BF')}</span>
-                  
-                  <button onclick="window.doSharePoster()" class="text-gray-400 hover:text-white transition-colors" title="分享"><svg class="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
-                </div>
-              </div>
+            </div>
+            <!-- 右侧：平台 + 分享 -->
+            <div class="shrink-0 flex items-center gap-2">
+              <span class="text-xs font-semibold px-2 py-1 rounded-full bg-accent/10 text-accent">BF6</span>
+              <button onclick="window.doSharePoster()" class="text-gray-400 hover:text-white transition-colors" title="分享">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                  <polyline points="16 6 12 2 8 6"/>
+                  <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+              </button>
             </div>
           </div>
           <!-- 第一行：KD + 胜率 等宽 -->
@@ -275,22 +289,54 @@
           </div>
         </div>
 
-        <!-- 查看更多 -->
-        <div class="text-center mb-4" id="showMoreWrap-${platform}">
-          <button id="showMoreBtn-${platform}" onclick="window._toggleDetailTabs('${platform}')" class="border border-gray-600 text-gray-400 hover:text-white hover:border-gray-500 px-6 py-2  text-sm transition-colors">查看更多 ▼</button>
-        </div>
-
-        <!-- Tab容器 -->
-        <div id="detailTabs-${platform}" style="display:none" class="mb-8">
-          <div class="flex gap-1 mb-4 border-b border-gray-700 justify-center" id="tabNav-${platform}">
-            <button class="tab-btn active" data-tab="class" onclick="window._switchTab('class','${platform}')">兵种</button>
+        <!-- Tab导航（始终显示） -->
+        <div class="mb-8">
+          <div class="flex gap-1 mb-4 border-b border-gray-700" id="tabNav-${platform}">
+            <button class="tab-btn active" data-tab="overview" onclick="window._switchTab('overview','${platform}')">概览</button>
+            <button class="tab-btn" data-tab="class" onclick="window._switchTab('class','${platform}')">兵种</button>
             <button class="tab-btn" data-tab="kills" onclick="window._switchTab('kills','${platform}')">击杀</button>
             <button class="tab-btn" data-tab="wins" onclick="window._switchTab('wins','${platform}')">胜率</button>
             <button class="tab-btn" data-tab="support" onclick="window._switchTab('support','${platform}')">贡献</button>
             <button class="tab-btn" data-tab="season" onclick="window._switchTab('season','${platform}')">赛季</button>
           </div>
+          <!-- 概览 -->
+          <div id="tab-overview-${platform}" class="tab-panel">
+            <div class="bg-card  p-5 mb-8">
+              <!-- KD + 胜率 -->
+              <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="bg-dark p-4 hover-lift">
+                  <p class="text-2xl sm:text-4xl font-black count-animate" style="color:${kdColor(humanKd)}">${formatDecimal(humanKd)}</p>
+                  <p class="text-xs text-gray-500 mt-1">K/D</p>
+                  <div class="flex gap-4 mt-3 text-sm">
+                    <div><p class="text-white font-semibold">${formatNum(humanKills)}</p><p class="text-xs text-gray-500">击杀</p></div>
+                    <div><p class="text-white font-semibold">${formatNum(stats.deaths)}</p><p class="text-xs text-gray-500">死亡</p></div>
+                  </div>
+                </div>
+                <div class="bg-dark p-4 flex flex-col justify-between hover-lift">
+                  <div>
+                    <p class="text-2xl sm:text-4xl font-black count-animate" style="color:${winColor(parseFloat(stats.winPercent))}">${formatPct(stats.winPercent)}</p>
+                    <p class="text-xs text-gray-500 mt-1">胜率</p>
+                  </div>
+                  <div class="flex gap-4 mt-3 text-sm">
+                    <div><p class="text-white font-semibold">${formatNum(matchesPlayed)}</p><p class="text-xs text-gray-500">总场次</p></div>
+                    <div><p class="text-white font-semibold">${formatNum(stats.wins)}</p><p class="text-xs text-gray-500">胜场</p></div>
+                  </div>
+                </div>
+              </div>
+              <!-- 详细指标 -->
+              <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 text-center">
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(humanKd)}</p><p class="text-xs text-gray-500">K/D</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${spm ?? '—'}</p><p class="text-xs text-gray-500">SPM</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(humanKillsPerMatch)}</p><p class="text-xs text-gray-500">场均击杀</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${deathsPerMatch ?? '—'}</p><p class="text-xs text-gray-500">场均死亡</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.headShots)}</p><p class="text-xs text-gray-500">爆头数</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(assists)}</p><p class="text-xs text-gray-500">助攻数</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.revives)}</p><p class="text-xs text-gray-500">急救数</p></div>
+              </div>
+            </div>
+          </div>
           <!-- 兵种 -->
-          <div id="tab-class-${platform}" class="tab-panel">
+          <div id="tab-class-${platform}" class="tab-panel hidden">
             <div class="bg-card  p-5 mb-8" id="classSection-${platform}" style="display:none">
               <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">兵种数据</h2>
               <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3" id="classCards-${platform}"></div>
@@ -924,19 +970,6 @@
     });
 
     // ─── Tab切换功能 ───
-    window._toggleDetailTabs = (platform) => {
-      const tabs = document.getElementById('detailTabs-' + platform);
-      const btn = document.getElementById('showMoreBtn-' + platform);
-      if (!tabs) return;
-      if (tabs.style.display === 'none') {
-        tabs.style.display = '';
-        if (btn) btn.textContent = '收起更多 ▲';
-      } else {
-        tabs.style.display = 'none';
-        if (btn) btn.textContent = '查看更多 ▼';
-      }
-    };
-
     window._switchTab = (tab, platform) => {
       const nav = document.getElementById('tabNav-' + platform);
       if (nav) {
