@@ -732,8 +732,8 @@
           // 从 profile 提取等级信息
           const rankData = profileData?.playerProfiles?.[0]?.playerCard?.rank;
           const rankNameData = profileData?.playerProfiles?.[0]?.rankName;
-          if (rankData != null || rankNameData != null) {
-            if (!allData) allData = {};
+          // 等级数据存到 allData 供渲染用，allData 为 null 时忽略
+          if (allData && (rankData != null || rankNameData != null)) {
             if (rankData != null) allData.rank = rankData;
             if (rankNameData != null) allData.rankName = rankNameData;
           }
