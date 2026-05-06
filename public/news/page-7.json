@@ -1,0 +1,139 @@
+{
+  "page": 7,
+  "totalPages": 8,
+  "totalItems": 92,
+  "articles": [
+    {
+      "title": "《战地风云 6》- 更新说明 1.0.1.0",
+      "summary": "《战地风云 6》正式发售并同步推出补丁 1.0.1.0，为游戏带来了大量更新与改进。",
+      "slug": "battlefield-6-update-notes-1-0-1-0",
+      "type": "游戏更新",
+      "date": "2025-10-09T23:00:00.000+08:00",
+      "img": "https://drop-assets.ea.com/images/5oFPzIeJGZGOR1Vga4YsLc/67aa6a42e8fef3a6dadd50b8d5e53108/CMTY-Thumb-PNKJ-UP1010_EN.jpg?im=AspectCrop=(16,9),xPosition=0.4744791666666667,yPosition=0.4648148148148148",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云 6》上线 Twitch 掉宝活动",
+      "summary": "观看并支持您最爱的创作者直播《战地风云 6》即可解锁 Twitch 掉宝奖励。",
+      "slug": "battlefield-6-launch-twitch-drops",
+      "type": "新闻文章",
+      "date": "2025-10-08T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/2I7VhVjwdzBgmbpeldmM8t/4f2dcad2d115abd786aa2bb9ff38d89f/battlefield-6-standard-edition-16x9.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5356481481481481",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "为《战地风云 6》做好准备 - 发布时间、安全启动和 PC 规格",
+      "summary": "了解《战地风云 6》何时在你所在的地区发布、如何启用安全启动以及推荐的 PC 规格。",
+      "slug": "get-ready-for-battlefield-6",
+      "type": "新闻文章",
+      "date": "2025-10-07T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/1hyCMuldPNNLwRbsBowK8U/eafd44116282459f782c2a6e0a60b8b2/BF6-Campaign-Article-Thumbnail-16x9.jpg?im=AspectCrop=(16,9),xPosition=0.6713541666666667,yPosition=0.4898148148148148",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云 6》- 社区更新 - 玩出自己的风格",
+      "summary": "优化洞察：发售及后续更新展望",
+      "slug": "community-update-play-your-way",
+      "type": "新闻文章",
+      "date": "2025-10-06T23:00:00.000+08:00",
+      "img": "https://drop-assets.ea.com/images/1wXDkAzODIpoG0TM3TAorX/4c81b13c7e123f5e5565f76cb5bda7c2/BF6-CommunityUpdate-PlayYourWay-16x9.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云 6》发布后 2025 - 第 1 赛季路线图预览",
+      "summary": "为 10 月 28 日推出的《战地风云 6》第 1 赛季的首次重大更新做好准备，其中包含免费地图、武器和更多内容",
+      "slug": "battlefield-6-season-1-roadmap-preview",
+      "type": "新闻文章",
+      "date": "2025-09-30T23:00:00.000+08:00",
+      "img": "https://drop-assets.ea.com/images/3W42MkellsL2UJrfqORspM/ea0f451b56418626fe7e9ae066170756/BF6_Screenshot_01_Iconic_AllOut_Warfare_1920x1080_NoLogo.jpg?im=AspectCrop=(16,9),xPosition=0.45989583333333334,yPosition=0.4287037037037037",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云 6》单人战役前瞻",
+      "summary": "了解《战地风云 6》单人战役与匕首一三小队成员。",
+      "slug": "battlefield-6-campaign",
+      "type": "新闻文章",
+      "date": "2025-09-24T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/1hyCMuldPNNLwRbsBowK8U/eafd44116282459f782c2a6e0a60b8b2/BF6-Campaign-Article-Thumbnail-16x9.jpg?im=AspectCrop=(16,9),xPosition=0.6713541666666667,yPosition=0.4898148148148148",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云》实验室 - 社区更新 - 大逃杀测试",
+      "summary": "《战地风云》实验室下一轮测试最新消息：大逃杀模式登场",
+      "slug": "community-update-battle-royale-testing",
+      "type": "新闻文章",
+      "date": "2025-09-10T14:00:00.000-07:00",
+      "img": "https://drop-assets.ea.com/images/5Gmlw1Fei7z9zGlACEFHqo/c7304e88bc69c8b0e66439e0c4ca46db/CMTY-BFL-0909-450-KJ3-WHITE.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "社区更新 - 《战地风云》实验室测试",
+      "summary": "《战地风云》实验室回归！",
+      "slug": "community-update-battlefield-labs-testing",
+      "type": "新闻文章",
+      "date": "2025-08-28T23:00:00.000+08:00",
+      "img": "https://drop-assets.ea.com/images/13hyCrlWKRiog5p69vQatV/4fbdc92fddf78ddf011bf6b5fedef6cf/bf-community-update-labs-featuredimage.jpg?im=AspectCrop=(16,9),xPosition=0.5286458333333334,yPosition=0.525",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "PC 的力量 × Portal 的潜能",
+      "summary": "《战地风云 6》带来本系列迄今为止最出色的 PC 体验。",
+      "slug": "pc-portal-experience",
+      "type": "新闻文章",
+      "date": "2025-08-28T00:00:00.000-07:00",
+      "img": "https://drop-assets.ea.com/images/22DpP4Sfh4IXDM0Ss5Pixk/84f85581cfe9c64847ba1aafccee3f1e/BF6-PC_BLOG_HEADER.png?im=AspectCrop=(16,9),xPosition=0.0984375,yPosition=0.10856481481481481",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "社区更新 - 公开测试简报",
+      "summary": "来看看我们在公开测试中基于玩家反馈和游戏内数据得到的重要收获，以及据此带来的游戏内改动。",
+      "slug": "community-update-open-beta-debrief",
+      "type": "新闻文章",
+      "date": "2025-08-21T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/6ufVKgLzCMhCZJE3LkCPtU/584c73edf0426ee5966dea770cd8a472/CMTY-Thumb_BetaRecap-2.jpg?im=AspectCrop=(16,9),xPosition=0.534375,yPosition=0.48518518518518516",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云》-公开测试第 2 周末游戏列表",
+      "summary": "在开启第 2 个公测周末前，了解更多我们对游戏列表所做的改动。",
+      "slug": "open-beta-week-2-playlist-options",
+      "type": "新闻文章",
+      "date": "2025-08-13T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/4e7YS68ywVQqUhZszC2VhT/c6650f51ab36f8bd0f887b7f55927a43/GLA_OpenBeta_0388_3840x2160.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "关于 Beta 公测你需要知道的一切",
+      "summary": "了解在 Beta 公测期间等待你的模式、地图和挑战的详细信息。",
+      "slug": "everything-you-need-to-know-for-the-open-beta",
+      "type": "新闻文章",
+      "date": "2025-08-04T23:00:00.000+08:00",
+      "img": "https://drop-assets.ea.com/images/4e7YS68ywVQqUhZszC2VhT/c6650f51ab36f8bd0f887b7f55927a43/GLA_OpenBeta_0388_3840x2160.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    }
+  ]
+}

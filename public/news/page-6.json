@@ -1,0 +1,139 @@
+{
+  "page": 6,
+  "totalPages": 8,
+  "totalItems": 92,
+  "articles": [
+    {
+      "title": "《战地风云》创作者计划介绍",
+      "summary": "《战地风云》创作者计划现已开放申请。这是面向新锐与资深内容创作者的全新挑战体系，欢迎了解详情并加入。",
+      "slug": "introducing-the-battlefield-creator-program",
+      "type": "新闻文章",
+      "date": "2025-10-14T23:00:00.000+08:00",
+      "img": "https://drop-assets.ea.com/images/3sFMN154RIwET5c4g1p7G0/fcf60bf8055a8c1d683cc94bf9ce72a2/BF6_Logo_Creator-Program_BG.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云 6》新手指南",
+      "summary": "掌握征战《战地风云》的最佳入门策略——了解如何开始游戏、体验哪些模式，以及赢得战斗的专家技巧。",
+      "slug": "new-player-guide-to-battlefield-6",
+      "type": "指南",
+      "date": "2025-10-10T23:00:00.000+08:00",
+      "img": "https://drop-assets.ea.com/images/5GMm7Jh95chuQAbFmkfOAR/0742facefa94ef926b116cb487735fb7/BF6-Story-Overview-16x9.jpg?im=AspectCrop=(16,9),xPosition=0.5372395833333333,yPosition=0.47962962962962963",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "门户指南：如何在《战地风云》门户构建器中创建认证玩法体验",
+      "summary": "了解如何通过《战地风云》门户构建器，创建基础社区体验。",
+      "slug": "portal-101-verified-experiences",
+      "type": "指南",
+      "date": "2025-10-10T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/3U6VIjnvjfaClXH2qaw2np/36c0ef41b69e05cfe9bc35acc79dfa40/BF6_OpenBeta_Screenshot_03_Portal03_3840x2160_NoLogo.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "地图",
+      "summary": "游戏正式发售时将提供 9 张地图与 25 个战区 - 这是你将在《战地风云 6》中奋战的所有地点详情。",
+      "slug": "maps",
+      "type": "指南",
+      "date": "2025-10-10T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/1Gix92pzwLTMAPiHCCxZVq/4865037b45e8ac5306307deacc39e748/BF6-Empire-State-Vista-03-16x9.png",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "模式",
+      "summary": "从全面战争到带有《战地风云》 DNA 的体验，《战地风云 6》在发布时即可体验这些模式。",
+      "slug": "modes",
+      "type": "指南",
+      "date": "2025-10-10T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/rxsM6q6KjB39trfbubY5U/9667367eaa77e5efb827b690da9bc9bf/BF6-Iconic-AllOutWarfare-NoLogo-16x9.png",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "Portal 101：游玩与主持Portal社区体验",
+      "summary": "了解如何在《战地风云6》中使用Portal的游戏内服务器浏览器，包括主持游戏以及了解进度系统的基础内容。",
+      "slug": "portal-101-introduction-to-battlefield-portal",
+      "type": "指南",
+      "date": "2025-10-10T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/7tDOoDXx3LyEgFF410Diz4/c707eed9f0ff09847049c43ee9311cec/BF6-Portal-Action-Logo-16x9.png?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "如何在《战地风云6》中完成启程挑战",
+      "summary": "本指南将带您了解启程挑战，让您快速提升生涯等级并解锁迷彩外观。",
+      "slug": "how-to-complete-initiation-challenges",
+      "type": "指南",
+      "date": "2025-10-10T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/gLKuRtEMNeXMf7ZqXexM9/d1d9b32fe33e06da5c68f86a4f35b466/GLA_LAU_Screenshot_07_Assault_1920x1080_NoLogo.png?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云6》老兵五大进阶技巧",
+      "summary": "即使是老兵，也能学到新招！以下是为《战地风云6》资深玩家准备的实用指南。",
+      "slug": "five-tips-for-bf-veterans",
+      "type": "新闻文章",
+      "date": "2025-10-10T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/3TuXiU5PTOmeTndY53YAm8/3a116fabae38d2cf0798dad6b47aa7fd/GLA_REV_Screenshot_10_USP2_Alt_1920x1080_NoLogo.png?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "升级模式指南",
+      "summary": "深入了解《战地风云6》的全新游戏模式，看看它为何会成为您新的多人游戏首选体验。",
+      "slug": "escalation-mode-guide",
+      "type": "指南",
+      "date": "2025-10-10T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/3W42MkellsL2UJrfqORspM/ea0f451b56418626fe7e9ae066170756/BF6_Screenshot_01_Iconic_AllOut_Warfare_1920x1080_NoLogo.jpg?im=AspectCrop=(16,9),xPosition=0.45989583333333334,yPosition=0.4287037037037037",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "收件箱——《战地风云6》新玩家每日登录奖励及更多内容",
+      "summary": "每日登录《战地风云6》即可领取登录奖励；本指南将介绍可获得的奖励内容及如何通过EA Connect收件箱进行领取。",
+      "slug": "the-inbox",
+      "type": "指南",
+      "date": "2025-10-10T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/s8g04zRTfRpItzBzM9rYd/d45f68b7bd50a4d1fde81380e84f2768/BF6-Signature-Ability-Power-Fix.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "单人战役",
+      "summary": "旧世界正在分崩离析 - 了解更多关于在《战地风云 6》中操控匕首 1-3 参与全球规模单人战役的信息。",
+      "slug": "single-player-campaign",
+      "type": "指南",
+      "date": "2025-10-10T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/1hyCMuldPNNLwRbsBowK8U/eafd44116282459f782c2a6e0a60b8b2/BF6-Campaign-Article-Thumbnail-16x9.jpg?im=AspectCrop=(16,9),xPosition=0.6713541666666667,yPosition=0.4898148148148148",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云 101》：全面战争时刻到",
+      "summary": "关于《战地风云 6》发布时你需要了解的一切，从战役到多人模式地图、模式等等。",
+      "slug": "battlefield-101",
+      "type": "新闻文章",
+      "date": "2025-10-10T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/63e0S1gWvaFpYSAHyCu5Zo/5a0f2fec92b19ae8e8de9ac99e15e0d3/battlefield-6-all-out-warfare-16x9.jpg?im=AspectCrop=(16,9),xPosition=0.1859375,yPosition=0.37777777777777777",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    }
+  ]
+}

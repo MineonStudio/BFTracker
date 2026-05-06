@@ -1,0 +1,95 @@
+{
+  "page": 8,
+  "totalPages": 8,
+  "totalItems": 92,
+  "articles": [
+    {
+      "title": "社区更新 - Beta 公测和发行之路",
+      "summary": "我们将讨论根据大家的反馈，对 Beta 公测所做的调整，以及你们如何帮助我们为《战地风云 6》的正式发行做好准备。",
+      "slug": "community-update-open-beta-and-the-road-to-launch",
+      "type": "新闻文章",
+      "date": "2025-08-04T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/3Gf6AQL4uPomtbsAE217Ok/2ab9cc4c971200d1223e56974acee780/cmty-thumb-openbetardy.jpg?im=AspectCrop=(16,9),xPosition=0.5255208333333333,yPosition=0.475",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "安全启动信息",
+      "summary": "了解什么是安全启动，以及为什么需要安全启动才能游玩《战地风云 6》。",
+      "slug": "secure-boot-information",
+      "type": "新闻文章",
+      "date": "2025-08-04T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/kuwYYdTvr3CHmVEJgPCfu/c157a253afa2c54bb78859427f4bfa99/EA_Javelin_640x380_BF_Texture.jpg?im=AspectCrop=(16,9),xPosition=0.2546875,yPosition=0.4583333333333333",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云 6》Beta 公测 Twitch 掉落宝物",
+      "summary": "获取关于如何在观看您最喜欢的创作者直播《战地风云 6》抢先体验和 Beta 公测时解锁奖励的详细信息。",
+      "slug": "battlefield-6-open-beta-twitch-drops",
+      "type": "新闻文章",
+      "date": "2025-08-04T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/4e7YS68ywVQqUhZszC2VhT/c6650f51ab36f8bd0f887b7f55927a43/GLA_OpenBeta_0388_3840x2160.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "子弹上膛，迎接《战地风云 6》Beta 公测",
+      "summary": "获取 Beta 公测的时间表、下载详情和您所需的游戏技巧。",
+      "slug": "lock-and-load-for-the-open-beta",
+      "type": "新闻文章",
+      "date": "2025-07-31T20:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/4e7YS68ywVQqUhZszC2VhT/c6650f51ab36f8bd0f887b7f55927a43/GLA_OpenBeta_0388_3840x2160.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云》实验室 - 兵种系统 - 第二部分",
+      "summary": "了解我们的兵种系统如何演变，在明确职责与玩家选择之间取得更佳平衡。",
+      "slug": "battlefield-labs-the-class-system-part-two",
+      "type": "新闻文章",
+      "date": "2025-07-11T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/fRMl7L9iJXbCRd5VRivl3/630af0fd61b15d6522fa644bc0c51290/bf-labs-class-system-pt2-featuredimage.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云》实验室 - 兵种系统 - 第一部分",
+      "summary": "了解我们的兵种系统如何演变，在明确职责与玩家选择之间取得更佳平衡。",
+      "slug": "battlefield-labs-the-class-system-part-one",
+      "type": "新闻文章",
+      "date": "2025-05-29T15:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/6oNxszTXgJKUeitpKrFK5s/d873e2d6e6b449fa3c1559b8bb5dca10/bf-labs-class-system-pt1-featuredimage.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云》实验室 - 破坏系统",
+      "summary": "了解《战地风云》实验室如何塑造破坏设计和游戏体验。",
+      "slug": "battlefield-labs-destruction",
+      "type": "新闻文章",
+      "date": "2025-04-22T15:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/13GVhZcKDSsLecIW1m66lh/20b50a61008d65ff077f6202390a6e51/bflabs-destruction-featuredimage.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
+    {
+      "title": "《战地风云》实验室 - 枪战和移动理念",
+      "summary": "了解我们如何在《战地风云》实验室中改进枪战和移动机制。",
+      "slug": "battlefield-labs-gunplay-and-movement-philosophy",
+      "type": "新闻文章",
+      "date": "2025-04-18T15:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/SWFjRN2ArxnyX8bFcHDCX/2ea00a3f4e7900fe081b3ac18d873cb3/bflabs-cu-gpm-featuredimage.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    }
+  ]
+}

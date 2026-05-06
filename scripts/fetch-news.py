@@ -1,25 +1,21 @@
-"""抓取 EA 战地风云 6 新闻，输出为 JSON"""
-import json, re, urllib.request, sys, os, time
+"""抓取 EA 战地风云 6 新闻（通过 drop-api），输出为 JSON"""
+import json, urllib.request, sys, os, time, re
 
-EA_URL = 'https://www.ea.com/zh-hans/games/battlefield/battlefield-6/news'
-OUT_DIR = sys.argv[1] if len(sys.argv) > 1 else 'dist/news'
+API_BASE = 'https://drop-api.ea.com/news-articles'
+OUT_DIR = sys.argv[1] if len(sys.argv) > 1 else 'public/news'
 os.makedirs(OUT_DIR, exist_ok=True)
 
-def fetch_page(url):
-    req = urllib.request.Request(url, headers={
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
-    })
-    return urllib.request.urlopen(req, timeout=15).read().decode('utf-8')
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+    'Origin': 'https://www.ea.com',
+    'x-feature': '9837974469060592000',
+    'drop-referrer': 'https://www.ea.com/zh-hans/games/battlefield/battlefield-6/news',
+    'Accept': '*/*',
+}
 
-def parse_articles(html):
-    m = re.search(r'<script[^>]*id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL)
-    if not m: return [], 0
-    data = json.loads(m.group(1))
-    fallback = data['props']['pageProps']['newsDataFallback']
-    items = fallback.get('items', [])
-    total = fallback.get('totalItems', 0)
-    return items, total
+def fetch(url):
+    req = urllib.request.Request(url, headers=HEADERS)
+    return json.loads(urllib.request.urlopen(req, timeout=15).read())
 
 def extract_article(a):
     img = a.get('image') or {}
@@ -32,42 +28,63 @@ def extract_article(a):
         'img': img.get('ar16X9', img.get('ar3X1', img.get('ar2X1', img.get('ar1X1', '')))),
         'featured': a.get('featured', False),
         'tags': a.get('tags', []),
+        'body': '',
     }
 
-# Fetch page 1
-html = fetch_page(EA_URL)
-articles, total = parse_articles(html)
-print(f'Page 1: {len(articles)} articles (total: {total})')
-
-# Dedup by slug
-seen = set()
-all_articles = []
-for a in articles:
-    slug = a.get('slug', '')
-    if slug and slug not in seen:
-        seen.add(slug)
-        all_articles.append(extract_article(a))
-
-# Fetch remaining pages (up to 8, 13 items per page)
-per_page = len(articles) or 13
-total_pages = min(8, (total + per_page - 1) // per_page) if total else 1
-
-for page in range(2, total_pages + 1):
+def fetch_detail(item):
+    """Fetch article body from detail API"""
+    slug = item['slug']
     try:
-        url = f'{EA_URL}?page={page}'
-        html = fetch_page(url)
-        items, _ = parse_articles(html)
-        for a in items:
-            slug = a.get('slug', '')
-            if slug and slug not in seen:
-                seen.add(slug)
-                all_articles.append(extract_article(a))
-        print(f'Page {page}: {len(items)} articles')
-        time.sleep(1)  # rate limit
+        url = f'{API_BASE}/{slug}?locale=zh-hans'
+        detail = fetch(url)
+        item['body'] = detail.get('body', '')
+        time.sleep(0.3)  # rate limit
+        print(f'  ✓ {slug[:40]}')
     except Exception as e:
-        print(f'Page {page} failed: {e}')
+        print(f'  ✗ {slug[:40]} ({e})')
+    return item
 
-print(f'Total unique articles: {len(all_articles)}')
+# Types to fetch
+TYPES = {
+    'latest':         'related-entity-slugs=battlefield-6&linked-to-level=Game&include-featured=true',
+    'game-updates':   'article-types=game-updates&related-entity-slugs=battlefield-6&linked-to-level=Game&include-featured=true',
+    'bf6-guides':     'article-types=bf6-guides&related-entity-slugs=battlefield-6&linked-to-level=Game&include-featured=true',
+    'news-article':   'article-types=news-article&related-entity-slugs=battlefield-6&linked-to-level=Game&include-featured=true',
+}
+
+all_articles = []
+seen = set()
+
+for type_key, params in TYPES.items():
+    page = 0
+    while True:
+        url = f'{API_BASE}/list?locale=zh-hans&limit=13&offset={page*13}&{params}'
+        try:
+            data = fetch(url)
+            items = data.get('items', [])
+            if not items:
+                break
+            for a in items:
+                slug = a.get('slug', '')
+                if slug and slug not in seen:
+                    seen.add(slug)
+                    all_articles.append(extract_article(a))
+            print(f'{type_key}: page {page+1} → {len(items)} items')
+            page += 1
+            time.sleep(0.5)
+        except Exception as e:
+            print(f'{type_key}: page {page+1} error: {e}')
+            break
+
+print(f'\nTotal unique articles: {len(all_articles)}')
+
+# Fetch detail bodies (top 50 articles to keep build time reasonable)
+print('\nFetching article details...')
+for i, item in enumerate(all_articles):
+    if i >= 50:
+        print(f'  (skipped {len(all_articles) - 50}, limit reached)')
+        break
+    fetch_detail(item)
 
 # Sort by date descending
 all_articles.sort(key=lambda a: a.get('date', ''), reverse=True)
@@ -94,4 +111,4 @@ with open(os.path.join(OUT_DIR, 'index.json'), 'w', encoding='utf-8') as f:
         'perPage': per_page_out,
     }, f, ensure_ascii=False, indent=2)
 
-print(f'Written {total_pages_out} page files + index.json to {OUT_DIR}/')
+print(f'\nDone! {len(all_articles)} articles, {total_pages_out} pages → {OUT_DIR}/')
