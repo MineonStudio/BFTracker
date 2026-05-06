@@ -131,3 +131,6 @@ select:hover { border-color: var(--text-dim) !important; }
 
 /* 输入框/选择框焦点环过渡 */
 input[type="text"], input[type="search"], select { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+
+/* Footer 高斯模糊 */
+footer { background: var(--nav-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--border-default); }

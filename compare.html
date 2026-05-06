@@ -34,10 +34,10 @@
 
       <!-- 搜索 -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" id="playerSlots"></div>
-      <div class="flex flex-wrap gap-3 mb-4 justify-center">
-        <button id="addSlotBtn" class="border border-gray-600 text-gray-400 hover:text-white hover:border-gray-500 px-4 py-2.5 text-sm transition-colors">+ 添加对比</button>
+      <div class="flex flex-row gap-3 mb-4">
+        <button id="addSlotBtn" class="flex-1 border border-gray-600 text-gray-400 hover:text-white hover:border-gray-500 px-4 py-2.5 text-sm transition-colors">+ 添加对比</button>
         <button id="compareBtn" aria-label="开始对比"
-          class="bg-white text-black px-4 py-2.5 text-sm hover:opacity-85 transition-opacity w-full sm:w-auto">
+          class="flex-1 bg-white text-black px-4 py-2.5 text-sm hover:opacity-85 transition-opacity">
           开始对比
         </button>
       </div>
@@ -394,7 +394,7 @@
 </div>
 
   <!-- 页脚 -->
-  <footer class="border-t border-gray-700 mt-12">
+  <footer class="border-t border-gray-700 sticky bottom-0 z-10">
     <div class="max-w-5xl mx-auto px-4 py-8">
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="text-center sm:text-left">
