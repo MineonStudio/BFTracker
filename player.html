@@ -278,21 +278,8 @@
                   </div>
                 </div>
               </div>
-              <!-- 9 个指标：三行三列 -->
-              <div class="grid grid-cols-3 gap-1.5 sm:gap-3">
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${spm ?? '—'}</p><p class="text-xs text-gray-500">每分钟得分</p></div>
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.headshots)}</p><p class="text-xs text-gray-500">爆头率</p></div>
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.accuracy)}</p><p class="text-xs text-gray-500">命中率</p></div>
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(stats.killsPerMinute)}</p><p class="text-xs text-gray-500">KPM</p></div>
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(humanKillsPerMatch)}</p><p class="text-xs text-gray-500">场均击杀</p></div>
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${deathsPerMatch ?? '—'}</p><p class="text-xs text-gray-500">场均死亡</p></div>
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.headShots)}</p><p class="text-xs text-gray-500">爆头数</p></div>
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(assists)}</p><p class="text-xs text-gray-500">助攻数</p></div>
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.revives)}</p><p class="text-xs text-gray-500">急救数</p></div>
-              </div>
-            </div>
             <!-- 最擅长/最喜欢 -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
               <div class="bg-dark p-3 hover-lift">
                 <p class="text-xs text-gray-500 mb-1">最擅长兵种</p>
                 <p class="text-sm font-semibold text-white truncate">${(() => {
@@ -324,8 +311,20 @@
                 })()}</p>
               </div>
             </div>
+              <!-- 9 个指标：三行三列 -->
+              <div class="grid grid-cols-3 gap-1.5 sm:gap-3">
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${spm ?? '—'}</p><p class="text-xs text-gray-500">每分钟得分</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.headshots)}</p><p class="text-xs text-gray-500">爆头率</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.accuracy)}</p><p class="text-xs text-gray-500">命中率</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(stats.killsPerMinute)}</p><p class="text-xs text-gray-500">KPM</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(humanKillsPerMatch)}</p><p class="text-xs text-gray-500">场均击杀</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${deathsPerMatch ?? '—'}</p><p class="text-xs text-gray-500">场均死亡</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.headShots)}</p><p class="text-xs text-gray-500">爆头数</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(assists)}</p><p class="text-xs text-gray-500">助攻数</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.revives)}</p><p class="text-xs text-gray-500">急救数</p></div>
+              </div>
+            </div>
           </div>
-          <!-- 兵种 -->
           <div id="tab-class-${platform}" class="tab-panel hidden">
             <div class="bg-card  p-5 mb-8" id="classSection-${platform}" style="display:none">
               <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">兵种数据</h2>
