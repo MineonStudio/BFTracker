@@ -557,6 +557,7 @@
     function renderSeasonHistory(allData, platform) {
       const seasons = Array.isArray(allData?.seasons) ? allData.seasons : [];
       if (seasons.length <= 1) return;
+      const fmtDt = ts => { const d = new Date(ts*1000); return `${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}`; };
       // 每个赛季汇总所有模式的数据
       const seasonSummary = seasons.map(s => {
         const all = s.modes || [];
@@ -566,6 +567,7 @@
         const matches = all.reduce((a, m) => a + (m.matches || 0), 0);
         return {
           season: s.season,
+          sid: (s.seasonId || s.season || '').replace(/\s+/g, ''),
           kd:     deaths ? (kills / deaths) : 0,
           wins,
           matches,
@@ -589,7 +591,10 @@
             trigger: 'axis', backgroundColor: '#242933', borderColor: '#374151', textStyle: { color: '#f3f4f6' },
             formatter: params => {
               const s = seasonSummary[params[0].dataIndex];
-              return `${s.season}<br/>${params.map(p => `${p.marker}${p.seriesName}: <b>${p.value}</b>${p.seriesName === '胜率(%)' ? '%' : ''}`).join('<br/>')}<br/>场次: ${s.matches}  击杀: ${s.kills}`;
+              let tip = `${s.season}`;
+              if (s.timeRange) tip += `<br/><span style="color:#9ca3af;font-size:11px">${s.timeRange}</span>`;
+              tip += `<br/>${params.map(p => `${p.marker}${p.seriesName}: <b>${p.value}</b>${p.seriesName === '胜率(%)' ? '%' : ''}`).join('<br/>')}<br/>场次: ${s.matches}  击杀: ${s.kills}`;
+              return tip;
             },
           },
           series: [
@@ -603,8 +608,9 @@
       const seasonCards = document.createElement('div');
       seasonCards.className = 'grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4';
       seasonCards.innerHTML = seasonSummary.map(s => `
-        <div class="bg-dark p-4 hover-lift">
+        <div class="bg-dark p-4 hover-lift" data-sid="${s.sid}">
           <p class="text-xs text-gray-500 mb-1">${s.season}</p>
+          <p class="text-xs text-gray-600 mb-2 time-row" style="display:none"></p>
           <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
             <div><p class="font-bold text-white">${s.kills}</p><p class="text-xs text-gray-500">击杀</p></div>
             <div><p class="font-bold text-white">${formatDecimal(s.kd)}</p><p class="text-xs text-gray-500">K/D</p></div>
@@ -614,6 +620,30 @@
         </div>
       `).join('');
       document.getElementById(`seasonChart-${platform}`).parentElement.appendChild(seasonCards);
+      // 异步获取赛季时间信息并更新到卡片
+      fetch('https://api.gametools.network/bf6/gameevents/').then(r=>r.json()).then(d => {
+        const fmtDt = ts => { const d2 = new Date(ts*1000); return `${(d2.getMonth()+1).toString().padStart(2,'0')}/${d2.getDate().toString().padStart(2,'0')}`; };
+        const timeMap = {};
+        (d.events||[]).forEach(e => {
+          const sid = e.name.replace(/\s+/g, '');
+          const st = e.validUntil?.start?.value;
+          const en = e.validUntil?.end?.value;
+          if (sid && st && en) timeMap[sid] = `${fmtDt(st)} ~ ${fmtDt(en)}`;
+        });
+        // 更新卡片
+        document.querySelectorAll('[data-sid]').forEach(el => {
+          const sid = el.getAttribute('data-sid');
+          const tr = el.querySelector('.time-row');
+          if (timeMap[sid] && tr) {
+            tr.textContent = timeMap[sid];
+            tr.style.display = '';
+          }
+        });
+        // 更新 tooltip 数据
+        seasonSummary.forEach(s => {
+          if (timeMap[s.sid]) s.timeRange = timeMap[s.sid];
+        });
+      }).catch(() => {});
     }
 
     // ── 游戏模式胜率（统一响应式）──
@@ -876,24 +906,46 @@
         classes: (first.allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0).sort((a, b) => b.kills - a.kills).slice(0, 4).map(c => ({ name: CLASS_CN[c.className] || c.className, kills: formatNum(c.kills) })),
       };
 
-      // ── BF6 赛季分离数据 ──
+      // ── BF6 赛季数据详情 ──
       if (game === 'bf6') {
         (async () => {
           try {
-            const data = await getStatsSeparated('bf6', name, results[0].platform).catch(() => null);
-            if (!data) return;
-            const seasons = data.seasons || data.gamemodeSeperation || [];
-            if (!seasons.length) return;
+            const allSeasons = first.allData?.seasons || [];
+            if (!allSeasons.length) return;
             const sec = document.getElementById('seasonStatsSection');
             const ct = document.getElementById('seasonStatsContent');
             if (!sec || !ct) return;
+            // 获取赛季时间信息
+            let timeMap = {};
+            try {
+              const ge = await fetch('https://api.gametools.network/bf6/gameevents/').then(r=>r.json());
+              const fmtDt = ts => { const d = new Date(ts*1000); return `${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}`; };
+              (ge.events||[]).forEach(e => {
+                const sid = e.name.replace(/\s+/g, '');
+                const st = e.validUntil?.start?.value;
+                const en = e.validUntil?.end?.value;
+                if (sid && st && en) timeMap[sid] = { start: fmtDt(st), end: fmtDt(en) };
+              });
+            } catch {}
+            const seasonRows = allSeasons.map(s => {
+              const all = s.modes || [];
+              const kills   = all.reduce((a, m) => a + (m.kills || 0), 0);
+              const deaths  = all.reduce((a, m) => a + (m.deaths || 0), 0);
+              const wins    = all.reduce((a, m) => a + (m.wins || 0), 0);
+              const matches = all.reduce((a, m) => a + (m.matches || 0), 0);
+              const kd = deaths ? (kills / deaths) : 0;
+              const wp = matches ? (wins / matches * 100) : 0;
+              const sid = (s.seasonId || s.season || '').replace(/\s+/g, '');
+              const tr = timeMap[sid];
+              return {
+                season: s.season,
+                timeRange: tr ? `${tr.start} ~ ${tr.end}` : '—',
+                kd, wp, kills, matches
+              };
+            });
             sec.style.display = '';
-            ct.innerHTML = '<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b border-gray-700"><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">赛季</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">K/D</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">胜率</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">KPM</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">击杀</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">场次</th></tr></thead><tbody>' +
-              seasons.map(s => {
-                const kd = s.killDeath || s.kd;
-                const wp = s.winPercent || (s.wins / (s.wins + s.loses) * 100);
-                return `<tr class="border-b border-gray-700/40 hover:bg-gray-800/30"><td class="py-2 pr-4 text-white font-medium">${s.season || s.gamemode || '—'}</td><td class="py-2 pr-4 text-gray-300">${formatDecimal(kd)}</td><td class="py-2 pr-4 text-gray-300">${formatPct(wp)}</td><td class="py-2 pr-4 text-gray-300">${formatDecimal(s.killsPerMinute || s.kpm)}</td><td class="py-2 pr-4 text-gray-300">${formatNum(s.kills)}</td><td class="py-2 pr-4 text-gray-300">${formatNum(s.matchesPlayed || s.matches)}</td></tr>`;
-              }).join('') + '</tbody></table></div>';
+            ct.innerHTML = '<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b border-gray-700"><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">赛季</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">时间</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">K/D</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">胜率</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">击杀</th><th class="text-left py-2 pr-4 text-gray-500 font-medium text-xs">场次</th></tr></thead><tbody>' +
+              seasonRows.map(s => `<tr class="border-b border-gray-700/40 hover:bg-gray-800/30"><td class="py-2 pr-4 text-white font-medium">${s.season}</td><td class="py-2 pr-4 text-gray-400 text-xs">${s.timeRange}</td><td class="py-2 pr-4 text-gray-300">${formatDecimal(s.kd)}</td><td class="py-2 pr-4 text-gray-300">${formatPct(s.wp)}</td><td class="py-2 pr-4 text-gray-300">${formatNum(s.kills)}</td><td class="py-2 pr-4 text-gray-300">${formatNum(s.matches)}</td></tr>`).join('') + '</tbody></table></div>';
           } catch {}
         })();
       }
