@@ -769,8 +769,17 @@
         return;
       }
 
-      // 从 profile 补全等级信息
-      const pf = profileData?.playerProfiles?.[0];
+      // 从 profile 补全等级信息（若子平台 profile 为空则尝试通用平台）
+      let pf = profileData?.playerProfiles?.[0];
+      if (!pf?.playerCard?.rank) {
+        const pfFallback = { xboxone:'xbox', xboxseries:'xbox', ps4:'psn', ps5:'psn' }[platform];
+        if (pfFallback) {
+          try {
+            const fbData = await fetch(`${BASE}/${game}/profile/?name=${encodeURIComponent(name)}&platform=${pfFallback}`, { signal: AbortSignal.timeout?.(8000) }).then(r => r.json()).catch(() => null);
+            pf = fbData?.playerProfiles?.[0] || pf;
+          } catch {}
+        }
+      }
       if (pf?.playerCard?.rank != null) {
         allData ??= {};
         allData.rank = allData.rank ?? pf.playerCard.rank;

@@ -14,7 +14,7 @@ export const PLATFORM_LABELS = {
   pc:         'PC',
 };
 
-export const PLATFORM_KEYS = ['steam', 'ea', 'epic', 'xbox', 'xboxone', 'xboxseries', 'psn', 'ps4', 'ps5', 'pc'];
+export const PLATFORM_KEYS = ['steam', 'ea', 'epic', 'xboxone', 'xboxseries', 'ps4', 'ps5', 'pc'];
 
 export const GAME_LABELS = {
   bf6:    'Battlefield 6',
