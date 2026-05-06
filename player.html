@@ -10,7 +10,7 @@
     .floating-share-hidden { display: none; }
     .floating-share-visible { display: flex; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/dom-to-image-more@4.2.0/dist/dom-to-image-more.min.js"></script>
+  <script src="https://unpkg.com/dom-to-image-more@3.4.0/dist/dom-to-image-more.min.js"></script>
 </head>
 <body class="bg-dark text-gray-200 min-h-screen flex flex-col">
   <script>(function(){if(localStorage.theme==='light')document.body.classList.add('light')})()</script>
@@ -1168,7 +1168,9 @@
         
         // 用 dom-to-image-more 截图
         await new Promise(r => setTimeout(r, 300)); // 等渲染
-        const canvas = await domtoimage.toCanvas(wrapper, {
+        const dti = window.domtoimage;
+        if (!dti) throw new Error('dom-to-image-more 库加载失败');
+        const canvas = await dti.toCanvas(wrapper, {
           scale: 2,
           bgColor: '#0f1117',
           width: 720,
