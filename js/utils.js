@@ -15,7 +15,10 @@ export function formatNum(n) {
 export function formatPct(v) {
   if (v == null) return '-';
   const n = parseFloat(v);
-  return isNaN(n) ? v : n.toFixed(2) + '%';
+  if (isNaN(n)) return v;
+  // 0~1 范围视为小数比例，转为百分比（如 0.1292 → 12.92%）
+  const p = n > -1 && n < 1 ? n * 100 : n;
+  return p.toFixed(2) + '%';
 }
 
 // 格式化小数
