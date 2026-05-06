@@ -126,7 +126,7 @@
           (i > 1 ? '<button data-del="' + i + '" class="ml-auto text-gray-600 hover:text-red-400 text-lg leading-none">&times;</button>' : '') +
           '</div>' +
           '<div class="flex flex-row gap-3">' +
-          '<select data-slot="' + i + '" data-field="platform" class="search-input w-[30%] bg-transparent border border-gray-700 text-white px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">' +
+          '<select data-slot="' + i + '" data-field="platform" class="search-input w-[35%] bg-transparent border border-gray-700 text-white px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">' +
           PLATFORM_KEYS.map(function(key) { return '<option value="' + key + '"' + (key === preCat ? ' selected' : '') + '>' + (PLATFORM_LABELS[key] || key) + '</option>'; }).join('') +
           '</select>' +
           '<input type="text" placeholder="用户名" value="' + preName + '" data-slot="' + i + '" data-field="name" class="search-input flex-1 bg-transparent border border-gray-700 text-white px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500" />' +
