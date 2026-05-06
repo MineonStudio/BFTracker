@@ -95,8 +95,10 @@ for i, item in enumerate(all_articles):
         break
     fetch_detail(item)
 
-# Sort by date descending
-all_articles.sort(key=lambda a: a.get('date', ''), reverse=True)
+# Sort by date descending, then move featured to top
+all_articles.sort(key=lambda a: a.get('date', '') or '', reverse=True)
+featured = [a for a in all_articles if a.get('featured')]
+all_articles = featured + [a for a in all_articles if not a.get('featured')]
 
 # Write per-page JSON files
 per_page_out = 12
