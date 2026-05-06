@@ -48,11 +48,10 @@
 
     <!-- 分类标签 -->
     <div class="flex gap-1 sm:gap-3 mb-6 overflow-x-auto pb-2 text-sm">
-      <button class="tab-btn tab-active px-3 py-1.5 whitespace-nowrap" data-type="">全部</button>
-      <button class="tab-btn px-3 py-1.5 text-gray-500 hover:text-white whitespace-nowrap" data-type="">最新</button>
-      <button class="tab-btn px-3 py-1.5 text-gray-500 hover:text-white whitespace-nowrap" data-type="game-updates">游戏更新</button>
-      <button class="tab-btn px-3 py-1.5 text-gray-500 hover:text-white whitespace-nowrap" data-type="bf6-guides">指南</button>
-      <button class="tab-btn px-3 py-1.5 text-gray-500 hover:text-white whitespace-nowrap" data-type="news-article">新闻</button>
+      <button class="tab-btn tab-active px-3 py-1.5 text-gray-500 hover:text-white whitespace-nowrap" data-type="">最新</button>
+      <button class="tab-btn px-3 py-1.5 text-gray-500 hover:text-white whitespace-nowrap" data-type="游戏更新">游戏更新</button>
+      <button class="tab-btn px-3 py-1.5 text-gray-500 hover:text-white whitespace-nowrap" data-type="指南">指南</button>
+      <button class="tab-btn px-3 py-1.5 text-gray-500 hover:text-white whitespace-nowrap" data-type="新闻文章">新闻</button>
     </div>
 
     <!-- 加载 -->
@@ -80,54 +79,27 @@
   </div>
 
   <script>
-    const PROXY = 'https://api.allorigins.win/raw?url=';
-    const EA_NEWS = 'https://www.ea.com/zh-hans/games/battlefield/battlefield-6/news';
+    const BASE = '/BFTracker/news';
     const PER_PAGE = 12;
     let allArticles = [];
     let filteredArticles = [];
     let currentType = '';
     let currentPage = 1;
+    let totalPages = 1;
 
-    // 工具函数
     const fmtDate = s => {
       const d = new Date(s);
       return `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}`;
     };
-    const TYPE_CN = { 'game-updates': '游戏更新', 'bf6-guides': '指南', 'news-article': '新闻文章' };
 
-    function getImgUrl(img) {
-      if (!img) return '';
-      return img.ar16X9 || img.ar3X1 || img.ar2X1 || img.ar1X1 || '';
+    function getSlugType(slug, type) {
+      if (type === '游戏更新') return '游戏更新';
+      if (type === '指南') return '指南';
+      if (type === '新闻文章') return '新闻文章';
+      return type;
     }
 
-    // 解析 EA 页面中的 __INITIAL_STATE__
-    function parseArticles(html) {
-      const m = html.match(/__INITIAL_STATE__\s*=\s*(\{.+?\});/);
-      if (!m) return [];
-      try {
-        const state = JSON.parse(m[1]);
-        const articles = state?.news?.articles || [];
-        return articles.map(a => ({
-          title: a.title,
-          summary: a.summary,
-          slug: a.slug,
-          type: a.type,
-          date: a.publishingDate,
-          img: getImgUrl(a.image),
-          featured: a.featured,
-          tags: a.tags || [],
-        }));
-      } catch { return []; }
-    }
-
-    function getPageUrl(type, page) {
-      let url = EA_NEWS;
-      if (type) url += `?page=${page}&type=${type}`;
-      else if (page > 1) url += `?page=${page}`;
-      return url;
-    }
-
-    // 加载所有数据
+    // 加载所有分页数据
     async function loadAll() {
       const wrap = document.getElementById('loadingWrap');
       const grid = document.getElementById('newsGrid');
@@ -137,31 +109,34 @@
       err.classList.add('hidden');
 
       try {
-        const res = await fetch(PROXY + encodeURIComponent(EA_NEWS), { signal: AbortSignal.timeout(15000) });
-        const html = await res.text();
-        allArticles = parseArticles(html);
+        // 先获取总页数
+        const idxRes = await fetch(`${BASE}/index.json`);
+        if (!idxRes.ok) throw new Error('News data not available');
+        const idx = await idxRes.json();
+        totalPages = idx.totalPages || 1;
 
-        // 尝试加载第2、3页以获取更多
-        const pages = [2, 3];
-        const results = await Promise.allSettled(
-          pages.map(p => fetch(PROXY + encodeURIComponent(getPageUrl('', p)), { signal: AbortSignal.timeout(10000) }))
-        );
-        for (const r of results) {
-          if (r.status === 'fulfilled') {
-            const more = parseArticles(await r.value.text());
-            allArticles.push(...more);
-          }
+        // 加载所有页面
+        const pages = [];
+        for (let p = 1; p <= totalPages; p++) {
+          pages.push(
+            fetch(`${BASE}/page-${p}.json`).then(r => r.json())
+          );
         }
+        const results = await Promise.all(pages);
+
+        // 合并去重
+        const seen = new Set();
+        allArticles = [];
+        results.forEach(r => {
+          (r.articles || []).forEach(a => {
+            if (!seen.has(a.slug)) {
+              seen.add(a.slug);
+              allArticles.push(a);
+            }
+          });
+        });
 
         if (!allArticles.length) throw new Error('No articles');
-
-        // 去重
-        const seen = new Set();
-        allArticles = allArticles.filter(a => {
-          if (seen.has(a.slug)) return false;
-          seen.add(a.slug);
-          return true;
-        });
 
         applyFilter();
       } catch (e) {
@@ -173,9 +148,8 @@
 
     function applyFilter() {
       currentType = document.querySelector('.tab-btn.active')?.dataset.type || '';
-      const typeMap = { 'game-updates': '游戏更新', 'bf6-guides': '指南', 'news-article': '新闻文章' };
       filteredArticles = currentType
-        ? allArticles.filter(a => a.type === typeMap[currentType])
+        ? allArticles.filter(a => a.type === currentType)
         : allArticles;
       currentPage = 1;
       renderPage();
@@ -190,7 +164,7 @@
       grid.classList.remove('hidden');
 
       const total = filteredArticles.length;
-      const totalPages = Math.ceil(total / PER_PAGE);
+      const pages = Math.ceil(total / PER_PAGE);
       const start = (currentPage - 1) * PER_PAGE;
       const pageItems = filteredArticles.slice(start, start + PER_PAGE);
 
@@ -209,18 +183,17 @@
         </div>`;
       }).join('');
 
-      // 分页
-      if (totalPages <= 1) { pag.classList.add('hidden'); return; }
+      if (pages <= 1) { pag.classList.add('hidden'); return; }
       pag.classList.remove('hidden');
       let html = `<button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>‹ 上一页</button>`;
-      for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 2) {
+      for (let i = 1; i <= pages; i++) {
+        if (i === 1 || i === pages || Math.abs(i - currentPage) <= 2) {
           html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
-        } else if (html.endsWith('…') === false) {
+        } else if (!html.endsWith('…')) {
           html += `<span class="text-gray-600 text-xs px-1">…</span>`;
         }
       }
-      html += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>下一页 ›</button>`;
+      html += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage >= pages ? 'disabled' : ''}>下一页 ›</button>`;
       pag.innerHTML = html;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -230,7 +203,6 @@
       renderPage();
     }
 
-    // 详情
     function openDetail(slug) {
       const article = allArticles.find(a => a.slug === slug);
       if (!article) return;
@@ -245,8 +217,7 @@
           <span class="text-xs text-gray-600">${fmtDate(article.date)}</span>
         </div>
         <h2 class="text-xl font-bold mb-3">${article.title}</h2>
-        <p class="text-sm text-gray-400 leading-relaxed mb-6">${article.summary || '暂无详情摘要'}</p>
-        <a href="${eaUrl}" target="_blank" class="inline-block px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg text-sm font-medium transition">在 EA 官网查看完整内容 →</a>
+        <p class="text-sm text-gray-400 leading-relaxed">${article.summary || '暂无详情摘要'}</p>
       `;
       overlay.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
