@@ -789,18 +789,8 @@
       // 填充玩家头部（用第一个结果）
       const first = results[0];
 
-      // 确保等级数据可用（从profile补全）
-      const fb = obj => obj ?? null;
-      const pf = first.profileData?.playerProfiles?.[0];
-      if (!first.allData?.rank && pf?.playerCard?.rank != null) {
-        first.allData ??= {};
-        first.allData.rank = first.allData.rank ?? pf.playerCard.rank;
-        first.allData.rankName = first.allData.rankName ?? pf.rankName;
-        first.allData.rankImage = first.allData.rankImage ?? pf.playerCard.rankImage;
-      }
-
       // 缓存分享数据
-      const stats = first.stats;
+      stats = first.stats;
       const allClass = first.allData?.classes?.find(c => c.id === 'kit') || first.allData?.classes?.[0];
       const humanKills = stats.dividedKills?.human || stats.kills || 0;
       const spmVal = (allClass?.score && allClass?.secondsPlayed)
