@@ -13,24 +13,22 @@
   <!-- 导航 -->
   <nav class="border-b border-gray-700 bg-card relative sticky top-0 z-10">
     <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-      <a href="index.html" class="text-xl font-bold gradient-text">BF Tracker</a>
+                <a href="index.html" class="text-xl font-bold gradient-text">BF Tracker</a>
       <div class="flex gap-6 text-sm text-gray-400">
-        <a href="index.html" aria-label="首页" class="nav-link hover:text-white pb-1">战绩查询</a>
-        <a href="news.html" aria-label="新闻" class="nav-link hover:text-white pb-1">战地新闻</a>
-        <a href="compare.html" aria-label="多人对比" class="nav-link active pb-1">多人对比</a>
+                <a href="index.html" aria-label="首页" class="nav-link hover:text-white pb-1">战绩查询</a>
+                <a href="compare.html" aria-label="多人对比" class="nav-link active pb-1">多人对比</a>
+                <a href="news.html" aria-label="新闻" class="nav-link hover:text-white pb-1">战地新闻</a>
       </div>
     </div>
   </nav>
 
-<div class="flex-1">
-  <div class="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
-
-    <!-- Hero -->
-    <div class="max-w-5xl mx-auto px-4 pt-4 sm:pt-8 pb-4 sm:pb-6 text-center">
-      <h1 class="text-2xl sm:text-3xl font-bold mb-2">
-        <span class="gradient-text">多玩家对比</span>
-      </h1>
-      <p class="text-gray-400 mb-8">同时对比最多 4 名玩家 · 六维雷达图 + 详细数据表</p>
+  <div class="flex-1 flex flex-col">
+    <div class="flex-1 flex items-center justify-center">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 text-center">
+      <div class="flex items-center justify-center gap-4 mb-8">
+        <img src="icons/bf_logo.svg" class="h-10 sm:h-12 opacity-70" alt="BF">
+        <img src="icons/bf_wordmark.svg" class="h-5 sm:h-6 opacity-80 mt-1" alt="BATTLEFIELD">
+      </div>
 
       <!-- 搜索 -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" id="playerSlots"></div>
@@ -41,6 +39,7 @@
           开始对比
         </button>
       </div>
+    </div>
     </div>
 
     <!-- 最近对比 -->
@@ -391,9 +390,6 @@
   });</script>
 
     </div>
-</div>
-
-  <!-- 页脚 -->
   <footer class="border-t border-gray-700">
     <div class="max-w-5xl mx-auto px-4 py-2 text-center">
       <p class="text-xs text-gray-600">&copy; 2026 BF Tracker &middot; Powered by GameTools Network</p>
