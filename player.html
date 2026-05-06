@@ -10,6 +10,7 @@
     .floating-share-hidden { display: none; }
     .floating-share-visible { display: flex; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body class="bg-dark text-gray-200 min-h-screen flex flex-col">
   <script>(function(){if(localStorage.theme==='light')document.body.classList.add('light')})()</script>
@@ -1075,217 +1076,110 @@
       window.__posterLoading = true;
       try {
         const d = window.__shareData || {};
-        const ACCENT = '#FF4D5F', HIGHLIGHT = '#FFD21F';
-        const W = 1080, H = 1350, P = 48;
-        const fnt = (w, s, c) => `${w} ${s}px system-ui, -apple-system, sans-serif`;
-        const CLASS_CN_MAP = { 'Assault':'突击兵','Engineer':'工程师','Support':'支援兵','Recon':'侦察兵','Commander':'指挥官','Specialist':'特种兵' };
-        const bestClassCN = CLASS_CN_MAP[d.bestClass] || d.bestClass || '—';
-
-        // 准备指标数据
-        const stats = [
-          ['每分钟得分', d.spm], ['爆头率', d.headshots], ['命中率', d.accuracy],
-          ['KPM', d.kpm], ['场均击杀', d.killsPerMatch], ['场均死亡', d.deathsPerMatch],
-          ['爆头数', d.headShots], ['助攻数', d.assists], ['急救数', d.revives],
-        ].filter(s => s[1] != null && s[1] !== '—');
-
-        const canvas = document.createElement('canvas');
-        canvas.width = W; canvas.height = H;
-        const ctx = canvas.getContext('2d');
-
-        // ── 1. 背景：深色 + 渐变遮罩 ──
-        ctx.fillStyle = '#0a0c10';
-        ctx.fillRect(0, 0, W, H);
-        // 径向渐变 - 营造战场氛围
-        const grad = ctx.createRadialGradient(W/2, H*0.3, 100, W/2, H*0.3, W*0.7);
-        grad.addColorStop(0, 'rgba(20,25,35,0.8)');
-        grad.addColorStop(0.5, 'rgba(10,12,16,0.95)');
-        grad.addColorStop(1, '#0a0c10');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, W, H);
-        // 底部加深
-        const bgGrad = ctx.createLinearGradient(0, H*0.7, 0, H);
-        bgGrad.addColorStop(0, 'rgba(10,12,16,0)');
-        bgGrad.addColorStop(1, 'rgba(0,0,0,0.6)');
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, H*0.7, W, H*0.3);
-
-        // ── 2. 顶部红色强调线 ──
-        ctx.fillStyle = ACCENT;
-        ctx.fillRect(0, 0, W, 5);
-
-        let y = 52;
-
-        // ── 3. 顶部区域 ──
-        ctx.fillStyle = '#ffffff';
-        ctx.font = fnt('800', 42);
-        ctx.fillText('BF Tracker', P, y + 42);
-        y += 58;
-
-        ctx.fillStyle = '#9ca3af';
-        ctx.font = fnt('400', 22);
-        ctx.fillText('我的战场数据一览', P, y + 22);
-        y += 18;
-
-        // 短红色横线
-        ctx.fillStyle = ACCENT;
-        ctx.fillRect(P, y, 60, 3);
-        y += 28;
-
-        ctx.fillStyle = '#6b7280';
-        ctx.font = fnt('400', 18);
-        ctx.fillText('精准记录每一场战斗，见证你的成长与荣耀！', P, y + 18);
-        y += 52;
-
-        // ── 4. 用户信息卡片 ──
-        const cardH = 100;
-        ctx.fillStyle = 'rgba(36,41,51,0.85)';
-        ctx.beginPath(); ctx.roundRect(P, y, W - P * 2, cardH, 16); ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.roundRect(P, y, W - P * 2, cardH, 16); ctx.stroke();
-
-        // 左侧等级
-        const lv = d.rankValue || 0;
-        ctx.fillStyle = lv >= 250 ? ACCENT : '#60a5fa';
-        ctx.font = fnt('800', 36);
-        ctx.fillText('Lv.' + lv, P + 24, y + 62);
-
-        // 中间：昵称 + 等级 + 时长
-        ctx.fillStyle = '#ffffff';
-        ctx.font = fnt('700', 32);
-        ctx.fillText(d.name || '—', P + 160, y + 56);
-        ctx.fillStyle = '#9ca3af';
-        ctx.font = fnt('400', 18);
-        ctx.fillText(d.rankName || ('Level ' + lv) + ' · ' + d.time, P + 160, y + 82);
-
-        // 右侧：平台标签
-        const pStr = d.platform || '';
-        ctx.fillStyle = ACCENT;
-        ctx.font = fnt('600', 20);
-        ctx.fillText(pStr, W - P - 24 - ctx.measureText(pStr).width, y + 62);
-        y += cardH + 32;
-
-        // ── 5. 核心数据区 ──
-        // 第一行：双卡片
-        const gap = 20, cw = (W - P * 2 - gap) / 2, ch = 240;
-
-        const drawCard = (x, val, lb, color, s1, s1l, s2, s2l) => {
-          ctx.fillStyle = 'rgba(36,41,51,0.85)';
-          ctx.beginPath(); ctx.roundRect(x, y, cw, ch, 16); ctx.fill();
-          ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-          ctx.lineWidth = 1;
-          ctx.beginPath(); ctx.roundRect(x, y, cw, ch, 16); ctx.stroke();
-          // 大数字 - 核心数据用黄色高亮
-          const txtColor = (lb === 'K/D' || lb === '胜率') ? HIGHLIGHT : color;
-          ctx.fillStyle = txtColor;
-          ctx.font = fnt('800', 86);
-          ctx.fillText(val, x + 28, y + 100);
-          ctx.fillStyle = '#6b7280';
-          ctx.font = fnt('400', 22);
-          ctx.fillText(lb, x + 28, y + 132);
-          // 子数据
-          const sx = x + 28, sx2 = x + cw / 2 + 4;
-          ctx.fillStyle = '#f3f4f6'; ctx.font = fnt('700', 26);
-          ctx.fillText(s1, sx, y + 182);
-          ctx.fillText(s2, sx2, y + 182);
-          ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 18);
-          ctx.fillText(s1l, sx, y + 210);
-          ctx.fillText(s2l, sx2, y + 210);
-        };
-
-        drawCard(P, d.kd, 'K/D', d.kdColor, d.kills, '击杀', d.deaths, '死亡');
-        drawCard(P + cw + gap, d.wr, '胜率', d.wrColor, d.matches, '总场次', d.wins, '胜场');
-        y += ch + 28;
-
-        // 九宫格
-        if (stats.length) {
-          const COLS = 3, cg = 12, scw = (W - P * 2 - (COLS - 1) * cg) / COLS, sch = 90;
-          for (let r = 0; r < 3; r++) {
-            for (let c = 0; c < COLS; c++) {
-              const i = r * COLS + c;
-              if (i >= stats.length) break;
-              const [lb, vl] = stats[i];
-              const cx = P + c * (scw + cg), cy = y + r * (sch + cg);
-              ctx.fillStyle = 'rgba(36,41,51,0.85)';
-              ctx.beginPath(); ctx.roundRect(cx, cy, scw, sch, 14); ctx.fill();
-              ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-              ctx.lineWidth = 1;
-              ctx.beginPath(); ctx.roundRect(cx, cy, scw, sch, 14); ctx.stroke();
-              ctx.fillStyle = '#f3f4f6'; ctx.font = fnt('700', 32);
-              ctx.fillText(vl, cx + 18, cy + 50);
-              ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 16);
-              ctx.fillText(lb, cx + 18, cy + 76);
-            }
+        
+        // 获取当前活跃 tab 的内容
+        const activeTab = document.querySelector('.tab-panel:not(.hidden)') || document.querySelector('#tab-overview-xbox') || document.querySelector('[id^="tab-overview-"]');
+        const tabContent = activeTab ? activeTab.cloneNode(true) : document.createElement('div');
+        // 清除 tab 中可能存在的 echarts 残留（防止 canvas 报错）
+        tabContent.querySelectorAll('.tab-btn, .echarts, canvas').forEach(el => el.remove());
+        
+        // 构建隐藏容器
+        const wrapper = document.createElement('div');
+        wrapper.id = '__posterWrapper';
+        wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:720px;background:#0f1117;padding:0;z-index:-1;font-family:system-ui,-apple-system,sans-serif;color:#e5e7eb';
+        
+        // 顶部品牌 + 用户信息
+        wrapper.innerHTML = `
+          <div style="background:#1a1d27;border-bottom:1px solid rgba(255,255,255,0.1);padding:24px 28px 20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+              <span style="font-size:22px;font-weight:700;background:linear-gradient(135deg,#f97316,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent">BF Tracker</span>
+              <span style="font-size:12px;color:rgba(255,255,255,0.4)">mineonstudio.github.io/BFTracker</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px">
+              <div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:${(d.rankValue||0) >= 250 ? '#FF4D5F' : '#60a5fa'}">${d.rankValue || '?'}</div>
+              <div style="flex:1">
+                <div style="font-size:20px;font-weight:700;color:#fff">${d.name || '—'}</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:2px">${d.rankName || 'Level ' + (d.rankValue || '')} · ${d.time || ''}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 12px;border-radius:999px;background:rgba(59,130,246,0.1);color:#60a5fa">
+                <span>${d.platform || ''}</span>
+              </div>
+            </div>
+          </div>
+          <div style="padding:20px 28px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);padding:20px;border-radius:0">
+                <div style="font-size:36px;font-weight:800;color:${d.kdColor || '#facc15'}">${d.kd || '—'}</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px">K/D</div>
+                <div style="display:flex;gap:20px;margin-top:12px;font-size:14px">
+                  <div><span style="color:#fff;font-weight:600">${d.kills || '0'}</span><span style="color:rgba(255,255,255,0.4);margin-left:4px;font-size:12px">击杀</span></div>
+                  <div><span style="color:#fff;font-weight:600">${d.deaths || '0'}</span><span style="color:rgba(255,255,255,0.4);margin-left:4px;font-size:12px">死亡</span></div>
+                </div>
+              </div>
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);padding:20px;border-radius:0">
+                <div style="font-size:36px;font-weight:800;color:${d.wrColor || '#22c55e'}">${d.wr || '—'}</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px">胜率</div>
+                <div style="display:flex;gap:20px;margin-top:12px;font-size:14px">
+                  <div><span style="color:#fff;font-weight:600">${d.matches || '0'}</span><span style="color:rgba(255,255,255,0.4);margin-left:4px;font-size:12px">总场次</span></div>
+                  <div><span style="color:#fff;font-weight:600">${d.wins || '0'}</span><span style="color:rgba(255,255,255,0.4);margin-left:4px;font-size:12px">胜场</span></div>
+                </div>
+              </div>
+            </div>
+            <div id="__posterTabContent"></div>
+          </div>
+          <div style="border-top:1px solid rgba(255,255,255,0.1);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.02)">
+            <div>
+              <div style="font-size:16px;font-weight:600;color:#fff">BF Tracker</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px">mineonstudio.github.io/BFTracker</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:1px">Battlefield 6 · Powered by GameTools Network</div>
+            </div>
+            <div id="__posterQR" style="width:80px;height:80px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,0.3)">加载中...</div>
+          </div>
+        `;
+        
+        // 插入 tab 内容
+        const tabSlot = wrapper.querySelector('#__posterTabContent');
+        if (tabContent && tabContent.innerHTML) {
+          // 克隆节点内容到 wrapper
+          while (tabContent.children.length > 0) {
+            tabSlot.appendChild(tabContent.children[0]);
           }
-          y += 3 * (sch + cg) + 24;
         }
-
-        // ── 6. 偏好数据区 ──
-        ctx.fillStyle = '#6b7280';
-        ctx.font = fnt('600', 18);
-        ctx.fillText('战斗偏好', P, y + 18);
-        y += 32;
-
-        const prefs = [
-          ['最擅长兵种', bestClassCN],
-          ['最擅长武器', d.bestWeapon || '—'],
-          ['最喜欢地图', d.favMap || '—'],
-          ['最喜欢模式', d.favMode || '—'],
-        ];
-        const pgap = 12, pcw = (W - P * 2 - pgap * 3) / 4, pch = 76;
-        prefs.forEach(([lb, vl], i) => {
-          const cx = P + i * (pcw + pgap);
-          ctx.fillStyle = 'rgba(36,41,51,0.85)';
-          ctx.beginPath(); ctx.roundRect(cx, y, pcw, pch, 12); ctx.fill();
-          ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-          ctx.lineWidth = 1;
-          ctx.beginPath(); ctx.roundRect(cx, y, pcw, pch, 12); ctx.stroke();
-          // 红色小图标 - 菱形
-          ctx.fillStyle = ACCENT;
-          ctx.fillRect(cx + 12, y + 14, 6, 6);
-          ctx.fillStyle = '#f3f4f6'; ctx.font = fnt('600', 20);
-          ctx.fillText(vl, cx + 28, y + 46);
-          ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 14);
-          ctx.fillText(lb, cx + 28, y + 66);
-        });
-        y += pch + 40;
-
-        // ── 7. 底部品牌区 ──
-        // 分隔线
-        ctx.fillStyle = 'rgba(255,255,255,0.06)';
-        ctx.fillRect(P, y, W - P * 2, 1);
-        y += 32;
-
-        const ftBase = H - 56;
-        ctx.fillStyle = '#ffffff'; ctx.font = fnt('700', 30);
-        ctx.fillText('BF Tracker', P, ftBase - 70);
-        ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 18);
-        ctx.fillText('mineonstudio.github.io/BFTracker', P, ftBase - 40);
-        ctx.fillStyle = '#6b7280'; ctx.font = fnt('400', 16);
-        ctx.fillText('Battlefield 6  ·  Powered by GameTools Network', P, ftBase - 14);
-
-        // 右侧二维码
-        const qr = 110;
+        
+        document.body.appendChild(wrapper);
+        
+        // 加载二维码
         try {
-          const qi = await new Promise((rs, rj) => {
-            const im = new Image(); im.crossOrigin = 'anonymous';
-            im.onload = () => rs(im); im.onerror = rj;
-            im.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + qr + 'x' + qr + '&data=' + encodeURIComponent('https://mineonstudio.github.io/BFTracker/') + '&margin=2';
+          const qrImg = new Image();
+          qrImg.crossOrigin = 'anonymous';
+          await new Promise((resolve, reject) => {
+            qrImg.onload = resolve;
+            qrImg.onerror = reject;
+            qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=' + encodeURIComponent('https://mineonstudio.github.io/BFTracker/') + '&margin=1';
           });
-          const qx = W - P - qr;
-          const qy = ftBase - qr - 10;
-          ctx.fillStyle = 'rgba(36,41,51,0.85)';
-          ctx.beginPath(); ctx.roundRect(qx - 12, qy - 12, qr + 24, qr + 36, 12); ctx.fill();
-          ctx.drawImage(qi, qx, qy, qr, qr);
-          ctx.fillStyle = '#9ca3af'; ctx.font = fnt('400', 14);
-          ctx.fillText('扫码查看我的详细数据', qx - 18, qy + qr + 24);
-          // 红色箭头引导
-          ctx.fillStyle = ACCENT;
-          ctx.font = fnt('700', 16);
-          ctx.fillText('→', qx + qr + 4, qy + qr / 2 + 6);
+          const qrEl = wrapper.querySelector('#__posterQR');
+          if (qrEl) {
+            qrEl.innerHTML = '';
+            qrEl.style.background = '#fff';
+            qrEl.appendChild(qrImg.cloneNode());
+          }
         } catch {}
-
-        // 预览
+        
+        // 用 html2canvas 截图
+        await new Promise(r => setTimeout(r, 300)); // 等渲染
+        const canvas = await html2canvas(wrapper, {
+          scale: 2,
+          backgroundColor: '#0f1117',
+          width: 720,
+          logging: false,
+          allowTaint: false,
+          useCORS: true,
+        });
+        
+        // 清理临时容器
+        document.body.removeChild(wrapper);
+        
+        // 显示预览
         window.__posterCanvas = canvas;
         document.getElementById('posterPreviewImg').src = canvas.toDataURL('image/png');
         canvas.toBlob(blob => {
@@ -1299,7 +1193,6 @@
         window.__posterLoading = false;
       }
     };
-    
     window.closePosterPreview = () => {
       document.getElementById('posterPreviewModal')?.classList.add('hidden');
       window.__posterFile = null;
