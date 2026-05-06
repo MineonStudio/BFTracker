@@ -35,10 +35,7 @@
       <!-- 搜索卡片 -->
       <div class="bg-card  p-4 sm:p-6 shadow-xl max-w-2xl mx-auto">
         <div class="flex flex-wrap gap-3 mb-4">
-          <select id="gameSelect" aria-label="选择游戏"
-            class="bg-dark border border-gray-600  px-3 py-2.5 text-sm focus:outline-none focus:border-accent flex-1 sm:flex-none">
-          </select>
-          
+    
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" id="playerSlots"></div>
         <div class="flex justify-center mb-3"><button id="addSlotBtn" class="border border-gray-600 text-gray-400 hover:text-white hover:border-gray-500 px-4 py-2  text-xs transition-colors">+ 添加对比</button></div>
@@ -97,7 +94,7 @@
     import { LegendComponent, TooltipComponent, GridComponent } from 'echarts/components';
     import { CanvasRenderer } from 'echarts/renderers';
     echarts.use([PieChart, BarChart, LineChart, RadarChart, LegendComponent, TooltipComponent, GridComponent, CanvasRenderer]);
-    import { getStats, GAME_LABELS, PLATFORM_LABELS, PLATFORM_KEYS } from './js/api.js';
+    import { getStats, PLATFORM_LABELS, PLATFORM_KEYS } from './js/api.js';
     import { saveSnapshot, saveRecentSearch, saveRecentCompare, getRecentCompares, removeRecentCompare, clearRecentCompares } from './js/storage.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, buildPlayerUrl } from './js/utils.js';
 
@@ -105,19 +102,10 @@
     const COLORS = ['#3b82f6', '#8b5cf6', '#22c55e', '#f59e0b'];
 
     // 填充游戏下拉
-    const gameSelect = document.getElementById('gameSelect');
-    Object.entries(GAME_LABELS).forEach(([val, label]) => {
-      gameSelect.innerHTML += `<option value="${val}">${label}</option>`;
-    });
-
     // 从 URL 预填第一个玩家
     const urlParams = new URLSearchParams(window.location.search);
-    const preGame     = urlParams.get('p1game')     || 'bf6';
     const prePlatform = urlParams.get('p1platform') || 'xbox';
     const preName     = urlParams.get('p1name')     || '';
-    gameSelect.value = preGame;
-
-    // 平台分类 → 该分类下第一个有效子平台
     
 
     // 渲染玩家输入槽（平台分类选择）
@@ -142,7 +130,7 @@
           (i > 1 ? '<button data-del="' + i + '" class="ml-auto text-gray-600 hover:text-red-400 text-lg leading-none">&times;</button>' : '') +
           '</div>' +
           '<input type="text" placeholder="用户名" value="' + preName + '" data-slot="' + i + '" data-field="name" class="search-input w-full bg-card border border-gray-600  px-3 py-2 text-xs mb-2 focus:outline-none focus:border-accent" />' +
-          '<select data-slot="' + i + '" data-field="platform" class="w-full bg-card border border-gray-600  px-3 py-2 text-xs focus:outline-none focus:border-accent">' +
+          '<select data-slot="' + i + '" data-field="platform" class="search-input w-full bg-card border border-gray-600  px-3 py-2 text-xs focus:outline-none focus:border-accent">' +
           PLATFORM_KEYS.map(function(key) { return '<option value="' + key + '"' + (key === preCat ? ' selected' : '') + '>' + (PLATFORM_LABELS[key] || key) + '</option>'; }).join('') +
           '</select>';
         slotsEl.appendChild(div);
@@ -156,7 +144,6 @@
       checkAddBtn();
     }
     renderSlots();
-    gameSelect.addEventListener('change', renderSlots);
     // 添加对比按钮
     document.getElementById('addSlotBtn').addEventListener('click', () => {
       if (MAX < 4) { MAX++; renderSlots(); if (MAX >= 4) document.getElementById('addSlotBtn').style.display = 'none'; }
@@ -168,7 +155,7 @@
     }
     
     function getSlotValues() {
-      const game = gameSelect.value;
+      const game = 'bf6';
       const result = [];
       for (let i = 0; i < MAX; i++) {
         const name = document.querySelector(`[data-slot="${i}"][data-field="name"]`)?.value.trim();
@@ -319,7 +306,7 @@
         // 保存最近对比记录
         const slotValues = getSlotValues();
         if (slotValues.length >= 2) {
-          saveRecentCompare(gameSelect.value, slotValues.map(s => ({ name: s.name, platform: s.platform })));
+          saveRecentCompare('bf6', slotValues.map(s => ({ name: s.name, platform: s.platform })));
           renderRecentCompares();
         }
       } catch (err) {
@@ -357,7 +344,7 @@
           const idx = parseInt(el.dataset.compareIdx);
           const item = getRecentCompares()[idx];
           if (!item) return;
-          gameSelect.value = item.game;
+          // gameSelect removed - bf6 only
           MAX = Math.min(item.players.length, 4);
           renderSlots();
           // 填充玩家数据
@@ -367,8 +354,7 @@
               const platEl = document.querySelector(`[data-slot="${i}"][data-field="platform"]`);
               if (nameEl) nameEl.value = p.name;
               if (platEl) {
-                const cat = PLATFORM_CATEGORY_MAP[p.platform.toLowerCase()] || p.platform;
-                platEl.value = cat;
+                platEl.value = p.platform;
               }
             });
           }, 50);
