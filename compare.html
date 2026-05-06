@@ -120,16 +120,17 @@
         const preName = saved[i] ? saved[i].name : (i === 0 ? urlParams.get('p1name') || '' : '');
         const preCat = saved[i] ? saved[i].platform : (i === 0 ? (urlParams.get('p1platform') || 'xbox') : 'xbox');
         const div = document.createElement('div');
-        div.className = 'bg-dark p-3 border border-gray-700 hover-lift';
         div.innerHTML = '<div class="flex items-center gap-2 mb-2">' +
           '<span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style="background:' + COLORS[i] + '">' + (i+1) + '</span>' +
           '<span class="text-xs text-gray-400">' + (i > 1 ? '可选' : '必填') + '</span>' +
           (i > 1 ? '<button data-del="' + i + '" class="ml-auto text-gray-600 hover:text-red-400 text-lg leading-none">&times;</button>' : '') +
           '</div>' +
-          '<input type="text" placeholder="用户名" value="' + preName + '" data-slot="' + i + '" data-field="name" class="search-input w-full bg-transparent border border-gray-700 text-white px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500" />' +
-          '<select data-slot="' + i + '" data-field="platform" class="search-input w-full bg-transparent border border-gray-700 text-white px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">' +
+          '<div class="flex flex-row gap-3">' +
+          '<select data-slot="' + i + '" data-field="platform" class="search-input w-[30%] bg-transparent border border-gray-700 text-white px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">' +
           PLATFORM_KEYS.map(function(key) { return '<option value="' + key + '"' + (key === preCat ? ' selected' : '') + '>' + (PLATFORM_LABELS[key] || key) + '</option>'; }).join('') +
-          '</select>';
+          '</select>' +
+          '<input type="text" placeholder="用户名" value="' + preName + '" data-slot="' + i + '" data-field="name" class="search-input flex-1 bg-transparent border border-gray-700 text-white px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500" />' +
+          '</div>';
         slotsEl.appendChild(div);
       }
       // X 删除按钮
