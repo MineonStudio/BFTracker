@@ -297,7 +297,7 @@
                 <p class="text-sm font-semibold text-white truncate">${(() => {
                   const cs = (allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0);
                   if (!cs.length) return '—';
-                  const scored = cs.map(c => ({ ...c, score: (c.kills || 0) / ((c.deaths || 1) * ((c.secondsPlayed || 3600) / 3600)) })).sort((a, b) => b.score - a.score);
+                  const scored = cs.map(c => ({ ...c, score: ((c.kills || 0) / (c.deaths || 1)) * Math.sqrt(c.kills || 0) })).sort((a, b) => b.score - a.score);
                   const best = scored[0]; return best ? (CLASS_CN[best.className] || best.className) : '—';
                 })()}</p>
               </div>
