@@ -391,7 +391,10 @@
           <!-- 赛季 -->
           <div id="tab-season-${platform}" class="tab-panel hidden">
             <div class="bg-card  p-5 mb-8" id="seasonSection-${platform}" style="display:none">
-              <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">赛季历史</h2>
+              <div class="flex items-baseline justify-between mb-4">
+                <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">赛季历史</h2>
+                <p id="seasonTime-${platform}" class="text-xs text-gray-600"></p>
+              </div>
               <div id="seasonChart-${platform}" class="chart-box-lg"></div>
             </div>
           </div>
@@ -567,7 +570,7 @@
         const matches = all.reduce((a, m) => a + (m.matches || 0), 0);
         return {
           season: s.season,
-          sid: (s.seasonId || s.season || '').replace(/\s+/g, ''),
+
           kd:     deaths ? (kills / deaths) : 0,
           wins,
           matches,
@@ -592,7 +595,6 @@
             formatter: params => {
               const s = seasonSummary[params[0].dataIndex];
               let tip = `${s.season}`;
-              if (s.timeRange) tip += `<br/><span style="color:#9ca3af;font-size:11px">${s.timeRange}</span>`;
               tip += `<br/>${params.map(p => `${p.marker}${p.seriesName}: <b>${p.value}</b>${p.seriesName === '胜率(%)' ? '%' : ''}`).join('<br/>')}<br/>场次: ${s.matches}  击杀: ${s.kills}`;
               return tip;
             },
@@ -608,9 +610,8 @@
       const seasonCards = document.createElement('div');
       seasonCards.className = 'grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4';
       seasonCards.innerHTML = seasonSummary.map(s => `
-        <div class="bg-dark p-4 hover-lift" data-sid="${s.sid}">
+        <div class="bg-dark p-4 hover-lift">
           <p class="text-xs text-gray-500 mb-1">${s.season}</p>
-          <p class="text-xs text-gray-600 mb-2 time-row" style="display:none"></p>
           <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
             <div><p class="font-bold text-white">${s.kills}</p><p class="text-xs text-gray-500">击杀</p></div>
             <div><p class="font-bold text-white">${formatDecimal(s.kd)}</p><p class="text-xs text-gray-500">K/D</p></div>
@@ -620,28 +621,18 @@
         </div>
       `).join('');
       document.getElementById(`seasonChart-${platform}`).parentElement.appendChild(seasonCards);
-      // 异步获取赛季时间信息并更新到卡片
+      // 异步获取当前赛季时间并显示在顶部
       fetch('https://api.gametools.network/bf6/gameevents/').then(r=>r.json()).then(d => {
+        const el = document.getElementById(`seasonTime-${platform}`);
+        if (!el) return;
         const fmtDt = ts => { const d2 = new Date(ts*1000); return `${(d2.getMonth()+1).toString().padStart(2,'0')}/${d2.getDate().toString().padStart(2,'0')}`; };
-        const timeMap = {};
         (d.events||[]).forEach(e => {
-          const sid = e.name.replace(/\s+/g, '');
+          if (!/^Season\d+$/.test(e.name)) return;
           const st = e.validUntil?.start?.value;
           const en = e.validUntil?.end?.value;
-          if (sid && st && en) timeMap[sid] = `${fmtDt(st)} ~ ${fmtDt(en)}`;
-        });
-        // 更新卡片
-        document.querySelectorAll('[data-sid]').forEach(el => {
-          const sid = el.getAttribute('data-sid');
-          const tr = el.querySelector('.time-row');
-          if (timeMap[sid] && tr) {
-            tr.textContent = timeMap[sid];
-            tr.style.display = '';
+          if (st && en) {
+            el.textContent = `${e.name.replace('Season', 'S')}: ${fmtDt(st)} ~ ${fmtDt(en)}`;
           }
-        });
-        // 更新 tooltip 数据
-        seasonSummary.forEach(s => {
-          if (timeMap[s.sid]) s.timeRange = timeMap[s.sid];
         });
       }).catch(() => {});
     }
