@@ -6,6 +6,10 @@
   <title id="pageTitle">玩家战绩 - BF Tracker</title>
   <link rel="stylesheet" href="css/input.css">
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .floating-share-hidden { display: none; }
+    .floating-share-visible { display: flex; }
+  </style>
 </head>
 <body class="bg-dark text-gray-200 min-h-screen flex flex-col">
   <script>(function(){if(localStorage.theme==='light')document.body.classList.add('light')})()</script>
@@ -246,16 +250,9 @@
                 <span>${formatSeconds(stats.secondsPlayed)}</span>
               </div>
             </div>
-            <!-- 右侧：平台 + 分享 -->
-            <div class="shrink-0 self-end flex items-end gap-2">
+            <!-- 右侧：平台 -->
+            <div class="shrink-0 self-end flex items-end">
               ${(() => { const p = (platform || '').toLowerCase(); const iconMap = {xbox:'xbox',xboxone:'xbox',xboxseries:'xbox',steam:'steam',ea:'ea',epic:'ea',psn:'playstation',ps4:'playstation',ps5:'playstation',playstation:'playstation',pc:'pc'}; const labelMap = {xbox:'Xbox',steam:'Steam',ea:'EA',playstation:'PlayStation',pc:'PC'}; const icon = iconMap[p] || 'pc'; const label = labelMap[icon] || 'PC'; return `<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-accent/10 text-accent"><img src="icons/${icon}.svg" class="w-4 h-4" alt="">${label}</span>`; })()}
-              <button onclick="window.doSharePoster()" class="text-gray-400 hover:text-white transition-colors self-end flex items-end" title="分享">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
-                  <polyline points="16 6 12 2 8 6"/>
-                  <line x1="12" y1="2" x2="12" y2="15"/>
-                </svg>
-              </button>
             </div>
           </div>
         <!-- Tab导航（始终显示） -->
@@ -806,6 +803,7 @@
 
       // 保存搜索记录（用第一个结果的平台）
       saveSnapshot(game, results[0].platform, name, results[0].stats);
+      document.getElementById("floatingShareBtn")?.classList.remove("hidden");
       saveRecentSearch(game, results[0].platform, name);
 
       // 填充玩家头部（用第一个结果）
@@ -1354,5 +1352,15 @@
     </div>
   </footer>
 
+<!-- 悬浮分享按钮 -->
+<div id="floatingShareBtn" onclick="window.doSharePoster()" class="hidden fixed bottom-20 right-4 sm:bottom-24 sm:right-8 z-50 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center cursor-pointer hover:scale-110 transition-transform" title="分享">
+  <svg class="w-5 h-5 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="18" cy="5" r="3"/>
+    <circle cx="6" cy="12" r="3"/>
+    <circle cx="18" cy="19" r="3"/>
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+  </svg>
+</div>
 </body>
 </html>
