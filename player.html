@@ -223,6 +223,7 @@
       const humanKd    = stats.deaths ? (humanKills / stats.deaths) : 0;
       const killsPerMatch = stats.killsPerMatch ?? (matchesPlayed ? (stats.kills / matchesPlayed) : 0);
       const damagePerMatch = stats.damagePerMatch ?? (matchesPlayed ? (stats.damage / matchesPlayed) : 0);
+      const damagePerMinute = stats.damagePerMinute ?? (stats.secondsPlayed ? (stats.damage / (stats.secondsPlayed / 60)) : 0);
       const playerScore = allClass?.score || stats.score || 0;
       const humanPct = stats.humanPrecentage ?? ((stats.dividedKills?.human && stats.kills) ? (stats.dividedKills.human / stats.kills * 100) : null);
 
@@ -325,14 +326,17 @@
                 })()}</p>
               </div>
             </div>
-              <!-- 9 个指标：三行三列 -->
+              <!-- 12 个指标：四行三列 -->
               <div class="grid grid-cols-3 gap-1.5 sm:gap-3">
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(damagePerMatch, 1)}</p><p class="text-xs text-gray-500">场均伤害</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(stats.killsPerMinute)}</p><p class="text-xs text-gray-500">每分钟击杀</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(damagePerMinute, 1)}</p><p class="text-xs text-gray-500">每分钟伤害</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${spm ?? '—'}</p><p class="text-xs text-gray-500">每分钟得分</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.headShots)}</p><p class="text-xs text-gray-500">总爆头数</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(Math.round(stats.damage))}</p><p class="text-xs text-gray-500">总伤害</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(Math.round(playerScore))}</p><p class="text-xs text-gray-500">总得分</p></div>
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(killsPerMatch)}</p><p class="text-xs text-gray-500">场均击杀</p></div>
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${deathsPerMatch ?? '—'}</p><p class="text-xs text-gray-500">场均死亡</p></div>
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(Math.round(playerScore))}</p><p class="text-xs text-gray-500">总得分</p></div>
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${spm ?? '—'}</p><p class="text-xs text-gray-500">每分钟得分</p></div>
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(stats.killsPerMinute)}</p><p class="text-xs text-gray-500">KPM</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(damagePerMatch, 1)}</p><p class="text-xs text-gray-500">场均伤害</p></div>
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${humanPct != null ? formatPct(humanPct) : '—'}</p><p class="text-xs text-gray-500">真人击杀率</p></div>
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.headshots)}</p><p class="text-xs text-gray-500">爆头率</p></div>
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.accuracy)}</p><p class="text-xs text-gray-500">命中率</p></div>
