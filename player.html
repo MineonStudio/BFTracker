@@ -853,7 +853,7 @@
         bestClass: (() => {
           const cs = (first.allData?.classes || []).filter(c => c.className !== 'All' && c.kills > 0);
           if (!cs.length) return '—';
-          return cs.map(c => ({ ...c, score: (c.kills || 0) / ((c.deaths || 1) * ((c.secondsPlayed || 3600) / 3600)) })).sort((a, b) => b.score - a.score)[0]?.className || '—';
+          return cs.map(c => ({ ...c, score: ((c.kills || 0) / (c.deaths || 1)) * Math.sqrt(c.kills || 0) })).sort((a, b) => b.score - a.score)[0]?.className || '—';
         })(),
         bestWeapon: (() => {
           const ws = (first.allData?.weapons || []).filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills);
