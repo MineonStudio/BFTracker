@@ -19,19 +19,19 @@ export const PLATFORM_CATEGORIES = ['Xbox', 'PlayStation', 'PC'];
 
 // 三大平台 → 细分平台的映射
 export const CATEGORY_PLATFORMS = {
-  'PC': ['steam', 'ea', 'epic'],
+  'PC': ['pc', 'steam', 'ea', 'epic'],
   'Xbox': ['xbox', 'xboxone', 'xboxseries'],
   'PlayStation': ['psn', 'ps4', 'ps5'],
 };
 
 // 各游戏在三大分类下支持的细分平台
 export const GAME_CATEGORY_PLATFORMS = {
-  bf6:    { 'PC': ['steam', 'ea', 'epic'], 'Xbox': ['xbox', 'xboxone', 'xboxseries'], 'PlayStation': ['psn', 'ps4', 'ps5'] },
-  bf2042: { 'PC': ['steam', 'ea', 'epic'], 'Xbox': ['xbox', 'xboxone', 'xboxseries'], 'PlayStation': ['psn', 'ps4', 'ps5'] },
-  bfv:    { 'PC': ['steam', 'ea', 'epic'], 'Xbox': ['xboxone'],                      'PlayStation': ['ps4'] },
-  bf1:    { 'PC': ['steam', 'ea', 'epic'], 'Xbox': ['xboxone'],                      'PlayStation': ['ps4'] },
-  bf4:    { 'PC': ['steam', 'ea', 'epic'],                                             'PlayStation': ['ps4'] },
-  bf3:    { 'PC': ['steam', 'ea', 'epic'],                                             'PlayStation': ['ps4'] },
+  bf6:    { 'PC': ['pc', 'steam', 'ea', 'epic'], 'Xbox': ['xbox', 'xboxone', 'xboxseries'], 'PlayStation': ['psn', 'ps4', 'ps5'] },
+  bf2042: { 'PC': ['pc', 'steam', 'ea', 'epic'], 'Xbox': ['xbox', 'xboxone', 'xboxseries'], 'PlayStation': ['psn', 'ps4', 'ps5'] },
+  bfv:    { 'PC': ['pc', 'steam', 'ea', 'epic'], 'Xbox': ['xboxone'],                      'PlayStation': ['ps4'] },
+  bf1:    { 'PC': ['pc', 'steam', 'ea', 'epic'], 'Xbox': ['xboxone'],                      'PlayStation': ['ps4'] },
+  bf4:    { 'PC': ['pc', 'steam', 'ea', 'epic'],                                             'PlayStation': ['ps4'] },
+  bf3:    { 'PC': ['pc', 'steam', 'ea', 'epic'],                                             'PlayStation': ['ps4'] },
 };
 
 export const GAME_LABELS = {
