@@ -305,21 +305,21 @@
               <div class="bg-dark p-3 hover-lift">
                 <p class="text-xs text-gray-500 mb-1">最擅长武器</p>
                 <p class="text-sm font-semibold text-white truncate">${(() => {
-                  const ws = (allData?.weapons || []).filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills);
-                  return ws[0]?.name || ws[0]?.weaponName || '—';
+                  const ws = (allData?.weapons || []).filter(w => w.kills > 0).map(w => ({ ...w, score: (w.kills || 0) * Math.sqrt(w.killsPerMinute || 0.01) })).sort((a, b) => b.score - a.score);
+                  const best = ws[0]; return best?.name || best?.weaponName || '—';
                 })()}</p>
               </div>
               <div class="bg-dark p-3 hover-lift">
                 <p class="text-xs text-gray-500 mb-1">最喜欢地图</p>
                 <p class="text-sm font-semibold text-white truncate">${(() => {
-                  const ms = (allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0).sort((a, b) => (b.secondsPlayed || 0) - (a.secondsPlayed || 0));
+                  const ms = (allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0).map(m => ({ ...m, score: (m.secondsPlayed || 0) * (parseFloat(m.winPercent || 50) / 50) })).sort((a, b) => b.score - a.score);
                   return MAP_CN[ms[0]?.mapName] || ms[0]?.mapName || '—';
                 })()}</p>
               </div>
               <div class="bg-dark p-3 hover-lift">
                 <p class="text-xs text-gray-500 mb-1">最喜欢模式</p>
                 <p class="text-sm font-semibold text-white truncate">${(() => {
-                  const gms = (allData?.gameModes || allData?.gamemodes || []).filter(m => m.matches > 0 && m.gamemodeName !== 'Official').sort((a, b) => (b.secondsPlayed || 0) - (a.secondsPlayed || 0));
+                  const gms = (allData?.gameModes || allData?.gamemodes || []).filter(m => m.matches > 0 && m.gamemodeName !== 'Official').map(m => ({ ...m, score: (m.secondsPlayed || 0) * (parseFloat(m.winPercent || 50) / 50) })).sort((a, b) => b.score - a.score);
                   return getModeName(gms[0]?.gamemodeName) || '—';
                 })()}</p>
               </div>
@@ -798,7 +798,7 @@
           }
           // 保存 API 数据到缓存
           if (allData) saveApiCache(game, p, name, allData);
-          return { platform: p, stats, allData };
+          return { platform: p, stats, allData, profileData };
         })
       );
 
@@ -832,6 +832,16 @@
 
       // 填充玩家头部（用第一个结果）
       const first = results[0];
+
+      // 确保等级数据可用（从profile补全）
+      const fb = obj => obj ?? null;
+      const pf = first.profileData?.playerProfiles?.[0];
+      if (!first.allData?.rank && pf?.playerCard?.rank != null) {
+        first.allData ??= {};
+        first.allData.rank = first.allData.rank ?? pf.playerCard.rank;
+        first.allData.rankName = first.allData.rankName ?? pf.rankName;
+        first.allData.rankImage = first.allData.rankImage ?? pf.playerCard.rankImage;
+      }
 
       // 缓存分享数据
       const stats = first.stats;
@@ -878,15 +888,15 @@
           return cs.map(c => ({ ...c, score: ((c.kills || 0) / (c.deaths || 1)) * Math.sqrt(c.kills || 0) })).sort((a, b) => b.score - a.score)[0]?.className || '—';
         })(),
         bestWeapon: (() => {
-          const ws = (first.allData?.weapons || []).filter(w => w.kills > 0).sort((a, b) => b.kills - a.kills);
-          return ws[0]?.name || ws[0]?.weaponName || '—';
+          const ws = (first.allData?.weapons || []).filter(w => w.kills > 0).map(w => ({ ...w, score: (w.kills || 0) * Math.sqrt(w.killsPerMinute || 0.01) })).sort((a, b) => b.score - a.score);
+          const best = ws[0]; return best?.name || best?.weaponName || '—';
         })(),
         favMap: (() => {
-          const ms = (first.allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0).sort((a, b) => (b.secondsPlayed || 0) - (a.secondsPlayed || 0));
+          const ms = (first.allData?.maps || []).filter(m => m.mapName !== 'All' && m.matches > 0).map(m => ({ ...m, score: (m.secondsPlayed || 0) * (parseFloat(m.winPercent || 50) / 50) })).sort((a, b) => b.score - a.score);
           return MAP_CN[ms[0]?.mapName] || ms[0]?.mapName || '—';
         })(),
         favMode: (() => {
-          const gms = (first.allData?.gameModes || first.allData?.gamemodes || []).filter(m => m.matches > 0 && m.gamemodeName !== 'Official').sort((a, b) => (b.secondsPlayed || 0) - (a.secondsPlayed || 0));
+          const gms = (first.allData?.gameModes || first.allData?.gamemodes || []).filter(m => m.matches > 0 && m.gamemodeName !== 'Official').map(m => ({ ...m, score: (m.secondsPlayed || 0) * (parseFloat(m.winPercent || 50) / 50) })).sort((a, b) => b.score - a.score);
           return getModeName(gms[0]?.gamemodeName) || '—';
         })(),
       };
