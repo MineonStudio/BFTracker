@@ -222,7 +222,7 @@
       const assists    = allClass?.assists ?? stats.killAssists;
       const humanKills = stats.dividedKills?.human || stats.kills || 0;
       const humanKd    = stats.deaths ? (humanKills / stats.deaths) : 0;
-      const humanKillsPerMatch = matchesPlayed ? (humanKills / matchesPlayed) : 0;
+      const killsPerMatch = stats.killsPerMatch ?? (matchesPlayed ? (stats.kills / matchesPlayed) : 0);
 
       // 提取等级数据
       const rankVal = stats.rank ?? stats.level ?? stats.currentRank ?? stats.rankNumber ?? stats.prestige ??
@@ -329,7 +329,7 @@
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.headshots)}</p><p class="text-xs text-gray-500">爆头率</p></div>
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatPct(stats.accuracy)}</p><p class="text-xs text-gray-500">命中率</p></div>
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(stats.killsPerMinute)}</p><p class="text-xs text-gray-500">KPM</p></div>
-                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(humanKillsPerMatch)}</p><p class="text-xs text-gray-500">场均击杀</p></div>
+                <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatDecimal(killsPerMatch)}</p><p class="text-xs text-gray-500">场均击杀</p></div>
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${deathsPerMatch ?? '—'}</p><p class="text-xs text-gray-500">场均死亡</p></div>
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(stats.headShots)}</p><p class="text-xs text-gray-500">爆头数</p></div>
                 <div class="bg-dark p-2 sm:p-3 hover-lift"><p class="text-sm sm:text-lg font-bold text-white">${formatNum(assists)}</p><p class="text-xs text-gray-500">助攻数</p></div>
@@ -820,7 +820,7 @@
       const mp = stats.matchesPlayed ?? ((stats.wins != null && stats.loses != null) ? stats.wins + stats.loses : null);
       const hp = stats.headshots;
       const hkr = humanKills / (stats.deaths || 1);
-      const hkpm = mp ? (humanKills / mp).toFixed(2) : null;
+      const killsPerMatchData = mp ? (stats.killsPerMatch ?? (stats.kills / mp)).toFixed(2) : null;
       const dpm = mp ? ((allClass?.deaths ?? stats.deaths ?? 0) / mp).toFixed(2) : null;
       window.__shareData = {
         name: stats.userName || name,
@@ -841,7 +841,7 @@
         headshots: formatPct(hp),
         accuracy: formatPct(stats.accuracy),
         kpm: formatDecimal(stats.killsPerMinute),
-        killsPerMatch: hkpm,
+        killsPerMatch: killsPerMatchData,
         deathsPerMatch: dpm,
         headShots: formatNum(stats.headShots),
         assists: formatNum(allClass?.assists ?? stats.killAssists),
