@@ -10,7 +10,7 @@
     .floating-share-hidden { display: none; }
     .floating-share-visible { display: flex; }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dom-to-image-more@4.2.0/dist/dom-to-image-more.min.js"></script>
 </head>
 <body class="bg-dark text-gray-200 min-h-screen flex flex-col">
   <script>(function(){if(localStorage.theme==='light')document.body.classList.add('light')})()</script>
@@ -1087,6 +1087,7 @@
         const wrapper = document.createElement('div');
         wrapper.id = '__posterWrapper';
         wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:720px;background:#0f1117;padding:0;z-index:-1;font-family:system-ui,-apple-system,sans-serif;color:#e5e7eb';
+
         
         // 顶部品牌 + 用户信息
         wrapper.innerHTML = `
@@ -1165,15 +1166,12 @@
           }
         } catch {}
         
-        // 用 html2canvas 截图
+        // 用 dom-to-image-more 截图
         await new Promise(r => setTimeout(r, 300)); // 等渲染
-        const canvas = await html2canvas(wrapper, {
+        const canvas = await domtoimage.toCanvas(wrapper, {
           scale: 2,
-          backgroundColor: '#0f1117',
+          bgColor: '#0f1117',
           width: 720,
-          logging: false,
-          allowTaint: false,
-          useCORS: true,
         });
         
         // 清理临时容器
