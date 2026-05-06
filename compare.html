@@ -97,7 +97,7 @@
     import { LegendComponent, TooltipComponent, GridComponent } from 'echarts/components';
     import { CanvasRenderer } from 'echarts/renderers';
     echarts.use([PieChart, BarChart, LineChart, RadarChart, LegendComponent, TooltipComponent, GridComponent, CanvasRenderer]);
-    import { getStats, GAME_LABELS, PLATFORM_LABELS, PLATFORM_CATEGORIES, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
+    import { getStats, GAME_LABELS, PLATFORM_LABELS, PLATFORM_KEYS } from './js/api.js';
     import { saveSnapshot, saveRecentSearch, saveRecentCompare, getRecentCompares, removeRecentCompare, clearRecentCompares } from './js/storage.js';
     import { formatNum, formatPct, formatDecimal, formatSeconds, kdColor, winColor, buildPlayerUrl } from './js/utils.js';
 
@@ -113,7 +113,7 @@
     // 从 URL 预填第一个玩家
     const urlParams = new URLSearchParams(window.location.search);
     const preGame     = urlParams.get('p1game')     || 'bf6';
-    const prePlatform = urlParams.get('p1platform') || 'Xbox';
+    const prePlatform = urlParams.get('p1platform') || 'xbox';
     const preName     = urlParams.get('p1name')     || '';
     gameSelect.value = preGame;
 
@@ -133,7 +133,7 @@
       slotsEl.innerHTML = '';
       for (let i = 0; i < MAX; i++) {
         const preName = saved[i] ? saved[i].name : (i === 0 ? urlParams.get('p1name') || '' : '');
-        const preCat = saved[i] ? saved[i].platform : (i === 0 ? (urlParams.get('p1platform') || 'Xbox') : 'Xbox');
+        const preCat = saved[i] ? saved[i].platform : (i === 0 ? (urlParams.get('p1platform') || 'xbox') : 'xbox');
         const div = document.createElement('div');
         div.className = 'bg-dark p-3 border border-gray-700 hover-lift';
         div.innerHTML = '<div class="flex items-center gap-2 mb-2">' +
@@ -143,7 +143,7 @@
           '</div>' +
           '<input type="text" placeholder="用户名" value="' + preName + '" data-slot="' + i + '" data-field="name" class="search-input w-full bg-card border border-gray-600  px-3 py-2 text-xs mb-2 focus:outline-none focus:border-accent" />' +
           '<select data-slot="' + i + '" data-field="platform" class="w-full bg-card border border-gray-600  px-3 py-2 text-xs focus:outline-none focus:border-accent">' +
-          PLATFORM_CATEGORIES.map(function(cat) { return '<option value="' + cat + '"' + (cat === preCat ? ' selected' : '') + '>' + cat + '</option>'; }).join('') +
+          PLATFORM_KEYS.map(function(key) { return '<option value="' + key + '"' + (key === preCat ? ' selected' : '') + '>' + (PLATFORM_LABELS[key] || key) + '</option>'; }).join('') +
           '</select>';
         slotsEl.appendChild(div);
       }
@@ -169,14 +169,12 @@
     
     function getSlotValues() {
       const game = gameSelect.value;
-      const catMap = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['steam'], 'Xbox': ['xbox'], 'PlayStation': ['psn'] };
       const result = [];
       for (let i = 0; i < MAX; i++) {
         const name = document.querySelector(`[data-slot="${i}"][data-field="name"]`)?.value.trim();
-        const platformCat = document.querySelector(`[data-slot="${i}"][data-field="platform"]`)?.value;
-        if (name && platformCat) {
-          const subPlatform = (catMap[platformCat] || ['xbox'])[0];
-          result.push({ game, platform: subPlatform, name });
+        const platformKey = document.querySelector(`[data-slot="${i}"][data-field="platform"]`)?.value;
+        if (name && platformKey) {
+          result.push({ game, platform: platformKey, name });
         }
       }
       return result;
@@ -297,23 +295,17 @@
       loadingEl.classList.add('flex');
 
       try {
-        // 查询所有玩家（尝试分类下所有子平台）
+        // 直接查询每个玩家选择的平台
         const statsArr = await Promise.all(
           players.map(async p => {
-            const catMap = GAME_CATEGORY_PLATFORMS[p.game] || { 'PC': ['steam','ea','epic'], 'Xbox': ['xbox','xboxone','xboxseries'], 'PlayStation': ['psn','ps4','ps5'] };
-            const category = document.querySelector(`[data-slot]`)?.closest('#playerSlots') ? 
-              Object.entries(catMap).find(([cat, subs]) => subs.includes(p.platform))?.[0] : null;
-            const subPlatforms = category ? (catMap[category] || [p.platform]) : [p.platform];
-            let lastErr;
-            for (const plat of subPlatforms) {
-              try {
-                const s = await getStats(p.game, p.name, plat);
-                saveSnapshot(p.game, plat, p.name, s);
-                saveRecentSearch(p.game, plat, p.name);
-                return s;
-              } catch (e) { lastErr = e; }
+            try {
+              const s = await getStats(p.game, p.name, p.platform);
+              saveSnapshot(p.game, p.platform, p.name, s);
+              saveRecentSearch(p.game, p.platform, p.name);
+              return s;
+            } catch (e) {
+              throw new Error(`${p.name} 无可用数据`);
             }
-            throw new Error(`${p.name} 无可用数据`);
           })
         );
 
@@ -338,8 +330,8 @@
     });
 
     // ── 最近对比渲染 ──
-    const PLATFORM_ICON_MAP = { xbox:'xbox', xboxone:'xbox', xboxseries:'xbox', steam:'steam', ea:'ea', epic:'ea', psn:'playstation', ps4:'playstation', ps5:'playstation', playstation:'playstation', pc:'ea' };
-    const PLATFORM_LABEL_MAP = { xbox:'Xbox', xboxone:'Xbox', xboxseries:'Xbox', steam:'Steam', ea:'EA', epic:'EA', psn:'PlayStation', ps4:'PlayStation', ps5:'PlayStation', playstation:'PlayStation', pc:'EA' };
+    const PLATFORM_ICON_MAP = { xbox:'xbox', xboxone:'xbox', xboxseries:'xbox', steam:'steam', ea:'ea', epic:'ea', psn:'playstation', ps4:'playstation', ps5:'playstation', playstation:'playstation', pc:'pc' };
+    const PLATFORM_LABEL_MAP = { xbox:'Xbox', xboxone:'Xbox', xboxseries:'Xbox', steam:'Steam', ea:'EA', epic:'EA', psn:'PlayStation', ps4:'PlayStation', ps5:'PlayStation', playstation:'PlayStation', pc:'PC' };
 
     function renderRecentCompares() {
       const list = getRecentCompares();

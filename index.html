@@ -73,12 +73,12 @@
   </footer>
 
   <script type="module">
-    import { PLATFORM_CATEGORIES } from './js/api.js';
+    import { PLATFORM_KEYS, PLATFORM_LABELS } from './js/api.js';
     import { getRecentSearches, saveRecentSearch, removeRecentSearch, clearRecentSearches } from './js/storage.js';
     import { buildPlayerUrl, formatNum } from './js/utils.js';
 
-    const PLATFORM_ICON = { xbox:'xbox', xboxone:'xbox', xboxseries:'xbox', steam:'steam', ea:'ea', epic:'ea', psn:'playstation', ps4:'playstation', ps5:'playstation', playstation:'playstation', pc:'ea' };
-    const PLATFORM_LABEL = { xbox:'Xbox', xboxone:'Xbox', xboxseries:'Xbox', steam:'Steam', ea:'EA', epic:'EA', psn:'PlayStation', ps4:'PlayStation', ps5:'PlayStation', playstation:'PlayStation', pc:'EA' };
+    const PLATFORM_ICON = { xbox:'xbox', xboxone:'xbox', xboxseries:'xbox', steam:'steam', ea:'ea', epic:'ea', psn:'playstation', ps4:'playstation', ps5:'playstation', playstation:'playstation', pc:'pc' };
+    const PLATFORM_LABEL = { xbox:'Xbox', xboxone:'Xbox', xboxseries:'Xbox', steam:'Steam', ea:'EA', epic:'EA', psn:'PlayStation', ps4:'PlayStation', ps5:'PlayStation', playstation:'PlayStation', pc:'PC' };
 
     function getIcon(p) { return PLATFORM_ICON[p?.toLowerCase()] || 'pc'; }
     function getLabel(p) { return PLATFORM_LABEL[p?.toLowerCase()] || p || '—'; }
@@ -88,10 +88,10 @@
     const nameInput = document.getElementById('nameInput');
     const searchBtn = document.getElementById('searchBtn');
 
-    PLATFORM_CATEGORIES.forEach(cat => {
+    PLATFORM_KEYS.forEach(key => {
       const opt = document.createElement('option');
-      opt.value = cat;
-      opt.textContent = cat;
+      opt.value = key;
+      opt.textContent = PLATFORM_LABELS[key] || key;
       platformSelect.appendChild(opt);
     });
 

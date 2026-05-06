@@ -102,7 +102,7 @@
   </div>
 
   <script type="module">
-    import { getStats, GAME_LABELS, PLATFORM_LABELS, searchPlayer, CATEGORY_PLATFORMS, GAME_CATEGORY_PLATFORMS } from './js/api.js';
+    import { getStats, GAME_LABELS, PLATFORM_LABELS } from './js/api.js';
     import { saveSnapshot, saveRecentSearch, saveApiCache } from './js/storage.js';
     import * as echarts from 'echarts/core';
     import { PieChart, BarChart, LineChart, RadarChart } from 'echarts/charts';
@@ -234,7 +234,7 @@
             </div>
             <!-- 右侧：平台 + 分享 -->
             <div class="shrink-0 self-end flex items-end gap-2">
-              ${(() => { const p = (platform || '').toLowerCase(); const iconMap = {xbox:'xbox',xboxone:'xbox',xboxseries:'xbox',steam:'steam',ea:'ea',epic:'ea',psn:'playstation',ps4:'playstation',ps5:'playstation',playstation:'playstation',pc:'ea'}; const labelMap = {xbox:'Xbox',steam:'Steam',ea:'EA',playstation:'PlayStation'}; const icon = iconMap[p] || 'pc'; const label = labelMap[icon] || 'PC'; return `<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-accent/10 text-accent"><img src="icons/${icon}.svg" class="w-4 h-4" alt="">${label}</span>`; })()}
+              ${(() => { const p = (platform || '').toLowerCase(); const iconMap = {xbox:'xbox',xboxone:'xbox',xboxseries:'xbox',steam:'steam',ea:'ea',epic:'ea',psn:'playstation',ps4:'playstation',ps5:'playstation',playstation:'playstation',pc:'pc'}; const labelMap = {xbox:'Xbox',steam:'Steam',ea:'EA',playstation:'PlayStation',pc:'PC'}; const icon = iconMap[p] || 'pc'; const label = labelMap[icon] || 'PC'; return `<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-accent/10 text-accent"><img src="icons/${icon}.svg" class="w-4 h-4" alt="">${label}</span>`; })()}
               <button onclick="window.doSharePoster()" class="text-gray-400 hover:text-white transition-colors self-end flex items-end" title="分享">
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
@@ -741,90 +741,46 @@
 
       const BASE      = 'https://api.gametools.network';
 
-      // 获取平台分类下的细分平台（默认 Xbox）
+      // 直接使用请求的平台（默认 xbox）
       const urlParams = new URLSearchParams(window.location.search);
-      const platformCategory = (() => {
-        const raw = urlParams.get('platform') || 'Xbox';
-        // 兼容旧搜索：将小写子平台（如 xbox/xboxone）映射到分类（Xbox）
-        const lower = raw.toLowerCase();
-        if (lower === 'xbox' || lower === 'xboxone' || lower === 'xboxseries') return 'Xbox';
-        if (lower === 'psn' || lower === 'ps4' || lower === 'ps5' || lower === 'playstation') return 'PlayStation';
-        if (lower === 'pc' || lower === 'steam' || lower === 'ea' || lower === 'epic') return 'PC';
-        return raw;
-      })();
-      const gameCatPlatforms = GAME_CATEGORY_PLATFORMS[game] || { 'PC': ['steam'] };
-      let platforms = gameCatPlatforms[platformCategory] || ['steam'];
+      const platform = urlParams.get('platform') || 'xbox';
 
-      // 智能检测：找出该玩家实际活跃的子平台，配合通用平台作为兜底
-      let detectedPlatforms = null;
-      if (platforms.length > 2) {
-        try {
-          const playerResults = await searchPlayer(game, name, platforms[0]);
-          if (playerResults?.results?.length) {
-            const activePlatforms = new Set();
-            playerResults.results.forEach(r => {
-              if (r.platform && platforms.includes(r.platform)) {
-                activePlatforms.add(r.platform);
-              }
-            });
-            if (activePlatforms.size > 0) detectedPlatforms = [...activePlatforms];
-          }
-        } catch {}
-      }
-      // 用检测到的平台优先，但保留全量作为兜底（兼容 API 只认通用平台名的情况）
-      if (detectedPlatforms) {
-        platforms = [...new Set([...detectedPlatforms, ...platforms])];
-      }
-
-      // 并发查询（只查检测到的平台）
-      const settled = await Promise.allSettled(
-        platforms.map(async p => {
-          const [stats, allData, profileData] = await Promise.all([
-            getStats(game, name, p),
-            fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${p}`, { signal: AbortSignal.timeout?.(15000) })
-              .then(r => r.json()).catch(() => null),
-            fetch(`${BASE}/${game}/profile/?name=${encodeURIComponent(name)}&platform=${p}`, { signal: AbortSignal.timeout?.(10000) })
-              .then(r => r.json()).catch(() => null),
-          ]);
-          // 从 profile 提取等级信息
-          const rankData = profileData?.playerProfiles?.[0]?.playerCard?.rank;
-          const rankNameData = profileData?.playerProfiles?.[0]?.rankName;
-          const rankImageData = profileData?.playerProfiles?.[0]?.playerCard?.rankImage;
-          // 等级数据存到 allData 供渲染用，allData 为 null 时忽略
-          if (allData && (rankData != null || rankNameData != null || rankImageData != null)) {
-            if (rankData != null) allData.rank = rankData;
-            if (rankNameData != null) allData.rankName = rankNameData;
-            if (rankImageData != null) allData.rankImage = rankImageData;
-          }
-          // 保存 API 数据到缓存
-          if (allData) saveApiCache(game, p, name, allData);
-          return { platform: p, stats, allData, profileData };
-        })
-      );
-
-      // 过滤成功结果，按 userId 去重
-      const seen = new Set();
-      const results = settled
-        .filter(r => r.status === 'fulfilled')
-        .map(r => r.value)
-        .filter(({ stats }) => {
-          const uid = stats.userId ?? stats.id;
-          if (uid == null) return true;
-          if (seen.has(uid)) return false;
-          seen.add(uid);
-          return true;
-        });
-
-      if (!results.length) {
-        // 取第一个失败原因作为错误信息
-        const firstErr = settled.find(r => r.status === 'rejected')?.reason;
-        let errMsg = firstErr?.message || 'NOTFOUND';
+      // 单次查询
+      let stats, allData, profileData;
+      try {
+        [stats, allData, profileData] = await Promise.all([
+          getStats(game, name, platform),
+          fetch(`${BASE}/${game}/all/?name=${encodeURIComponent(name)}&platform=${platform}`, { signal: AbortSignal.timeout?.(15000) })
+            .then(r => r.json()).catch(() => null),
+          fetch(`${BASE}/${game}/profile/?name=${encodeURIComponent(name)}&platform=${platform}`, { signal: AbortSignal.timeout?.(10000) })
+            .then(r => r.json()).catch(() => null),
+        ]);
+      } catch (e) {
+        let errMsg = e?.message || 'NOTFOUND';
         if (errMsg === 'TIMEOUT') errMsg = '请求超时，请检查网络后重试';
         else if (errMsg === 'NETWORK') errMsg = '网络连接失败，请检查网络';
         else if (errMsg === 'NOTFOUND' || errMsg === 'NO_STATS') errMsg = '未找到该玩家，请检查用户名和平台';
         showError(errMsg);
         return;
       }
+
+      if (!stats) {
+        showError('未找到该玩家，请检查用户名和平台');
+        return;
+      }
+
+      // 从 profile 补全等级信息
+      const pf = profileData?.playerProfiles?.[0];
+      if (pf?.playerCard?.rank != null) {
+        allData ??= {};
+        allData.rank = allData.rank ?? pf.playerCard.rank;
+        allData.rankName = allData.rankName ?? pf.rankName;
+        allData.rankImage = allData.rankImage ?? pf.playerCard.rankImage;
+      }
+
+      if (allData) saveApiCache(game, platform, name, allData);
+
+      const results = [{ platform, stats, allData, profileData }];
 
       // 保存搜索记录（用第一个结果的平台）
       saveSnapshot(game, results[0].platform, name, results[0].stats);
