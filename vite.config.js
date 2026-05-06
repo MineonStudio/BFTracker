@@ -13,6 +13,7 @@ export default defineConfig({
         player:  resolve(__dirname, 'player.html'),
         compare: resolve(__dirname, 'compare.html'),
         news:    resolve(__dirname, 'news.html'),
+        'news-detail': resolve(__dirname, 'news-detail.html'),
       },
     },
   },

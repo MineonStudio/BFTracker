@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="pageTitle">新闻详情 - BF Tracker</title>
+  <link rel="stylesheet" href="css/input.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    .type-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .7rem; font-weight: 600; }
+    .type-游戏更新 { background: rgba(96,165,250,0.15); color: #60a5fa; }
+    .type-指南 { background: rgba(74,222,128,0.15); color: #4ade80; }
+    .type-新闻文章 { background: rgba(244,114,182,0.15); color: #f472b6; }
+    .article-body { font-size: .9rem; line-height: 1.8; color: var(--text-muted); word-break: break-word; }
+    .article-body h1, .article-body h2 { font-size: 1.15rem; font-weight: 700; color: #fff; margin: 1.5rem 0 .5rem; }
+    .article-body h3 { font-size: 1rem; font-weight: 600; margin: 1.2rem 0 .4rem; }
+    .article-body p { margin-bottom: .75rem; }
+    .article-body ul, .article-body ol { padding-left: 1.5rem; margin-bottom: .75rem; }
+    .article-body li { margin-bottom: .3rem; }
+    .article-body strong { color: #fff; }
+    .article-body a { color: #60a5fa; text-decoration: underline; }
+    .article-body img { max-width: 100%; border-radius: 0; margin: 1rem 0; }
+    .article-body hr { border: none; border-top: 1px solid var(--border-default); margin: 1.5rem 0; }
+    .article-body blockquote { border-left: 3px solid var(--color-accent); padding-left: 1rem; color: var(--text-dim); margin: 1rem 0; }
+    .back-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: .85rem; color: var(--text-dim); border: 1px solid var(--border-default); cursor: pointer; transition: all .15s; }
+    .back-btn:hover { color: #fff; border-color: var(--border-strong); }
+  </style>
+</head>
+<body class="bg-dark text-gray-200 min-h-screen flex flex-col">
+  <script>(function(){if(localStorage.theme==='light')document.body.classList.add('light')})()</script>
+
+  <nav class="border-b border-gray-700 bg-card relative">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="index.html" class="text-xl font-bold gradient-text">BF Tracker</a>
+      <div class="flex gap-6 text-sm text-gray-400">
+        <a href="index.html" aria-label="首页" class="nav-link hover:text-white pb-1">首页</a>
+        <a href="news.html" aria-label="新闻" class="nav-link active pb-1">新闻</a>
+        <a href="compare.html" aria-label="多人对比" class="nav-link hover:text-white pb-1">多人对比</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex-1 w-full">
+    <div class="max-w-5xl mx-auto px-3 sm:px-4 py-6">
+      <button class="back-btn" onclick="history.back()">← 返回新闻列表</button>
+
+      <div id="loadingWrap"><div class="spinner" style="margin:3rem auto"></div></div>
+      <div id="errorWrap" class="hidden text-center py-12">
+        <p class="text-3xl mb-3">😵</p>
+        <p class="text-gray-500">文章加载失败</p>
+      </div>
+
+      <article id="articleContent" class="hidden max-w-3xl mx-auto mt-4"></article>
+    </div>
+  </div>
+
+  <script>
+    const BASE = '/BFTracker/news';
+    let loadedPages = {};
+
+    async function loadDetail() {
+      const params = new URLSearchParams(location.search);
+      const slug = params.get('slug');
+      if (!slug) { showError(); return; }
+
+      const wrap = document.getElementById('loadingWrap');
+      const content = document.getElementById('articleContent');
+      const err = document.getElementById('errorWrap');
+
+      try {
+        // 读取 index 获取总页数
+        const idxRes = await fetch(`${BASE}/index.json`);
+        const idx = await idxRes.json();
+        const totalPages = idx.totalPages || 1;
+
+        // 搜索 slug 在哪个页面
+        let article = null;
+        for (let p = 1; p <= totalPages; p++) {
+          const res = await fetch(`${BASE}/page-${p}.json`);
+          const page = await res.json();
+          const found = (page.articles || []).find(a => a.slug === slug);
+          if (found) { article = found; break; }
+        }
+
+        if (!article) { showError(); return; }
+
+        wrap.classList.add('hidden');
+        content.classList.remove('hidden');
+        document.getElementById('pageTitle').textContent = `${article.title} - BF Tracker`;
+
+        const typeClass = `type-${article.type}`;
+        const bodyHtml = article.body
+          ? marked.parse(article.body, { breaks: true })
+          : '<p class="text-gray-500 italic">暂无详细内容</p>';
+
+        content.innerHTML = `
+          ${article.img ? `<img src="${article.img}" alt="" class="w-full max-h-80 object-cover mb-6" onerror="this.style.display=\'none\'" referrerpolicy="no-referrer">` : ''}
+          <div class="flex items-center gap-2 mb-3">
+            <span class="type-badge ${typeClass}">${article.type}</span>
+            <span class="text-xs" style="color:var(--text-dim)">${fmtDate(article.date)}</span>
+          </div>
+          <h1 class="text-2xl font-bold mb-4">${article.title}</h1>
+          ${article.summary ? `<p class="text-sm leading-relaxed mb-6" style="color:var(--text-muted)">${article.summary}</p>` : ''}
+          <hr style="border:none;border-top:1px solid var(--border-default);margin-bottom:1.5rem">
+          <div class="article-body">${bodyHtml}</div>
+        `;
+      } catch (e) {
+        console.error(e);
+        showError();
+      }
+    }
+
+    function showError() {
+      document.getElementById('loadingWrap').classList.add('hidden');
+      document.getElementById('errorWrap').classList.remove('hidden');
+    }
+
+    const fmtDate = s => {
+      const d = new Date(s);
+      return `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getDate().toString().padStart(2,'0')}`;
+    };
+
+    loadDetail();
+  </script>
+</body>
+</html>

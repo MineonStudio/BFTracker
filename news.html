@@ -4,85 +4,66 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>新闻 - BF Tracker</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📰</text></svg>">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/input.css">
+  <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    :root { --bg: #0f1117; --card: #1a1d27; --border: #2a2d3a; --text: #e5e7eb; --muted: #6b7280; --accent: #f97316; }
-    body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; }
-    .bg-card { background: var(--card); }
-    .gradient-text { background: linear-gradient(135deg, #f97316, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .tab-active { color: white; border-bottom: 2px solid var(--accent); }
-    .spinner { border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; width: 32px; height: 32px; animation: spin .8s linear infinite; margin: 3rem auto; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .tab-active { color: #fff; border-bottom-color: rgba(255,255,255,0.3) !important; }
     .news-card { cursor: pointer; transition: all .2s; }
-    .news-card:hover { border-color: #f9731640; }
-    .page-btn { padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: .8rem; color: var(--muted); background: transparent; cursor: pointer; }
-    .page-btn:hover { border-color: var(--accent); color: white; }
-    .page-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .news-card:hover { border-color: rgba(255,255,255,0.15); }
+    .page-btn { padding: 6px 12px; border: 1px solid var(--border-default); font-size: .8rem; color: var(--text-muted); background: transparent; cursor: pointer; }
+    .page-btn:hover { border-color: var(--border-strong); color: #fff; }
+    .page-btn.active { background: var(--border-strong); color: #fff; border-color: var(--border-strong); }
     .page-btn:disabled { opacity: .3; cursor: not-allowed; }
-    .detail-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-    .detail-modal { background: var(--card); border-radius: 12px; max-width: 780px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; border: 1px solid var(--border); }
     .type-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .7rem; font-weight: 600; }
-    .type-游戏更新 { background: #1e3a5f; color: #60a5fa; }
-    .type-指南 { background: #1e3a2f; color: #4ade80; }
-    .type-新闻文章 { background: #3a1e2f; color: #f472b6; }
-    /* Markdown 正文 */
-    .article-body { font-size: .875rem; line-height: 1.8; color: #d1d5db; word-break: break-word; }
-    .article-body h1, .article-body h2 { font-size: 1.1rem; font-weight: 700; color: white; margin: 1.5rem 0 .5rem; }
-    .article-body h3 { font-size: 1rem; font-weight: 600; color: #e5e7eb; margin: 1.2rem 0 .4rem; }
-    .article-body h4 { font-size: .9rem; font-weight: 600; color: #d1d5db; margin: 1rem 0 .3rem; }
+    .type-游戏更新 { background: rgba(96,165,250,0.15); color: #60a5fa; }
+    .type-指南 { background: rgba(74,222,128,0.15); color: #4ade80; }
+    .type-新闻文章 { background: rgba(244,114,182,0.15); color: #f472b6; }
+    .article-body { font-size: .875rem; line-height: 1.8; color: var(--text-muted); word-break: break-word; }
+    .article-body h1, .article-body h2 { font-size: 1.1rem; font-weight: 700; color: #fff; margin: 1.5rem 0 .5rem; }
+    .article-body h3 { font-size: 1rem; font-weight: 600; margin: 1.2rem 0 .4rem; }
     .article-body p { margin-bottom: .75rem; }
     .article-body ul, .article-body ol { padding-left: 1.5rem; margin-bottom: .75rem; }
     .article-body li { margin-bottom: .3rem; }
-    .article-body strong { color: white; }
+    .article-body strong { color: #fff; }
     .article-body a { color: #60a5fa; text-decoration: underline; }
-    .article-body a:hover { color: #93c5fd; }
-    .article-body img { max-width: 100%; border-radius: 8px; margin: 1rem 0; }
-    .article-body hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
-    .article-body blockquote { border-left: 3px solid var(--accent); padding-left: 1rem; color: #9ca3af; margin: 1rem 0; }
-    .article-body code { background: #1f2937; padding: 1px 5px; border-radius: 4px; font-size: .8rem; }
-    .article-body pre { background: #111; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
-    .article-body table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .8rem; }
-    .article-body th, .article-body td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
-    .article-body th { background: #1f2937; color: #9ca3af; font-weight: 600; }
+    .article-body img { max-width: 100%; border-radius: 0; margin: 1rem 0; }
+    .article-body hr { border: none; border-top: 1px solid var(--border-default); margin: 1.5rem 0; }
+    .article-body blockquote { border-left: 3px solid var(--color-accent); padding-left: 1rem; color: var(--text-dim); margin: 1rem 0; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
-  <nav class="border-b border-gray-700 bg-card sticky top-0 z-10">
+<body class="bg-dark text-gray-200 min-h-screen flex flex-col">
+  <script>(function(){if(localStorage.theme==='light')document.body.classList.add('light')})()</script>
+
+  <nav class="border-b border-gray-700 bg-card relative">
     <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
       <a href="index.html" class="text-xl font-bold gradient-text">BF Tracker</a>
       <div class="flex gap-6 text-sm text-gray-400">
-        <a href="index.html" class="nav-link hover:text-white pb-1">首页</a>
-        <a href="compare.html" class="nav-link hover:text-white pb-1">多人对比</a>
-        <a href="news.html" class="nav-link text-white pb-1 border-b-2 border-orange-500">新闻</a>
+        <a href="index.html" aria-label="首页" class="nav-link hover:text-white pb-1">首页</a>
+        <a href="news.html" aria-label="新闻" class="nav-link active pb-1">新闻</a>
+        <a href="compare.html" aria-label="多人对比" class="nav-link hover:text-white pb-1">多人对比</a>
       </div>
     </div>
   </nav>
 
-  <div class="max-w-5xl mx-auto px-3 sm:px-4 py-6 flex-1 w-full">
-    <h1 class="text-2xl font-bold mb-6">《战地风云 6》新闻</h1>
+  <div class="flex-1 w-full">
+    <div class="max-w-5xl mx-auto px-3 sm:px-4 py-6">
+      <h1 class="text-2xl font-bold mb-6">《战地风云 6》新闻</h1>
 
-    <div class="flex gap-1 sm:gap-3 mb-6 overflow-x-auto pb-2 text-sm">
-      <button class="tab-btn tab-active px-3 py-1.5 text-gray-500 hover:text-white whitespace-nowrap" data-type="">最新</button>
-      <button class="tab-btn px-3 py-1.5 text-gray-500 hover:text-white whitespace-nowrap" data-type="游戏更新">游戏更新</button>
-      <button class="tab-btn px-3 py-1.5 text-gray-500 hover:text-white whitespace-nowrap" data-type="指南">指南</button>
-      <button class="tab-btn px-3 py-1.5 text-gray-500 hover:text-white whitespace-nowrap" data-type="新闻文章">新闻</button>
-    </div>
+      <div class="flex gap-1 sm:gap-3 mb-6 overflow-x-auto pb-2 text-sm">
+        <button class="tab-btn active px-3 py-1.5 whitespace-nowrap" data-type="">最新</button>
+        <button class="tab-btn px-3 py-1.5 whitespace-nowrap" data-type="游戏更新">游戏更新</button>
+        <button class="tab-btn px-3 py-1.5 whitespace-nowrap" data-type="指南">指南</button>
+        <button class="tab-btn px-3 py-1.5 whitespace-nowrap" data-type="新闻文章">新闻</button>
+      </div>
 
-    <div id="loadingWrap"><div class="spinner"></div></div>
-    <div id="errorWrap" class="hidden text-center py-12">
-      <p class="text-3xl mb-3">😵</p>
-      <p class="text-gray-500">加载新闻失败，请稍后重试</p>
-    </div>
-    <div id="newsGrid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-    <div id="pagination" class="hidden flex items-center justify-center gap-2 mt-8"></div>
-  </div>
-
-  <div id="detailOverlay" class="detail-overlay hidden" onclick="closeDetail(event)">
-    <div class="detail-modal p-6" onclick="event.stopPropagation()">
-      <button onclick="closeDetail()" class="absolute top-4 right-4 text-gray-500 hover:text-white text-xl leading-none w-8 h-8 flex items-center justify-center rounded hover:bg-gray-700">&times;</button>
-      <div id="detailContent"></div>
+      <div id="loadingWrap"><div class="spinner" style="margin:3rem auto"></div></div>
+      <div id="errorWrap" class="hidden text-center py-12">
+        <p class="text-3xl mb-3">😵</p>
+        <p class="text-gray-500">加载新闻失败，请稍后重试</p>
+      </div>
+      <div id="newsGrid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <div id="pagination" class="hidden flex items-center justify-center gap-2 mt-8"></div>
     </div>
   </div>
 
@@ -127,7 +108,6 @@
             if (!seen.has(a.slug)) { seen.add(a.slug); allArticles.push(a); }
           });
         });
-
         if (!allArticles.length) throw new Error('No articles');
         applyFilter();
       } catch (e) {
@@ -140,11 +120,9 @@
     function applyFilter() {
       const active = document.querySelector('.tab-btn.active');
       currentType = active ? (active.dataset.type || '') : '';
-      if (currentType) {
-        filteredArticles = allArticles.filter(a => a.type === currentType);
-      } else {
-        filteredArticles = [...allArticles];
-      }
+      filteredArticles = currentType
+        ? allArticles.filter(a => a.type === currentType)
+        : [...allArticles];
       currentPage = 1;
       renderPage();
     }
@@ -163,15 +141,15 @@
 
       grid.innerHTML = pageItems.map(a => {
         const typeClass = `type-${a.type}`;
-        return `<div class="bg-card border border-gray-800 rounded-xl overflow-hidden news-card" onclick="openDetail('${a.slug}')">
-          ${a.img ? `<img src="${a.img}" alt="" class="w-full h-40 object-cover" loading="lazy" onerror="this.style.display='none'" referrerpolicy="no-referrer">` : `<div class="w-full h-40 bg-gray-800 flex items-center justify-center text-gray-600 text-4xl">🎮</div>`}
+        return `<div class="bg-card border border-gray-800 rounded-xl overflow-hidden news-card fade-up" onclick="openDetail('${a.slug}')">
+          ${a.img ? `<img src="${a.img}" alt="" class="w-full h-40 object-cover" loading="lazy" onerror="this.style.display='none'" referrerpolicy="no-referrer">` : `<div class="w-full h-40 bg-card flex items-center justify-center text-4xl" style="color:var(--text-dim)">🎮</div>`}
           <div class="p-4">
             <div class="flex items-center gap-2 mb-2">
               <span class="type-badge ${typeClass}">${a.type}</span>
-              <span class="text-xs text-gray-600">${fmtDate(a.date)}</span>
+              <span class="text-xs" style="color:var(--text-dim)">${fmtDate(a.date)}</span>
             </div>
             <h3 class="font-semibold text-sm leading-snug mb-1 line-clamp-2">${a.title}</h3>
-            <p class="text-xs text-gray-500 line-clamp-2">${a.summary || ''}</p>
+            <p class="text-xs" style="color:var(--text-dim);line-clamp:2;-webkit-line-clamp:2;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical">${a.summary || ''}</p>
           </div>
         </div>`;
       }).join('');
@@ -183,7 +161,7 @@
         if (i === 1 || i === pages || Math.abs(i - currentPage) <= 2) {
           h += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
         } else if (!h.endsWith('…')) {
-          h += `<span class="text-gray-600 text-xs px-1">…</span>`;
+          h += `<span style="color:var(--text-dim);font-size:.75rem;padding:0 2px">…</span>`;
         }
       }
       h += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage >= pages ? 'disabled' : ''}>下一页 ›</button>`;
@@ -191,51 +169,16 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function goPage(p) {
-      currentPage = p;
-      renderPage();
-    }
+    function goPage(p) { currentPage = p; renderPage(); }
 
     function openDetail(slug) {
-      const article = allArticles.find(a => a.slug === slug);
-      if (!article) return;
-      const overlay = document.getElementById('detailOverlay');
-      const content = document.getElementById('detailContent');
-      const typeClass = `type-${article.type}`;
-      // 使用 marked 渲染 Markdown 正文
-      const bodyHtml = article.body
-        ? marked.parse(article.body, { breaks: true })
-        : '<p class="text-gray-500 italic">暂无详细内容</p>';
-      const coverImg = article.img
-        ? `<img src="${article.img}" alt="" class="w-full rounded-lg mb-4 max-h-72 object-cover" onerror="this.style.display='none'" referrerpolicy="no-referrer">`
-        : '';
-      content.innerHTML = `
-        ${coverImg}
-        <div class="flex items-center gap-2 mb-3">
-          <span class="type-badge ${typeClass}">${article.type}</span>
-          <span class="text-xs text-gray-600">${fmtDate(article.date)}</span>
-        </div>
-        <h2 class="text-xl font-bold mb-4">${article.title}</h2>
-        ${article.summary ? `<p class="text-sm text-gray-400 leading-relaxed mb-6">${article.summary}</p>` : ''}
-        <hr class="border-gray-700 mb-4">
-        <div class="article-body">${bodyHtml}</div>
-      `;
-      overlay.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
+      window.location.href = `news-detail.html?slug=${encodeURIComponent(slug)}`;
     }
-
-    function closeDetail(e) {
-      if (e && e.target !== e.currentTarget) return;
-      document.getElementById('detailOverlay').classList.add('hidden');
-      document.body.style.overflow = '';
-    }
-
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
-        btn.classList.add('tab-active');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active', 'active'));
+        btn.classList.add('tab-active', 'active');
         applyFilter();
       });
     });
