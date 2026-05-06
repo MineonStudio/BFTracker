@@ -466,7 +466,7 @@
               <div class="hidden lg:block flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#3b82f6,#8b5cf6)"></div></div>
               <span class="text-sm lg:text-xs font-bold text-accent lg:text-white w-auto lg:w-12 text-right shrink-0">${formatNum(w.kills)}</span>
             </div>
-            <div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总伤害<div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(w.damage))}</div></div><div style="color:#6b7280">命中率<div style="color:#d1d5db;font-size:11px">${formatPct(w.accuracy)}</div></div><div style="color:#6b7280">爆头率<div style="color:#d1d5db;font-size:11px">${formatPct(w.headshots)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}</div></div></div>
+            <div style="font-size:10px;margin-top:4px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;text-align:center"><div style="color:#6b7280">总伤害<div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(w.damage))}</div></div><div style="color:#6b7280">命中率<div style="color:#d1d5db;font-size:11px">${formatPct(w.accuracy)}</div></div><div style="color:#6b7280">爆头率<div style="color:#d1d5db;font-size:11px">${formatPct(w.headshots)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${w.timeEquipped ? formatSeconds(w.timeEquipped) : '—'}</div></div></div>
           </div>
         </div>`;
       }).join('');
@@ -491,7 +491,7 @@
               <div class="hidden lg:block flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:linear-gradient(90deg,#3b82f6,#8b5cf6)"></div></div>
               <span class="text-sm font-bold text-accent lg:text-white w-auto lg:w-14 text-right shrink-0">${formatNum(v.kills)}</span>
             </div>
-            <div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总伤害<div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(v.damage||0))}</div></div><div style="color:#6b7280">摧毁载具<div style="color:#d1d5db;font-size:11px">${formatNum(v.destroyed)}</div></div><div style="color:#6b7280">路杀<div style="color:#d1d5db;font-size:11px">${formatNum(v.roadKills||0)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}</div></div></div>
+            <div style="font-size:10px;margin-top:4px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;text-align:center"><div style="color:#6b7280">总伤害<div style="color:#d1d5db;font-size:11px">${formatNum(Math.round(v.damage||0))}</div></div><div style="color:#6b7280">摧毁载具<div style="color:#d1d5db;font-size:11px">${formatNum(v.destroyed)}</div></div><div style="color:#6b7280">路杀<div style="color:#d1d5db;font-size:11px">${formatNum(v.roadKills||0)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${(v.timeIn||v.secondsPlayed) ? formatSeconds(v.timeIn||v.secondsPlayed) : '—'}</div></div></div>
           </div>
         </div>`;
       }).join('');
@@ -670,7 +670,7 @@
               <div class="hidden lg:block flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div>
               <span class="text-sm font-bold w-auto lg:w-14 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span>
             </div>
-            <div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总场次<div style="color:#d1d5db;font-size:11px">${m.matches}</div></div><div style="color:#6b7280">胜场<div style="color:#d1d5db;font-size:11px">${formatNum(m.wins)}</div></div><div style="color:#6b7280">负场<div style="color:#d1d5db;font-size:11px">${formatNum(m.losses)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${formatSeconds(m.secondsPlayed)}</div></div></div>
+            <div style="font-size:10px;margin-top:4px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;text-align:center"><div style="color:#6b7280">总场次<div style="color:#d1d5db;font-size:11px">${m.matches}</div></div><div style="color:#6b7280">胜场<div style="color:#d1d5db;font-size:11px">${formatNum(m.wins)}</div></div><div style="color:#6b7280">负场<div style="color:#d1d5db;font-size:11px">${formatNum(m.losses)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${formatSeconds(m.secondsPlayed)}</div></div></div>
           </div>
         </div>`;
       }).join('');
@@ -696,7 +696,7 @@
               <div class="hidden lg:block flex-1 bg-gray-700/50 rounded-full h-3 overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${color}"></div></div>
               <span class="text-sm font-bold w-auto lg:w-14 text-right shrink-0" style="color:${color}">${pct.toFixed(1)}%</span>
             </div>
-            <div style="font-size:10px;margin-top:4px;display:flex;gap:18px"><div style="color:#6b7280">总场次<div style="color:#d1d5db;font-size:11px">${m.matches}</div></div><div style="color:#6b7280">胜场<div style="color:#d1d5db;font-size:11px">${formatNum(m.wins)}</div></div><div style="color:#6b7280">负场<div style="color:#d1d5db;font-size:11px">${formatNum(m.losses)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${formatSeconds(m.secondsPlayed)}</div></div></div>
+            <div style="font-size:10px;margin-top:4px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;text-align:center"><div style="color:#6b7280">总场次<div style="color:#d1d5db;font-size:11px">${m.matches}</div></div><div style="color:#6b7280">胜场<div style="color:#d1d5db;font-size:11px">${formatNum(m.wins)}</div></div><div style="color:#6b7280">负场<div style="color:#d1d5db;font-size:11px">${formatNum(m.losses)}</div></div><div style="color:#6b7280">时长<div style="color:#d1d5db;font-size:11px">${formatSeconds(m.secondsPlayed)}</div></div></div>
           </div>
         </div>`;
       }).join('');
