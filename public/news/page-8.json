@@ -1,8 +1,19 @@
 {
   "page": 8,
   "totalPages": 8,
-  "totalItems": 92,
+  "totalItems": 93,
   "articles": [
+    {
+      "title": "关于 Beta 公测你需要知道的一切",
+      "summary": "了解在 Beta 公测期间等待你的模式、地图和挑战的详细信息。",
+      "slug": "everything-you-need-to-know-for-the-open-beta",
+      "type": "新闻文章",
+      "date": "2025-08-04T23:00:00.000+08:00",
+      "img": "https://drop-assets.ea.com/images/4e7YS68ywVQqUhZszC2VhT/c6650f51ab36f8bd0f887b7f55927a43/GLA_OpenBeta_0388_3840x2160.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
     {
       "title": "社区更新 - Beta 公测和发行之路",
       "summary": "我们将讨论根据大家的反馈，对 Beta 公测所做的调整，以及你们如何帮助我们为《战地风云 6》的正式发行做好准备。",

@@ -1,8 +1,19 @@
 {
   "page": 7,
   "totalPages": 8,
-  "totalItems": 92,
+  "totalItems": 93,
   "articles": [
+    {
+      "title": "《战地风云 101》：全面战争时刻到",
+      "summary": "关于《战地风云 6》发布时你需要了解的一切，从战役到多人模式地图、模式等等。",
+      "slug": "battlefield-101",
+      "type": "新闻文章",
+      "date": "2025-10-10T16:00:00.000+01:00",
+      "img": "https://drop-assets.ea.com/images/63e0S1gWvaFpYSAHyCu5Zo/5a0f2fec92b19ae8e8de9ac99e15e0d3/battlefield-6-all-out-warfare-16x9.jpg?im=AspectCrop=(16,9),xPosition=0.1859375,yPosition=0.37777777777777777",
+      "featured": false,
+      "tags": [],
+      "body": ""
+    },
     {
       "title": "《战地风云 6》- 更新说明 1.0.1.0",
       "summary": "《战地风云 6》正式发售并同步推出补丁 1.0.1.0，为游戏带来了大量更新与改进。",
@@ -119,17 +130,6 @@
       "slug": "open-beta-week-2-playlist-options",
       "type": "新闻文章",
       "date": "2025-08-13T16:00:00.000+01:00",
-      "img": "https://drop-assets.ea.com/images/4e7YS68ywVQqUhZszC2VhT/c6650f51ab36f8bd0f887b7f55927a43/GLA_OpenBeta_0388_3840x2160.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
-      "featured": false,
-      "tags": [],
-      "body": ""
-    },
-    {
-      "title": "关于 Beta 公测你需要知道的一切",
-      "summary": "了解在 Beta 公测期间等待你的模式、地图和挑战的详细信息。",
-      "slug": "everything-you-need-to-know-for-the-open-beta",
-      "type": "新闻文章",
-      "date": "2025-08-04T23:00:00.000+08:00",
       "img": "https://drop-assets.ea.com/images/4e7YS68ywVQqUhZszC2VhT/c6650f51ab36f8bd0f887b7f55927a43/GLA_OpenBeta_0388_3840x2160.jpg?im=AspectCrop=(16,9),xPosition=0.5,yPosition=0.5",
       "featured": false,
       "tags": [],

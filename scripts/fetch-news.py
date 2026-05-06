@@ -62,6 +62,15 @@ for type_key, params in TYPES.items():
         try:
             data = fetch(url)
             items = data.get('items', [])
+            # 第一页的 featured 精选文章也收录
+            if page == 0:
+                featured = data.get('featured')
+                if featured and featured.get('slug'):
+                    slug = featured['slug']
+                    if slug not in seen:
+                        seen.add(slug)
+                        all_articles.append(extract_article(featured))
+                        print(f'{type_key}: page 1 featured → {featured["title"][:40]}')
             if not items:
                 break
             for a in items:
