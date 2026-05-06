@@ -211,10 +211,9 @@
 
       // 计算衍生数据
       const allClass = allData?.classes?.find(c => c.id === 'kit') || allData?.classes?.[0];
-      // SPM：优先从 classes 计算，其次用 stats.scorePerMinute 直接字段
       const spm = (allClass?.score && allClass?.secondsPlayed)
         ? (allClass.score / (allClass.secondsPlayed / 60)).toFixed(2)
-        : (stats.scorePerMinute != null ? parseFloat(stats.scorePerMinute).toFixed(2) : null);
+        : null;
       // matchesPlayed：字段不存在时用 wins + loses 兜底
       const matchesPlayed = stats.matchesPlayed ?? ((stats.wins != null && stats.loses != null) ? stats.wins + stats.loses : null);
       const deathsPerMatch = matchesPlayed
@@ -816,7 +815,7 @@
       const humanKills = stats.dividedKills?.human || stats.kills || 0;
       const spmVal = (allClass?.score && allClass?.secondsPlayed)
         ? (allClass.score / (allClass.secondsPlayed / 60)).toFixed(2)
-        : (stats.scorePerMinute != null ? parseFloat(stats.scorePerMinute).toFixed(2) : null);
+        : null;
       const mp = stats.matchesPlayed ?? ((stats.wins != null && stats.loses != null) ? stats.wins + stats.loses : null);
       const hp = stats.headshots;
       const hkr = humanKills / (stats.deaths || 1);
